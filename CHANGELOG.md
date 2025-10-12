@@ -1,3 +1,10 @@
+## [0.1.1](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.1.0...v0.1.1) (2025-10-12)
+
+
+### Bug Fixes
+
+* 불필요한 예제 코드 및 테스트 코드 제거 ([a25b9ae](https://github.com/swyp-web-11-team-4/airoad-backend/commit/a25b9ae1b7a3e17281b5cb047234978b98f69b3b))
+
 # [0.1.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.0.1...v0.1.0) (2025-10-12)
 
 

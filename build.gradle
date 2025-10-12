@@ -1,12 +1,18 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.5.6'
-    id 'io.spring.dependency-management' version '1.1.7'
+    id 'plugin.coverage'
+    id 'plugin.spotless'
+    id 'plugin.sonar'
+
+    alias(libs.plugins.kotlin)
+    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.spring.dependency.management)
 }
 
-group = 'com.swygbro'
-version = '0.0.1-SNAPSHOT'
-description = 'airoad-backend'
+allprojects {
+    group = 'com.swygbro'
+    description = 'airoad-backend'
+}
 
 java {
     toolchain {
@@ -19,11 +25,44 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // Spring Boot Starter
+    implementation libs.spring.boot.starter.web
+    implementation libs.spring.boot.starter.data.jpa
+    implementation libs.spring.boot.openapi.starter.webmvc.ui
+    implementation libs.spring.boot.starter.websocket
+    implementation libs.spring.boot.starter.actuator
+
+    // TODO: 사용자 인증 관련 개발 시 주석 해제 후 개발 진행
+//    implementation libs.spring.boot.starter.security
+//    implementation libs.spring.boot.starter.oauth2.client
+
+    // Lombok
+    compileOnly libs.lombok
+    annotationProcessor libs.lombok
+
+    // Development
+    developmentOnly libs.spring.boot.starter.devtools
+
+    // Database
+    runtimeOnly libs.mysql
+
+    // Test
+    testImplementation libs.spring.boot.starter.test
+    testRuntimeOnly libs.h2
+    testCompileOnly libs.lombok
+    testAnnotationProcessor libs.lombok
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+    finalizedBy 'jacocoTestReport'
+}
+
+tasks.named("check") {
+    dependsOn(tasks.named("jacocoTestCoverageVerification"))
+    dependsOn(tasks.named("spotlessCheck"))
+
+    doLast {
+        print("커버리지 및 포맷팅 검사가 완료되었습니다:)")
+    }
 }

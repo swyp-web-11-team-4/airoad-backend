@@ -26,13 +26,6 @@ public class ExampleController {
 
   private final ExampleUseCase exampleUseCase;
 
-  @Operation(summary = "Hello World", description = "간단한 환영 메시지를 반환합니다.")
-  @GetMapping("/hello")
-  public ResponseEntity<CommonResponse<ExampleResponse>> hello() {
-    ExampleResponse data = exampleUseCase.getHelloMessage();
-    return ResponseEntity.ok(CommonResponse.success(HttpStatus.OK, data));
-  }
-
   @Operation(summary = "Example 조회", description = "ID로 Example을 조회합니다.")
   @GetMapping("/{id}")
   public ResponseEntity<CommonResponse<ExampleResponse>> getExample(

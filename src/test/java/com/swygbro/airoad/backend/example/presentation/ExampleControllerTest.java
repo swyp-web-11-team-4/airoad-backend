@@ -32,28 +32,6 @@ class ExampleControllerTest {
   @MockitoBean private ExampleUseCase exampleUseCase;
 
   @Nested
-  @DisplayName("GET /api/v1/examples/hello")
-  class GetHello {
-
-    @Test
-    @DisplayName("Hello World 메시지를 반환한다")
-    void shouldReturnHelloMessage() throws Exception {
-      // given
-      String expectedMessage = "Hello, World!";
-      given(exampleUseCase.getHelloMessage()).willReturn(ExampleResponse.of(expectedMessage));
-
-      // when & then
-      mockMvc
-          .perform(get("/api/v1/examples/hello"))
-          .andExpect(status().isOk())
-          .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-          .andExpect(jsonPath("$.success").value(true))
-          .andExpect(jsonPath("$.status").value(200))
-          .andExpect(jsonPath("$.data.name").value(expectedMessage));
-    }
-  }
-
-  @Nested
   @DisplayName("GET /api/v1/examples/{id}")
   class GetExampleById {
 

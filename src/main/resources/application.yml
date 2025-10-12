@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: airoad-backend
+  profiles:
+    active: local
+  jackson:
+    default-property-inclusion: non_empty

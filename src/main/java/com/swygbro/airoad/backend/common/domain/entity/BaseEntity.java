@@ -1,5 +1,8 @@
 package com.swygbro.airoad.backend.common.domain.entity;
 
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -19,6 +22,10 @@ import lombok.Getter;
 @EntityListeners(AuditingEntityListener.class)
 @SoftDelete(columnName = "deleted")
 public abstract class BaseEntity {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
   @CreatedDate
   @Column(name = "created_at", nullable = false, updatable = false)

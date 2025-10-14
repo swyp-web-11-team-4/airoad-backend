@@ -1,3 +1,10 @@
+## [0.1.2](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.1.1...v0.1.2) (2025-10-14)
+
+
+### Bug Fixes
+
+* Remove unnecessary example code and package structure ([fbb700b](https://github.com/swyp-web-11-team-4/airoad-backend/commit/fbb700b1caa2e3dfc57f7a317cbe5ddb06ce3800)), closes [#5](https://github.com/swyp-web-11-team-4/airoad-backend/issues/5)
+
 ## [0.1.1](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.1.0...v0.1.1) (2025-10-12)
 
 

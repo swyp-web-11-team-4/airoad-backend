@@ -6,6 +6,7 @@ kotlin = "2.0.21"
 spring-boot = "3.5.6"
 spring-dependency-management = "1.1.7"
 spring-doc = "2.8.13"
+spring-ai-bom = "1.0.0"
 
 # Security & JWT
 jjwt = "0.12.6"
@@ -14,6 +15,9 @@ jjwt = "0.12.6"
 sonarqube = "4.4.1.3373"
 spotless = "6.25.0"
 
+hibernate-spatial = "5.6.15.Final"
+pgvector = "0.1.6"
+
 [libraries]
 # JWT
 jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
@@ -21,8 +25,11 @@ jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
 jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
 
 # Database
-mysql = { module = "com.mysql:mysql-connector-j" }
+postgresql = { module = "org.postgresql:postgresql" }
 h2 = { module = "com.h2database:h2" }
+
+# Hibernate
+hibernate-spatial = { module = "org.hibernate:hibernate-spatial", version.ref = "hibernate-spatial" }
 
 # Spring Boot Starters
 spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
@@ -34,6 +41,12 @@ spring-boot-starter-devtools = { module = "org.springframework.boot:spring-boot-
 spring-boot-starter-websocket = { module = "org.springframework.boot:spring-boot-starter-websocket" }
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator"}
 spring-boot-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "spring-doc" }
+
+# Spring AI
+spring-ai-bom = { module = "org.springframework.ai:spring-ai-bom", version.ref = "spring-ai-bom" }
+spring-ai-openai = { module = "org.springframework.ai:spring-ai-starter-model-openai" }
+spring-ai-pgvector-store = { module = "org.springframework.ai:spring-ai-pgvector-store" }
+spring-ai-chat-memory-repository-jdbc = { module = "org.springframework.ai:spring-ai-starter-model-chat-memory-repository-jdbc"}
 
 # Lombok
 lombok = { module = "org.projectlombok:lombok"}

@@ -36,6 +36,8 @@ dependencies {
 //    implementation libs.spring.boot.starter.security
 //    implementation libs.spring.boot.starter.oauth2.client
 
+    implementation libs.hibernate.spatial
+
     // Lombok
     compileOnly libs.lombok
     annotationProcessor libs.lombok
@@ -44,7 +46,7 @@ dependencies {
     developmentOnly libs.spring.boot.starter.devtools
 
     // Database
-    runtimeOnly libs.mysql
+    runtimeOnly libs.postgresql
 
     // Test
     testImplementation libs.spring.boot.starter.test

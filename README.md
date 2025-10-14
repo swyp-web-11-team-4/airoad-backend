@@ -7,7 +7,7 @@ Spring Boot 3.5.6 + Java 17 기반의 백엔드 프로젝트입니다.
 - **Language**: Java 17
 - **Framework**: Spring Boot 3.5.6
 - **Build Tool**: Gradle
-- **Database**: JPA, H2 (Test), MySQL 8.x
+- **Database**: JPA, H2 (Test), PostgreSQL 16.x
 - **Documentation**: Swagger/OpenAPI
 - **Code Quality**:
   - Spotless (Code Formatting)

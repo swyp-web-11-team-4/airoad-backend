@@ -2,6 +2,7 @@ package com.swygbro.airoad.backend.example.presentation;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,5 +42,14 @@ public class ExampleController {
     ExampleResponse data = exampleUseCase.createExample(name);
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(CommonResponse.success(HttpStatus.CREATED, data));
+  }
+
+  @Operation(summary = "Example 삭제", description = "Example을 삭제합니다.")
+  @DeleteMapping("/{id}")
+  public ResponseEntity<CommonResponse<Void>> deleteExample(
+      @Parameter(description = "Example ID") @PathVariable Long id) {
+    exampleUseCase.deleteExample(id);
+    return ResponseEntity.status(HttpStatus.NO_CONTENT)
+        .body(CommonResponse.success(HttpStatus.NO_CONTENT, null));
   }
 }

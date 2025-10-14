@@ -43,4 +43,10 @@ public class ExampleService implements ExampleUseCase {
     Example savedExample = exampleRepository.save(example);
     return ExampleResponse.from(savedExample);
   }
+
+  @Override
+  @Transactional
+  public void deleteExample(Long id) {
+    exampleRepository.deleteById(id);
+  }
 }

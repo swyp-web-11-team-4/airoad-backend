@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 /** ExampleService의 테스트 클래스입니다. */
@@ -61,7 +62,9 @@ class ExampleServiceTest {
     void shouldReturnExampleById() {
       // given
       Long exampleId = 1L;
-      Example example = new Example(exampleId, "Test Example");
+      Example example = mock(Example.class);
+      given(example.getId()).willReturn(exampleId);
+      given(example.getName()).willReturn("Test Example");
       given(exampleRepository.findById(exampleId)).willReturn(Optional.of(example));
 
       // when
@@ -99,7 +102,9 @@ class ExampleServiceTest {
     void shouldCreateExampleWithValidName() {
       // given
       String name = "New Example";
-      Example savedExample = new Example(1L, name);
+      Example savedExample = mock(Example.class);
+      given(savedExample.getId()).willReturn(1L);
+      given(savedExample.getName()).willReturn(name);
       given(exampleRepository.save(any(Example.class))).willReturn(savedExample);
 
       // when

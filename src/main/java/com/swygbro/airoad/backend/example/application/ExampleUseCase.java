@@ -3,6 +3,7 @@ package com.swygbro.airoad.backend.example.application;
 import com.swygbro.airoad.backend.example.domain.dto.ExampleResponse;
 
 public interface ExampleUseCase {
+
   /**
    * Hello 메시지를 반환합니다.
    *
@@ -25,4 +26,11 @@ public interface ExampleUseCase {
    * @return ExampleResponse
    */
   ExampleResponse createExample(String name);
+
+  /**
+   * Example을 삭제합니다.
+   *
+   * @param id Example ID
+   */
+  void deleteExample(Long id);
 }

@@ -16,24 +16,20 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends BaseEntity {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
-
-  @Column(nullable = false, name = "email")
+  @Column(nullable = false)
   private String email;
 
-  @Column(nullable = false, name = "picture")
-  private String picture;
+  @Column(nullable = false)
+  private String imageUrl;
 
-  @Column(nullable = false, name = "name")
+  @Column(nullable = false)
   private String name;
 
-  @Column(nullable = false, name = "provider")
+  @Column(nullable = false)
   @Enumerated(EnumType.STRING)
   private ProviderType provider;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false, name = "role")
+  @Column(nullable = false)
   private MemberRole role;
 }

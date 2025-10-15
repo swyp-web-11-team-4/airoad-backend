@@ -15,7 +15,7 @@ jjwt = "0.12.6"
 sonarqube = "4.4.1.3373"
 spotless = "6.25.0"
 
-hibernate-spatial = "5.6.15.Final"
+hibernate-spatial = "6.6.29.Final"
 pgvector = "0.1.6"
 
 [libraries]

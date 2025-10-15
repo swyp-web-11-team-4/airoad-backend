@@ -41,3 +41,6 @@ application*.properties
 
 ### Claude Code ###
 .claude/settings.local.json
+
+### Docker Compose ###
+/docker-compose.local.yml

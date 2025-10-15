@@ -95,25 +95,4 @@ public class ChatMessageController {
     // 입장 알림 전송 (선택사항)
     // messagingTemplate.convertAndSend("/topic/chatroom/" + roomId + "/enter", enterNotification);
   }
-
-  /**
-   * 채팅방 퇴장 처리
-   *
-   * <p>사용자가 채팅방에서 퇴장할 때 호출됩니다. 퇴장 알림을 해당 채팅방 구독자들에게 전송합니다.
-   *
-   * @param chatRoomId 채팅방 ID
-   * @param sessionId WebSocket 세션 ID
-   */
-  @MessageMapping("/chatroom/{chatRoomId}/leave")
-  public void leaveChatRoom(
-      @DestinationVariable Long chatRoomId, @Header("simpSessionId") String sessionId) {
-
-    log.info("채팅방 퇴장 - roomId: {}, sessionId: {}", chatRoomId, sessionId);
-
-    // TODO: 퇴장 처리 로직 (Redis에서 세션 정보 제거, 참여자 수 업데이트 등)
-    // chatRoomService.leaveRoom(roomId, sessionId);
-
-    // 퇴장 알림 전송 (선택사항)
-    // messagingTemplate.convertAndSend("/topic/chatroom/" + roomId + "/leave", leaveNotification);
-  }
 }

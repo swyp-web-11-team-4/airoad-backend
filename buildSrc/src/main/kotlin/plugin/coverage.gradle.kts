@@ -8,6 +8,7 @@ val excludePatterns =
         "**/config/**",
         "**/domain/**",
         "**/exception/**",
+        "**/chat/presentation/**", // TODO: 명세용 controller만 만든 상황이라 controller 구현 후 제거하겠습니다.
         "**/*Application*",
         "**/*Config*",
         "**/*Dto*",

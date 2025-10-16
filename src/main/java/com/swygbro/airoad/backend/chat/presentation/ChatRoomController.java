@@ -16,7 +16,6 @@ import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageDto;
 import com.swygbro.airoad.backend.chat.domain.dto.ChatRoomDto;
 import com.swygbro.airoad.backend.common.domain.dto.CommonResponse;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
-import com.swygbro.airoad.backend.common.domain.dto.PageResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

@@ -1,3 +1,10 @@
+# [0.2.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.1.2...v0.2.0) (2025-10-16)
+
+
+### Features
+
+* JPA 도메인 엔티티 클래스 추가 ([#14](https://github.com/swyp-web-11-team-4/airoad-backend/issues/14)) ([f329571](https://github.com/swyp-web-11-team-4/airoad-backend/commit/f32957136c7b66978fb5428f0e34a750bfe93d00))
+
 ## [0.1.2](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.1.1...v0.1.2) (2025-10-14)
 
 

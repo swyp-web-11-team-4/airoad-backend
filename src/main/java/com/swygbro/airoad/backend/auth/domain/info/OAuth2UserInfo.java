@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.security.domain.info;
+package com.swygbro.airoad.backend.auth.domain.info;
 
 import java.util.Map;
 
@@ -11,5 +11,5 @@ public interface OAuth2UserInfo {
 
   String getImageUrl();
 
-  Map<String, Object> getAttributes();
+  Map<String, Object> attributes();
 }

@@ -1,3 +1,12 @@
+# [0.3.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.2.0...v0.3.0) (2025-10-16)
+
+
+### Features
+
+* 채팅 API 컨트롤러 추가 (ChatRoom, ChatMessage) ([f19c9bb](https://github.com/swyp-web-11-team-4/airoad-backend/commit/f19c9bb11ffc80e26db04bc902d1830c8a36ca40))
+* 채팅 API용 DTO 추가 (ChatMessage, ChatRoom, CursorPageResponse) ([4ccfb7a](https://github.com/swyp-web-11-team-4/airoad-backend/commit/4ccfb7abb32d8d7a0a725faaf1d18feb4493a629))
+* 채팅 메시지 타입 및 미디어 지원 기능 추가 ([d99de5d](https://github.com/swyp-web-11-team-4/airoad-backend/commit/d99de5d37bb9d7c46433d4c7edd1ebc0ad176a75))
+
 # [0.2.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.1.2...v0.2.0) (2025-10-16)
 
 

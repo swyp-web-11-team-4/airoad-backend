@@ -10,7 +10,8 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
-import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageDto;
+import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageRequest;
+import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -49,7 +50,7 @@ public class ChatMessageController {
   @MessageMapping("/chatroom/{chatRoomId}/message")
   public void sendMessage(
       @DestinationVariable Long chatRoomId,
-      @Valid @Payload ChatMessageDto.Request messageRequest,
+      @Valid @Payload ChatMessageRequest messageRequest,
       @Header("simpSessionId") String sessionId) {
 
     log.info(
@@ -59,11 +60,11 @@ public class ChatMessageController {
         messageRequest.content());
 
     // TODO: 서비스 레이어에서 메시지 처리 (DB 저장, AI 응답 생성 등)
-    // ChatMessageDto.Response response = chatMessageService.processMessage(roomId,
+    // ChatMessageResponse response = chatMessageService.processMessage(roomId,
     // messageRequest, sessionId);
 
     // 임시 응답 (실제 구현 시 서비스에서 생성된 응답 사용)
-    ChatMessageDto.Response response = null;
+    ChatMessageResponse response = null;
 
     // 해당 채팅방을 구독 중인 모든 클라이언트에게 메시지 브로드캐스트
     if (messagingTemplate != null) {

@@ -12,8 +12,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageDto;
-import com.swygbro.airoad.backend.chat.domain.dto.ChatRoomDto;
+import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageResponse;
+import com.swygbro.airoad.backend.chat.domain.dto.ChatRoomCreateRequest;
+import com.swygbro.airoad.backend.chat.domain.dto.ChatRoomResponse;
 import com.swygbro.airoad.backend.common.domain.dto.CommonResponse;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
 
@@ -34,8 +35,8 @@ public class ChatRoomController {
 
   @Operation(summary = "채팅방 생성", description = "새로운 채팅방을 생성합니다.")
   @PostMapping
-  public ResponseEntity<CommonResponse<ChatRoomDto.Response>> createChatRoom(
-      @Valid @RequestBody ChatRoomDto.CreateRequest createRequest) {
+  public ResponseEntity<CommonResponse<ChatRoomResponse>> createChatRoom(
+      @Valid @RequestBody ChatRoomCreateRequest createRequest) {
     // TODO: Implement
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(CommonResponse.success(HttpStatus.CREATED, null));
@@ -89,7 +90,7 @@ public class ChatRoomController {
                             """)))
       })
   @GetMapping("/{chatRoomId}/messages")
-  public ResponseEntity<CommonResponse<CursorPageResponse<ChatMessageDto.Response>>> getMessages(
+  public ResponseEntity<CommonResponse<CursorPageResponse<ChatMessageResponse>>> getMessages(
       @Parameter(description = "채팅방 ID", example = "1") @PathVariable Long chatRoomId,
       @Parameter(description = "조회할 메시지 개수", example = "50") @RequestParam(defaultValue = "50")
           int size,

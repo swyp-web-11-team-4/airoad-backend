@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.security.domain.entity;
+package com.swygbro.airoad.backend.auth.domain.entity;
 
 import java.time.LocalDateTime;
 

@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.member.domain.enumerated;
+package com.swygbro.airoad.backend.member.domain.entity;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

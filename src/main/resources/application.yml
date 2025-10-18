@@ -3,5 +3,7 @@ spring:
     name: airoad-backend
   profiles:
     active: local
+    include:
+      - chat
   jackson:
     default-property-inclusion: non_empty

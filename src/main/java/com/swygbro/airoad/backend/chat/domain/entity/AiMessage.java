@@ -2,6 +2,8 @@ package com.swygbro.airoad.backend.chat.domain.entity;
 
 import jakarta.persistence.*;
 
+import org.springframework.ai.chat.messages.MessageType;
+
 import com.swygbro.airoad.backend.common.domain.entity.BaseEntity;
 
 import lombok.AccessLevel;
@@ -20,10 +22,10 @@ public class AiMessage extends BaseEntity {
   @JoinColumn(nullable = false)
   private AiConversation conversation;
 
-  /** 메시지 발신자 (USER 또는 AI) */
+  /** 메시지 발신자 */
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  private Sender sender;
+  private MessageType messageType;
 
   /** 메시지 내용 */
   @Lob
@@ -31,9 +33,9 @@ public class AiMessage extends BaseEntity {
   private String content;
 
   @Builder
-  private AiMessage(AiConversation conversation, Sender sender, String content) {
+  private AiMessage(AiConversation conversation, MessageType messageType, String content) {
     this.conversation = conversation;
-    this.sender = sender;
+    this.messageType = messageType;
     this.content = content;
   }
 }

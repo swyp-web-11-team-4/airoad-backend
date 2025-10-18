@@ -1,13 +1,46 @@
 # SWYP Web 11기 Team 4 Backend
 
-Spring Boot 3.5.6 + Java 17 기반의 백엔드 프로젝트입니다.
+Spring Boot 3.5.6 + Java 17 기반의 **여행 일정 추천 AI 서비스** 백엔드 프로젝트입니다.
+
+## 📖 서비스 소개
+
+AI 기술을 활용하여 사용자의 선호도와 여행 조건에 맞는 최적화된 여행 일정을 자동으로 생성하고, 대화형 인터페이스를 통해 쉽게 수정할 수 있는 서비스를 제공합니다.
+
+### 핵심 가치
+- **자동화된 일정 생성**: 수동으로 일정을 짜는 시간과 노력을 절감합니다
+- **최적화된 동선**: 이동 시간을 고려한 효율적인 경로를 제안합니다
+- **유연한 수정**: 챗봇 대화 또는 직접 편집을 통해 손쉽게 일정을 조정할 수 있습니다
+- **개인화**: 테마와 선호도 기반으로 맞춤형 여행지를 추천합니다
+
+### 주요 기능
+1. **여행 정보 입력**
+   - 여행 도시, 날짜, 기간, 인원 수 입력
+   - 여행 테마 선택 (체험/액티비티, 문화/역사, 자연/힐링, 맛집 투어, 쇼핑 등)
+
+2. **AI 일정 자동 생성**
+   - RAG(Retrieval-Augmented Generation) 기반 관광지 추천
+   - 이동 시간을 고려한 최적 동선 계획
+   - 일자별 상세 일정, 숙소, 맛집 추천
+
+3. **일정 수정**
+   - **챗봇 대화 수정**: "첫째 날 일정을 더 여유롭게 조정해줘" 같은 자연어로 요청
+   - **직접 편집**: 드래그 앤 드롭으로 장소 순서 변경 또는 추가/삭제
+
+4. **일정 확정 및 저장**
+   - 최종 확정된 일정을 "내 여행 일정"에 저장
+   - 언제든지 조회 및 재수정 가능
 
 ## 🚀 기술 스택 (Technology Stack)
 
 - **Language**: Java 17
 - **Framework**: Spring Boot 3.5.6
 - **Build Tool**: Gradle
-- **Database**: JPA, H2 (Test), PostgreSQL 16.x
+- **Database**: JPA, H2 (Test), PostgreSQL 16.x (+ pgvector for RAG)
+- **Cache**: Redis
+- **External APIs**:
+  - 공공 관광 데이터 API
+  - Naver 거리 측정 API
+  - LLM Model (Naver ClovaX)
 - **Documentation**: Swagger/OpenAPI
 - **Code Quality**:
   - Spotless (Code Formatting)

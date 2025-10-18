@@ -3,7 +3,7 @@ package com.swygbro.airoad.backend.chat.domain.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "메시지 타입")
-public enum MessageType {
+public enum MessageContentType {
   @Schema(description = "텍스트 메시지")
   TEXT,
 

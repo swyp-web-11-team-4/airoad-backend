@@ -2,98 +2,78 @@ package com.swygbro.airoad.backend.chat.presentation;
 
 import jakarta.validation.Valid;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
+import com.swygbro.airoad.backend.chat.application.ChatMessageUseCase;
 import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageRequest;
-import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.security.Principal;
+
 /**
- * STOMP WebSocket 기반 실시간 채팅 메시지 컨트롤러
+ * STOMP WebSocket 기반 AI 1:1 채팅 컨트롤러
  *
- * <p>클라이언트 연결 방법:
+ * <p>AI와의 실시간 채팅 메시지를 처리하는 컨트롤러입니다.
  *
+ * <h3>메시지 발행 (Client → Server)</h3>
  * <ul>
- *   <li>WebSocket 엔드포인트: /ws-stomp
- *   <li>메시지 전송: /pub/chatroom/{roomId}/message
- *   <li>메시지 구독: /sub/chatroom/{roomId}
- *   <li>입장 알림: /pub/chatroom/{roomId}/enter
- *   <li>퇴장 알림: /pub/chatroom/{roomId}/leave
+ *   <li><strong>경로</strong>: {@code /pub/chat/{chatRoomId}/message}
+ *   <li><strong>페이로드</strong>: {@link ChatMessageRequest}
+ *   <li><strong>인증</strong>: Principal 필요 (Spring Security Context)
  * </ul>
  *
- * <p>TODO: WebSocketConfig 설정 후 @Autowired(required = false) 제거 필요
+ * <h3>메시지 구독 (Server → Client)</h3>
+ * <ul>
+ *   <li><strong>경로</strong>: {@code /user/sub/chat/{chatRoomId}}
+ *   <li><strong>페이로드</strong>: {@link com.swygbro.airoad.backend.chat.domain.dto.ChatMessageResponse}
+ *   <li><strong>설명</strong>: 해당 채팅방의 AI 응답을 실시간으로 수신
+ * </ul>
+ *
+ * <p><strong>참고</strong>: 실시간 메시징 전체 구조는
+ * {@link com.swygbro.airoad.backend.realtime} 패키지 문서를 참조하세요.
+ *
+ * @see com.swygbro.airoad.backend.realtime
  */
 @Slf4j
 @Controller
+@RequiredArgsConstructor
 public class ChatMessageController {
 
-  // WebSocket Config가 설정되기 전까지 일시적으로 required = false 설정
-  @Autowired(required = false)
-  private SimpMessagingTemplate messagingTemplate;
+  private final ChatMessageUseCase chatMessageUseCase;
 
   /**
-   * 채팅 메시지 전송 처리
+   * 채팅 메시지 전송 처리 (AI와의 1:1 대화)
    *
-   * <p>클라이언트가 /pub/chatroom/{roomId}/message로 메시지를 전송하면 해당 채팅방을 구독 중인 모든 클라이언트에게 브로드캐스트합니다.
+   * <p>클라이언트가 /pub/chat/{chatRoomId}/message로 메시지를 전송하면 서비스 레이어에서 AI 응답을 생성하여 해당 사용자의 채팅방 구독 경로로 전달합니다.
    *
    * @param chatRoomId 채팅방 ID
    * @param messageRequest 메시지 요청 DTO
    * @param sessionId WebSocket 세션 ID
+   * @param principal 인증된 사용자 정보 (userId)
    */
-  @MessageMapping("/chatroom/{chatRoomId}/message")
+  @MessageMapping("/chat/{chatRoomId}/message")
   public void sendMessage(
-      @DestinationVariable Long chatRoomId,
-      @Valid @Payload ChatMessageRequest messageRequest,
-      @Header("simpSessionId") String sessionId) {
+          @DestinationVariable Long chatRoomId,
+          @Valid @Payload ChatMessageRequest messageRequest,
+          @Header("simpSessionId") String sessionId,
+          Principal principal) {
+
+    // Principal에서 userId 추출
+    String userId = principal != null ? principal.getName() : sessionId;
 
     log.info(
-        "메시지 수신 - roomId: {}, sessionId: {}, content: {}",
+        "[Controller] 메시지 수신 - chatRoomId: {}, userId: {}, content: {}",
         chatRoomId,
-        sessionId,
+        userId,
         messageRequest.content());
 
-    // TODO: 서비스 레이어에서 메시지 처리 (DB 저장, AI 응답 생성 등)
-    // ChatMessageResponse response = chatMessageService.processMessage(roomId,
-    // messageRequest, sessionId);
-
-    // 임시 응답 (실제 구현 시 서비스에서 생성된 응답 사용)
-    ChatMessageResponse response = null;
-
-    // 해당 채팅방을 구독 중인 모든 클라이언트에게 메시지 브로드캐스트
-    if (messagingTemplate != null) {
-      messagingTemplate.convertAndSend("/sub/chatroom/" + chatRoomId, response);
-      log.info(
-          "메시지 전송 완료 - roomId: {}, messageId: {}", chatRoomId, response != null ? "N/A" : "N/A");
-    } else {
-      log.warn("SimpMessagingTemplate이 아직 설정되지 않았습니다. WebSocketConfig를 설정해주세요.");
-    }
-  }
-
-  /**
-   * 채팅방 입장 처리
-   *
-   * <p>사용자가 채팅방에 입장할 때 호출됩니다. 입장 알림을 해당 채팅방 구독자들에게 전송합니다.
-   *
-   * @param chatRoomId 채팅방 ID
-   * @param sessionId WebSocket 세션 ID
-   */
-  @MessageMapping("/chatroom/{chatroomId}/enter")
-  public void enterChatRoom(
-      @DestinationVariable Long chatRoomId, @Header("simpSessionId") String sessionId) {
-
-    log.info("채팅방 입장 - roomId: {}, sessionId: {}", chatRoomId, sessionId);
-
-    // TODO: 입장 처리 로직 (Redis에 세션 정보 저장, 참여자 수 업데이트 등)
-    // chatRoomService.enterRoom(roomId, sessionId);
-
-    // 입장 알림 전송 (선택사항)
-    // messagingTemplate.convertAndSend("/topic/chatroom/" + roomId + "/enter", enterNotification);
+    // 서비스 레이어에서 메시지 처리 및 WebSocket 응답 전송
+    chatMessageUseCase.processAndSendMessage(chatRoomId, userId, messageRequest);
   }
 }

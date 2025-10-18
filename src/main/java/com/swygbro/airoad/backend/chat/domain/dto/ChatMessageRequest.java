@@ -10,4 +10,12 @@ public record ChatMessageRequest(
         @NotBlank(message = "메시지 내용은 필수입니다.")
         String content,
     @Schema(description = "메시지 타입", example = "TEXT", defaultValue = "TEXT")
-        MessageType messageType) {}
+        MessageType messageType) {
+
+  // 기본값을 TEXT로 설정하는 compact 생성자
+  public ChatMessageRequest {
+    if (messageType == null) {
+      messageType = MessageType.TEXT;
+    }
+  }
+}

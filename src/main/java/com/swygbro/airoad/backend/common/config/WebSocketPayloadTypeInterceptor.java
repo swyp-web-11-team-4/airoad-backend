@@ -12,20 +12,20 @@ import org.springframework.util.MimeTypeUtils;
 /** WebSocket/STOMP 통신 시 기본 Content-Type을 보장하기 위한 인터셉터입니다. */
 public class WebSocketPayloadTypeInterceptor implements ChannelInterceptor {
 
-    @Override
-    public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
-        StompHeaderAccessor accessor =
-                MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+  @Override
+  public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
+    StompHeaderAccessor accessor =
+        MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
-        if (accessor == null) {
-            return message;
-        }
-
-        if (accessor.getCommand() == StompCommand.SEND && accessor.getContentType() == null) {
-            accessor.setContentType(MimeTypeUtils.APPLICATION_JSON);
-        }
-
-        accessor.setLeaveMutable(true);
-        return message;
+    if (accessor == null) {
+      return message;
     }
+
+    if (accessor.getCommand() == StompCommand.SEND && accessor.getContentType() == null) {
+      accessor.setContentType(MimeTypeUtils.APPLICATION_JSON);
+    }
+
+    accessor.setLeaveMutable(true);
+    return message;
+  }
 }

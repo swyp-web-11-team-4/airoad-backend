@@ -18,8 +18,8 @@ import java.util.List;
  * @param generatedAt 생성 시각
  */
 public record ScheduleResponse(
-        Long scheduleId,
-        String tripName,
-        LocalDate date,
-        List<String> activities,
-        LocalDateTime generatedAt) {}
+    Long scheduleId,
+    String tripName,
+    LocalDate date,
+    List<String> activities,
+    LocalDateTime generatedAt) {}

@@ -10,16 +10,14 @@
  * <ul>
  *   <li><strong>/user/sub/chat/{chatRoomId}</strong> - AI 채팅 메시지
  *       <ul>
- *         <li>페이로드: {@code ChatMessageResponse}</li>
- *         <li>용도: AI와의 1:1 대화 메시지 수신</li>
+ *         <li>페이로드: {@code ChatMessageResponse}
+ *         <li>용도: AI와의 1:1 대화 메시지 수신
  *       </ul>
- *   </li>
  *   <li><strong>/user/sub/schedule</strong> - 여행 일정 DTO (향후 구현)
  *       <ul>
- *         <li>페이로드: {@code TripPlanDto (아직 미정)}</li>
- *         <li>용도: AI로부터 받아오는 여행 일정 전송(1일 단위)</li>
+ *         <li>페이로드: {@code TripPlanDto (아직 미정)}
+ *         <li>용도: AI로부터 받아오는 여행 일정 전송(1일 단위)
  *       </ul>
- *   </li>
  * </ul>
  *
  * <h2>메시지 발행 경로 구조</h2>
@@ -27,9 +25,8 @@
  * <ul>
  *   <li><strong>/pub/chat/{chatRoomId}/message</strong> - 채팅 메시지 전송
  *       <ul>
- *         <li>페이로드: {@code ChatMessageRequest}</li>
+ *         <li>페이로드: {@code ChatMessageRequest}
  *       </ul>
- *   </li>
  * </ul>
  *
  * <h2>클라이언트 구독 예시</h2>

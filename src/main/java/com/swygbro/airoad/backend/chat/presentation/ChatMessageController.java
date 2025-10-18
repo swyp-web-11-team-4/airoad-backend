@@ -10,7 +10,6 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
 
-import com.swygbro.airoad.backend.chat.application.ChatMessageUseCase;
 import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageRequest;
 
 import lombok.RequiredArgsConstructor;
@@ -37,17 +36,11 @@ import lombok.extern.slf4j.Slf4j;
  *       com.swygbro.airoad.backend.chat.domain.dto.ChatMessageResponse}
  *   <li><strong>설명</strong>: 해당 채팅방의 AI 응답을 실시간으로 수신
  * </ul>
- *
- * <p><strong>참고</strong>: 실시간 메시징 전체 구조는 {@link com.swygbro.airoad.backend.realtime} 패키지 문서를 참조하세요.
- *
- * @see com.swygbro.airoad.backend.realtime
  */
 @Slf4j
 @Controller
 @RequiredArgsConstructor
 public class ChatMessageController {
-
-  private final ChatMessageUseCase chatMessageUseCase;
 
   /**
    * 채팅 메시지 전송 처리 (AI와의 1:1 대화)
@@ -77,6 +70,5 @@ public class ChatMessageController {
         messageRequest.content());
 
     // 서비스 레이어에서 메시지 처리 및 WebSocket 응답 전송
-    chatMessageUseCase.processAndSendMessage(chatRoomId, userId, messageRequest);
   }
 }

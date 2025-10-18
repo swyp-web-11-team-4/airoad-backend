@@ -13,11 +13,11 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * WebSocket 연결/구독 이벤트 리스너
  *
- * <p>디버깅을 위해 WebSocket 세션의 연결, 구독, 해제 이벤트를 로깅합니다.
+ * <p>디버깅을 위해 WebSocket 세션의 연결, 구독, 해제 이벤트
  */
 @Slf4j
 @Component
-public class WebSocketLogEventListener {
+public class WebSocketEventListener {
 
   @EventListener
   public void handleWebSocketConnectListener(SessionConnectEvent event) {
@@ -48,6 +48,15 @@ public class WebSocketLogEventListener {
   @EventListener
   public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
     StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-    log.info("[WebSocket Event] 연결 해제 - sessionId: {}", headerAccessor.getSessionId());
+    String sessionId = headerAccessor.getSessionId();
+
+    log.info("[WebSocket Event] 연결 해제 - sessionId: {}", sessionId);
+
+    // TODO: AI API 연동 시 세션 정리 작업 추가 필요
+    // - 진행 중인 AI 요청 취소 (스트리밍 응답 중단)
+    // - 세션 캐시 삭제 (Redis 또는 인메모리 맵)
+    // - 리소스 해제 (WebClient, 임시 파일 등)
+    // 예: aiRequestManager.cancelRequest(sessionId);
+    //     sessionStore.remove(sessionId);
   }
 }

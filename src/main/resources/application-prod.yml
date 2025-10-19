@@ -17,6 +17,16 @@ spring:
         show_sql: false
         format_sql: false
     open-in-view: false
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000 # 1 hour (ms)
+      cache-null-values: false
 
 springdoc:
   swagger-ui:

@@ -21,24 +21,12 @@ public class MemberService implements MemberUseCase {
   private final MemberRepository memberRepository;
 
   @Override
-  public MemberResponse getMemberById(Long id) {
-    Member member =
-        memberRepository
-            .findById(id)
-            .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
-
-    log.info("[회원 조회 성공] id: {}, email: {}", member.getId(), member.getEmail());
-    return MemberResponse.from(member);
-  }
-
-  @Override
   public MemberResponse getMemberByEmail(String email) {
     Member member =
         memberRepository
             .findByEmail(email)
             .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
 
-    log.info("[회원 조회 성공] id: {}, email: {}", member.getId(), member.getEmail());
     return MemberResponse.from(member);
   }
 }

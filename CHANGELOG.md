@@ -1,3 +1,10 @@
+# [0.4.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.3.0...v0.4.0) (2025-10-19)
+
+
+### Features
+
+* AI 채팅 메모리 기능 구현 ([#19](https://github.com/swyp-web-11-team-4/airoad-backend/issues/19)) ([91a326f](https://github.com/swyp-web-11-team-4/airoad-backend/commit/91a326f75b60f8035258d3a87f3076570151bca2))
+
 # [0.3.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.2.0...v0.3.0) (2025-10-16)
 
 

@@ -1,21 +1,16 @@
 package com.swygbro.airoad.backend.auth.filter;
 
+import java.time.Instant;
 import java.util.Date;
-import java.util.stream.Collectors;
 
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
-import com.swygbro.airoad.backend.auth.application.TokenService;
-import com.swygbro.airoad.backend.auth.domain.dto.TokenResponse;
 import com.swygbro.airoad.backend.auth.domain.entity.TokenType;
-import com.swygbro.airoad.backend.auth.domain.principal.UserDetailsServiceImpl;
-import com.swygbro.airoad.backend.auth.domain.principal.UserPrincipal;
+import com.swygbro.airoad.backend.auth.exception.AuthErrorCode;
+import com.swygbro.airoad.backend.common.exception.BusinessException;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -43,94 +38,79 @@ public class JwtTokenProvider {
   @Value("${jwt.refresh-token-expiration}")
   private long refreshTokenExpiration;
 
-  private final UserDetailsServiceImpl userDetailsService;
-
-  private final TokenService tokenService;
-
-  public TokenResponse generateToken(Authentication authentication) {
-    String accessToken = createAccessToken(authentication);
-    String refreshToken = createRefreshToken(authentication);
-    Date accessTokenExpiryDate = createExpiryDate(accessTokenExpiration);
-    return TokenResponse.from(
-        accessToken, refreshToken, accessTokenExpiryDate.getTime(), refreshTokenExpiration);
-  }
-
-  public String createAccessToken(Authentication authentication) {
-    return createToken(authentication, accessTokenExpiration, accessTokenSecret);
-  }
-
-  public String createRefreshToken(Authentication authentication) {
-    String token = createToken(authentication, refreshTokenExpiration, refreshTokenSecret);
-    Date expiryDate = createExpiryDate(refreshTokenExpiration);
-    tokenService.createRefreshToken(token, expiryDate, authentication);
-    return token;
-  }
-
-  private String createToken(Authentication authentication, long expirationTime, String secretKey) {
-    String authorities =
-        authentication.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .collect(Collectors.joining(","));
-
+  public String generateAccessToken(Long userId, String role) {
     return Jwts.builder()
-        .setSubject(authentication.getName()) // email
-        .claim("auth", authorities)
-        .setIssuedAt(new Date())
-        .setExpiration(createExpiryDate(expirationTime))
-        .signWith(createKey(secretKey))
+        .claim("userId", userId)
+        .claim("role", role)
+        .issuedAt(new Date())
+        .expiration(createExpiryDate(accessTokenExpiration))
+        .signWith(createKey(accessTokenSecret))
         .compact();
   }
 
-  public String getUsernameFromToken(String token, TokenType tokenType) {
+  public String generateRefreshToken(Long userId) {
+    return Jwts.builder()
+        .claim("userId", userId)
+        .claim("type", "REFRESH_TOKEN")
+        .issuedAt(new Date())
+        .expiration(createExpiryDate(refreshTokenExpiration))
+        .signWith(createKey(refreshTokenSecret))
+        .compact();
+  }
+
+  public <T> T getClaimFromToken(String token, String key, Class<T> clazz, TokenType tokenType) {
     String secretKey =
         (tokenType == TokenType.ACCESS_TOKEN) ? accessTokenSecret : refreshTokenSecret;
 
-    return Jwts.parserBuilder()
-        .setSigningKey(createKey(secretKey))
-        .build()
-        .parseClaimsJws(token)
-        .getBody()
-        .getSubject();
-  }
-
-  public Authentication getAuthentication(String token, TokenType tokenType) {
-    String username = getUsernameFromToken(token, tokenType);
-    UserPrincipal userPrincipal = (UserPrincipal) userDetailsService.loadUserByUsername(username);
-
-    return new UsernamePasswordAuthenticationToken(
-        userPrincipal, token, userPrincipal.getAuthorities());
-  }
-
-  public boolean validateAccessToken(String token) {
-    return validateToken(token, accessTokenSecret);
-  }
-
-  public boolean validateRefreshToken(String token) {
-    return validateToken(token, refreshTokenSecret);
-  }
-
-  private boolean validateToken(String token, String secretKey) {
     try {
-      Jwts.parserBuilder().setSigningKey(createKey(secretKey)).build().parseClaimsJws(token);
-      return true;
+      return Jwts.parser()
+          .verifyWith(createKey(secretKey))
+          .build()
+          .parseSignedClaims(token)
+          .getPayload()
+          .get(key, clazz);
     } catch (ExpiredJwtException e) {
-      log.error("만료된 JWT 토큰입니다.");
-      throw e;
-    } catch (SecurityException | MalformedJwtException e) {
-      log.error("잘못된 JWT 서명입니다.");
+      log.error("만료된 JWT 토큰입니다.", e);
+      throw new BusinessException(AuthErrorCode.EXPIRED_TOKEN);
+    } catch (MalformedJwtException e) {
+      log.error("잘못된 형식의 JWT 토큰입니다.", e);
+      throw new BusinessException(AuthErrorCode.MALFORMED_TOKEN);
+    } catch (SecurityException e) {
+      log.error("잘못된 JWT 서명입니다.", e);
+      throw new BusinessException(AuthErrorCode.INVALID_TOKEN_SIGNATURE);
     } catch (UnsupportedJwtException e) {
-      log.error("지원되지 않는 JWT 토큰입니다.");
-    } catch (IllegalArgumentException e) {
-      log.error("JWT 토큰이 잘못되었습니다.");
+      log.error("지원하지 않는 JWT 토큰입니다.", e);
+      throw new BusinessException(AuthErrorCode.UNSUPPORTED_TOKEN);
     }
-    return false;
   }
 
-  private Date createExpiryDate(long expirationTime) {
-    return new Date(System.currentTimeMillis() + expirationTime);
+  public void validateAccessToken(String token) {
+    validateToken(token, accessTokenSecret);
   }
 
-  private SecretKey createKey(String secret) {
+  public void validateToken(String token, String secretKey) {
+    try {
+      Jwts.parser().verifyWith(createKey(secretKey)).build().parseSignedClaims(token);
+    } catch (ExpiredJwtException e) {
+      log.error("만료된 JWT 토큰입니다.", e);
+      throw new BusinessException(AuthErrorCode.EXPIRED_TOKEN);
+    } catch (MalformedJwtException e) {
+      log.error("잘못된 형식의 JWT 토큰입니다.", e);
+      throw new BusinessException(AuthErrorCode.MALFORMED_TOKEN);
+    } catch (SecurityException e) {
+      log.error("잘못된 JWT 서명입니다.", e);
+      throw new BusinessException(AuthErrorCode.INVALID_TOKEN_SIGNATURE);
+    } catch (UnsupportedJwtException e) {
+      log.error("지원하지 않는 JWT 토큰입니다.", e);
+      throw new BusinessException(AuthErrorCode.UNSUPPORTED_TOKEN);
+    }
+  }
+
+  public Date createExpiryDate(long expirationTime) {
+    return Date.from(Instant.now().plusMillis(expirationTime));
+  }
+
+  public SecretKey createKey(String secret) {
     byte[] keyBytes = Decoders.BASE64URL.decode(secret);
     return Keys.hmacShaKeyFor(keyBytes);
   }

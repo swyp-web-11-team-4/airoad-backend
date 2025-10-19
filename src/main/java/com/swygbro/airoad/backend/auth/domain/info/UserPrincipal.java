@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.auth.domain.principal;
+package com.swygbro.airoad.backend.auth.domain.info;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -12,37 +12,19 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import com.swygbro.airoad.backend.member.domain.entity.Member;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-@Getter
 @Builder
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
-public class UserPrincipal implements OAuth2User, UserDetails {
-
-  private Member member;
-  private Collection<? extends GrantedAuthority> authorities;
-  private Map<String, Object> attributes;
+public record UserPrincipal(
+    Member member,
+    Collection<? extends GrantedAuthority> authorities,
+    Map<String, Object> attributes)
+    implements OAuth2User, UserDetails {
 
   public static UserPrincipal create(Member member) {
     List<GrantedAuthority> authorities =
         Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + member.getRole().name()));
-
     return UserPrincipal.builder().member(member).authorities(authorities).build();
-  }
-
-  public static UserPrincipal create(Member member, Map<String, Object> attributes) {
-    UserPrincipal userPrincipal = UserPrincipal.create(member);
-
-    return UserPrincipal.builder()
-        .member(userPrincipal.getMember())
-        .authorities(userPrincipal.getAuthorities())
-        .attributes(attributes)
-        .build();
   }
 
   @Override

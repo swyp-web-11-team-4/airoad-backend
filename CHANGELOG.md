@@ -1,3 +1,21 @@
+# [0.5.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.4.0...v0.5.0) (2025-10-19)
+
+
+### Features
+
+* AI 채팅 메시지 처리 서비스 구현 ([5deb6f4](https://github.com/swyp-web-11-team-4/airoad-backend/commit/5deb6f451fa4e004afc0e351450cea8d91b7660d))
+* Redis 설정 및 캐싱 구성 ([f67e8d3](https://github.com/swyp-web-11-team-4/airoad-backend/commit/f67e8d3e35573b80c66312486e24313d91fe0492))
+* WebSocket STOMP 기본 설정 구현 ([df04eed](https://github.com/swyp-web-11-team-4/airoad-backend/commit/df04eedfd92757aba5326a09f6abb04736c389e2))
+* WebSocket 예외 처리 추가 ([c671793](https://github.com/swyp-web-11-team-4/airoad-backend/commit/c671793425703e52bc99ad1e32f89883e572f7f4))
+* 실시간 메시징 패키지 및 일정 구독 테스트 추가 ([f94f8ef](https://github.com/swyp-web-11-team-4/airoad-backend/commit/f94f8efe4c488e9babe47528b29cd15175c687fd))
+
+# [0.4.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.3.0...v0.4.0) (2025-10-19)
+
+
+### Features
+
+* AI 채팅 메모리 기능 구현 ([#19](https://github.com/swyp-web-11-team-4/airoad-backend/issues/19)) ([91a326f](https://github.com/swyp-web-11-team-4/airoad-backend/commit/91a326f75b60f8035258d3a87f3076570151bca2))
+
 # [0.3.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.2.0...v0.3.0) (2025-10-16)
 
 

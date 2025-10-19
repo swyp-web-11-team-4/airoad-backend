@@ -4,8 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Spring Boot 3.5.6 + Java 17 백엔드 프로젝트입니다.
+Spring Boot 3.5.6 + Java 17 기반의 **여행 일정 추천 AI 서비스** 백엔드 프로젝트입니다.
 모놀리식 아키텍처로 구현되며, 도메인별로 계층화된 패키지 구조를 따릅니다.
+
+### Service Description
+AI 기술을 활용하여 사용자의 선호도와 여행 조건에 맞는 최적화된 여행 일정을 자동으로 생성하고, 대화형 인터페이스를 통해 쉽게 수정할 수 있는 서비스를 제공합니다.
+
+**핵심 가치**:
+- 자동화된 일정 생성: 수동으로 일정을 짜는 시간과 노력 절감
+- 최적화된 동선: 이동 시간을 고려한 효율적인 경로 제안
+- 유연한 수정: 챗봇 대화 또는 직접 편집을 통한 손쉬운 일정 조정
+- 개인화: 테마와 선호도 기반 맞춤형 추천
+
+**주요 기술**:
+- PostgreSQL + pgvector (RAG 시스템)
+- Redis (캐싱)
+- 공공 관광 데이터 API, Naver 거리 측정 API
+- LLM API (OpenAI/Claude/Hyperclova 등)
 
 ## Essential Commands
 
@@ -196,3 +211,22 @@ Conventional Commits + Semantic Release 사용:
 - **Test DB**: H2 (in-memory)
 - **Dependency Management**: `gradle/libs.versions.toml`에서 중앙 관리
 - **Custom Gradle Plugins**: `buildSrc/src/main/kotlin/plugin/`에 정의 (coverage, spotless, sonar)
+
+## Domain-Specific Implementation Guidance
+
+### Trip Planning Domain
+여행 일정 생성 및 수정 기능 구현 시 고려사항:
+
+**주요 기능**:
+1. **여행 정보 입력**: 도시, 날짜, 기간, 인원, 테마 (체험/액티비티, 문화/역사, 자연/힐링, 맛집 투어, 쇼핑, 복합)
+2. **AI 일정 자동 생성**: RAG 기반 관광지 검색 + Naver API 거리 계산 + LLM 일정 생성
+3. **일정 수정**:
+   - 챗봇 대화 수정: 자연어 요청 → Chat Memory + RAG 재검색 → 부분 수정
+   - 직접 편집: UI 변경 → Chat Memory 이력 저장 → 변경 구간만 재계산
+4. **일정 확정 및 저장**: 최종 일정 DB 저장 + Chat Memory 전체 이력 저장
+
+**시스템 설계 패턴**:
+- **RAG 시스템**: Vector DB (pgvector)에 관광지 설명 임베딩 저장, 코사인 유사도 기반 Top-K 검색
+- **Chat Memory**: 직접 수정 및 대화 이력 JSON 형태로 저장, LLM 컨텍스트에 최근 N개 포함
+- **Naver 거리 측정 API**: 초기 생성 시 N×N 거리 매트릭스, 수정 시 변경 구간만 재계산
+- **토큰 최적화**: 전체 재생성 대신 부분 수정, Chat Memory로 컨텍스트 관리

@@ -52,6 +52,17 @@ oauth2:
     token-uri: https://oauth2.googleapis.com/token
     user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
 
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000 # 1 hour (ms)
+      cache-null-values: false
+
 springdoc:
   swagger-ui:
     enabled: true

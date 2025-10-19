@@ -18,6 +18,9 @@ spotless = "6.25.0"
 hibernate-spatial = "6.6.29.Final"
 pgvector = "0.1.6"
 
+# Redis
+lettuce = "6.5.2.RELEASE"
+
 [libraries]
 # JWT
 jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
@@ -40,18 +43,22 @@ spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-star
 spring-boot-starter-devtools = { module = "org.springframework.boot:spring-boot-devtools"}
 spring-boot-starter-websocket = { module = "org.springframework.boot:spring-boot-starter-websocket" }
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator"}
+spring-boot-starter-data-redis = { module = "org.springframework.boot:spring-boot-starter-data-redis" }
 spring-boot-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "spring-doc" }
 
 # Spring AI
 spring-ai-bom = { module = "org.springframework.ai:spring-ai-bom", version.ref = "spring-ai-bom" }
 spring-ai-openai = { module = "org.springframework.ai:spring-ai-openai", version.ref = "spring-ai-bom" }
 spring-ai-pgvector-store = { module = "org.springframework.ai:spring-ai-starter-vector-store-pgvector", version.ref = "spring-ai-bom" }
-spring-ai-chat-memory-repository-jdbc = { module = "org.springframework.ai:spring-ai-starter-model-chat-memory-repository-jdbc" }
+spring-ai-chat-memory-repository-jdbc = { module = "org.springframework.ai:spring-ai-starter-model-chat-memory-repository-jdbc", version.ref = "spring-ai-bom" }
 spring-ai-advisors-vector-store = { module = "org.springframework.ai:spring-ai-advisors-vector-store", version.ref = "spring-ai-bom" }
 spring-ai-rag = { module = "org.springframework.ai:spring-ai-rag", version.ref = "spring-ai-bom" }
 
 # Lombok
 lombok = { module = "org.projectlombok:lombok"}
+
+# Redis
+lettuce-core = { module = "io.lettuce:lettuce-core", version.ref = "lettuce" }
 
 # Sonarqube
 sonarqube-plugin = { module = "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin", version.ref = "sonarqube" }

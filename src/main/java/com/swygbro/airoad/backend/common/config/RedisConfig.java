@@ -1,7 +1,5 @@
 package com.swygbro.airoad.backend.common.config;
 
-import java.time.Duration;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -75,8 +73,6 @@ public class RedisConfig {
   public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
     RedisCacheConfiguration cacheConfig =
         RedisCacheConfiguration.defaultCacheConfig()
-            .entryTtl(Duration.ofHours(1))
-            .disableCachingNullValues()
             .serializeKeysWith(
                 RedisSerializationContext.SerializationPair.fromSerializer(
                     new StringRedisSerializer()))

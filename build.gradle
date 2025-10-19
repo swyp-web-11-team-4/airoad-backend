@@ -40,6 +40,7 @@ dependencies {
     implementation platform(libs.spring.ai.bom)
     implementation libs.spring.ai.openai
     implementation libs.spring.ai.advisors.vector.store
+    implementation libs.spring.ai.pgvector.store
     implementation libs.spring.ai.chat.memory.repository.jdbc
 
     // Hibernate

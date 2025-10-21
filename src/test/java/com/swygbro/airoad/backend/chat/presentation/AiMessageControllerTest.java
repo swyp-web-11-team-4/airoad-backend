@@ -14,6 +14,8 @@ import org.springframework.test.context.ActiveProfiles;
 import com.swygbro.airoad.backend.chat.application.AiMessageService;
 import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageRequest;
 import com.swygbro.airoad.backend.chat.domain.dto.MessageContentType;
+import com.swygbro.airoad.backend.common.exception.BusinessException;
+import com.swygbro.airoad.backend.common.exception.WebSocketErrorCode;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
@@ -53,7 +55,7 @@ class AiMessageControllerTest {
     }
 
     @Test
-    @DisplayName("Principal이 null이면 IllegalStateException을 던진다")
+    @DisplayName("Principal이 null이면 BusinessException을 던진다")
     void shouldThrowExceptionWhenPrincipalIsNull() {
       // given
       Long chatRoomId = 1L;
@@ -62,8 +64,8 @@ class AiMessageControllerTest {
 
       // when & then
       assertThatThrownBy(() -> aiMessageController.sendMessage(chatRoomId, request, null))
-          .isInstanceOf(IllegalStateException.class)
-          .hasMessage("인증되지 않은 사용자는 채팅을 사용할 수 없습니다.");
+          .isInstanceOf(BusinessException.class)
+          .hasFieldOrPropertyWithValue("errorCode", WebSocketErrorCode.UNAUTHORIZED_CONNECTION);
 
       verifyNoInteractions(aiMessageService);
     }

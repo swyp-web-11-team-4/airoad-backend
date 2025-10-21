@@ -1,7 +1,6 @@
 package com.swygbro.airoad.backend.chat.application;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
@@ -23,11 +22,13 @@ import com.swygbro.airoad.backend.chat.domain.dto.MessageContentType;
 import com.swygbro.airoad.backend.chat.domain.entity.AiConversation;
 import com.swygbro.airoad.backend.chat.domain.entity.AiMessage;
 import com.swygbro.airoad.backend.chat.domain.event.AiMessageSavedEvent;
+import com.swygbro.airoad.backend.chat.exception.ChatErrorCode;
 import com.swygbro.airoad.backend.chat.fixture.AiConversationFixture;
 import com.swygbro.airoad.backend.chat.fixture.AiMessageFixture;
 import com.swygbro.airoad.backend.chat.infrastructure.AiConversationRepository;
 import com.swygbro.airoad.backend.chat.infrastructure.AiMessageRepository;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
+import com.swygbro.airoad.backend.common.exception.BusinessException;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -108,7 +109,7 @@ class AiMessageServiceTest {
     }
 
     @Test
-    @DisplayName("존재하지 않는 채팅방 ID로 요청 시 NoSuchElementException을 발생시킨다")
+    @DisplayName("존재하지 않는 채팅방 ID로 요청 시 BusinessException을 발생시킨다")
     void shouldThrowExceptionWhenChatRoomNotFound() {
       // given
       Long chatRoomId = 999L;
@@ -119,8 +120,8 @@ class AiMessageServiceTest {
 
       // when & then
       assertThatThrownBy(() -> aiMessageService.processAndSendMessage(chatRoomId, userId, request))
-          .isInstanceOf(NoSuchElementException.class)
-          .hasMessageContaining("대화 세션을 찾을 수 없습니다");
+          .isInstanceOf(BusinessException.class)
+          .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.CONVERSATION_NOT_FOUND);
 
       verify(aiConversationRepository).findById(chatRoomId);
       verify(aiMessageRepository, never()).save(any());
@@ -128,8 +129,8 @@ class AiMessageServiceTest {
     }
 
     @Test
-    @DisplayName("TEXT 타입이 아닌 메시지는 처리하지 않는다")
-    void shouldNotProcessNonTextMessage() {
+    @DisplayName("TEXT 타입이 아닌 메시지는 BusinessException을 발생시킨다")
+    void shouldThrowExceptionForNonTextMessage() {
       // given
       Long chatRoomId = 1L;
       String userId = "user123";
@@ -139,10 +140,11 @@ class AiMessageServiceTest {
       AiConversation conversation = AiConversationFixture.createConversation(chatRoomId);
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
 
-      // when
-      aiMessageService.processAndSendMessage(chatRoomId, userId, request);
+      // when & then
+      assertThatThrownBy(() -> aiMessageService.processAndSendMessage(chatRoomId, userId, request))
+          .isInstanceOf(BusinessException.class)
+          .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.INVALID_MESSAGE_FORMAT);
 
-      // then
       verify(aiConversationRepository).findById(chatRoomId);
       verify(aiMessageRepository, never()).save(any());
       verify(eventPublisher, never()).publishEvent(any());
@@ -207,6 +209,7 @@ class AiMessageServiceTest {
       SliceImpl<AiMessage> messageSlice = new SliceImpl<>(messages, PageRequest.of(0, size), true);
 
       given(aiConversationRepository.existsById(chatRoomId)).willReturn(true);
+      given(aiMessageRepository.existsById(cursor)).willReturn(true);
       given(
               aiMessageRepository.findMessageHistoryByCursor(
                   eq(chatRoomId), eq(cursor), any(Pageable.class)))
@@ -251,6 +254,7 @@ class AiMessageServiceTest {
       SliceImpl<AiMessage> messageSlice = new SliceImpl<>(messages, PageRequest.of(0, size), false);
 
       given(aiConversationRepository.existsById(chatRoomId)).willReturn(true);
+      given(aiMessageRepository.existsById(cursor)).willReturn(true);
       given(
               aiMessageRepository.findMessageHistoryByCursor(
                   eq(chatRoomId), eq(cursor), any(Pageable.class)))
@@ -272,7 +276,7 @@ class AiMessageServiceTest {
     }
 
     @Test
-    @DisplayName("존재하지 않는 채팅방 ID로 조회 시 NoSuchElementException을 발생시킨다")
+    @DisplayName("존재하지 않는 채팅방 ID로 조회 시 BusinessException을 발생시킨다")
     void shouldThrowExceptionWhenChatRoomNotFoundInHistory() {
       // given
       Long chatRoomId = 999L;
@@ -282,8 +286,8 @@ class AiMessageServiceTest {
 
       // when & then
       assertThatThrownBy(() -> aiMessageService.getMessageHistory(chatRoomId, null, size))
-          .isInstanceOf(NoSuchElementException.class)
-          .hasMessageContaining("대화 세션을 찾을 수 없습니다");
+          .isInstanceOf(BusinessException.class)
+          .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.CONVERSATION_NOT_FOUND);
 
       verify(aiConversationRepository).existsById(chatRoomId);
       verify(aiMessageRepository, never())

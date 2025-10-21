@@ -33,14 +33,11 @@ public class TokenService implements TokenUseCase {
   private final MemberRepository memberRepository;
 
   @Transactional
-  public void createRefreshToken(String token, Long userId) {
+  public void createRefreshToken(String token, String email) {
     Member member =
         memberRepository
-            .findById(userId)
-            .orElseThrow(() -> {
-              log.error("회원을 찾을 수 없습니다. ID: {}", userId);
-              return new BusinessException(AuthErrorCode.MEMBER_NOT_FOUND);
-            });
+            .findByEmail(email)
+            .orElseThrow(() -> new BusinessException(AuthErrorCode.MEMBER_NOT_FOUND));
 
     RefreshToken refreshToken =
         RefreshToken.builder()
@@ -53,8 +50,8 @@ public class TokenService implements TokenUseCase {
   }
 
   @Transactional
-  public void deleteRefreshTokenByMemberId(Long memberId) {
-    refreshTokenRepository.findByMemberId(memberId).ifPresent(refreshTokenRepository::delete);
+  public void deleteRefreshTokenByEmail(String email) {
+    refreshTokenRepository.findByMemberEmail(email).ifPresent(refreshTokenRepository::delete);
   }
 
   private LocalDateTime convertToLocalDateTime(Long date) {

@@ -2,7 +2,7 @@ package com.swygbro.airoad.backend.auth.application;
 
 public interface TokenUseCase {
 
-  void createRefreshToken(String token, Long userId);
+  void createRefreshToken(String token, String email);
 
-  void deleteRefreshTokenByMemberId(Long memberId);
+  void deleteRefreshTokenByEmail(String email);
 }

@@ -38,9 +38,9 @@ public class JwtTokenProvider {
   @Value("${jwt.refresh-token-expiration}")
   private long refreshTokenExpiration;
 
-  public String generateAccessToken(Long userId, String role) {
+  public String generateAccessToken(String email, String role) {
     return Jwts.builder()
-        .claim("userId", userId)
+        .claim("email", email)
         .claim("role", role)
         .issuedAt(new Date())
         .expiration(createExpiryDate(accessTokenExpiration))
@@ -48,9 +48,9 @@ public class JwtTokenProvider {
         .compact();
   }
 
-  public String generateRefreshToken(Long userId) {
+  public String generateRefreshToken(String email) {
     return Jwts.builder()
-        .claim("userId", userId)
+        .claim("email", email)
         .claim("type", "REFRESH_TOKEN")
         .issuedAt(new Date())
         .expiration(createExpiryDate(refreshTokenExpiration))
@@ -70,16 +70,12 @@ public class JwtTokenProvider {
           .getPayload()
           .get(key, clazz);
     } catch (ExpiredJwtException e) {
-      log.error("만료된 JWT 토큰입니다.", e);
       throw new BusinessException(AuthErrorCode.EXPIRED_TOKEN);
     } catch (MalformedJwtException e) {
-      log.error("잘못된 형식의 JWT 토큰입니다.", e);
       throw new BusinessException(AuthErrorCode.MALFORMED_TOKEN);
     } catch (SecurityException e) {
-      log.error("잘못된 JWT 서명입니다.", e);
       throw new BusinessException(AuthErrorCode.INVALID_TOKEN_SIGNATURE);
     } catch (UnsupportedJwtException e) {
-      log.error("지원하지 않는 JWT 토큰입니다.", e);
       throw new BusinessException(AuthErrorCode.UNSUPPORTED_TOKEN);
     }
   }
@@ -92,16 +88,12 @@ public class JwtTokenProvider {
     try {
       Jwts.parser().verifyWith(createKey(secretKey)).build().parseSignedClaims(token);
     } catch (ExpiredJwtException e) {
-      log.error("만료된 JWT 토큰입니다.", e);
       throw new BusinessException(AuthErrorCode.EXPIRED_TOKEN);
     } catch (MalformedJwtException e) {
-      log.error("잘못된 형식의 JWT 토큰입니다.", e);
       throw new BusinessException(AuthErrorCode.MALFORMED_TOKEN);
     } catch (SecurityException e) {
-      log.error("잘못된 JWT 서명입니다.", e);
       throw new BusinessException(AuthErrorCode.INVALID_TOKEN_SIGNATURE);
     } catch (UnsupportedJwtException e) {
-      log.error("지원하지 않는 JWT 토큰입니다.", e);
       throw new BusinessException(AuthErrorCode.UNSUPPORTED_TOKEN);
     }
   }

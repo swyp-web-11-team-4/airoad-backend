@@ -20,18 +20,18 @@ public class AuthService implements AuthUseCase {
   @Override
   @Transactional
   public TokenResponse reissueToken(String refreshToken) {
-    Long userId =
+    String email =
         jwtTokenProvider.getClaimFromToken(
-            refreshToken, "userId", Long.class, TokenType.REFRESH_TOKEN);
+            refreshToken, "email", String.class, TokenType.REFRESH_TOKEN);
     String role =
         jwtTokenProvider.getClaimFromToken(
             refreshToken, "role", String.class, TokenType.REFRESH_TOKEN);
 
-    tokenService.deleteRefreshTokenByMemberId(userId);
-    String newAccessToken = jwtTokenProvider.generateAccessToken(userId, role);
-    String newRefreshToken = jwtTokenProvider.generateRefreshToken(userId);
+    tokenService.deleteRefreshTokenByEmail(email);
+    String newAccessToken = jwtTokenProvider.generateAccessToken(email, role);
+    String newRefreshToken = jwtTokenProvider.generateRefreshToken(email);
 
-    tokenService.createRefreshToken(newRefreshToken, userId);
+    tokenService.createRefreshToken(newRefreshToken, email);
 
     return TokenResponse.from(newAccessToken, newRefreshToken);
   }
@@ -39,10 +39,10 @@ public class AuthService implements AuthUseCase {
   @Override
   @Transactional
   public void logout(String refreshToken) {
-    Long memberId =
+    String email =
         jwtTokenProvider.getClaimFromToken(
-            refreshToken, "userId", Long.class, TokenType.REFRESH_TOKEN);
+            refreshToken, "email", String.class, TokenType.REFRESH_TOKEN);
 
-    tokenService.deleteRefreshTokenByMemberId(memberId);
+    tokenService.deleteRefreshTokenByEmail(email);
   }
 }

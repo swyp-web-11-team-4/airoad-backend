@@ -17,12 +17,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.swygbro.airoad.backend.auth.application.UserDetailsServiceImpl;
 import com.swygbro.airoad.backend.auth.domain.entity.TokenType;
-import com.swygbro.airoad.backend.auth.exception.AuthErrorCode;
 import com.swygbro.airoad.backend.common.domain.dto.CommonResponse;
 import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 
-import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,15 +48,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
       if (StringUtils.hasText(token)) {
         jwtTokenProvider.validateAccessToken(token);
-        Long userId =
-            jwtTokenProvider.getClaimFromToken(token, "userId", Long.class, TokenType.ACCESS_TOKEN);
-        setAuthentication(userId);
+        String email =
+            jwtTokenProvider.getClaimFromToken(
+                token, "email", String.class, TokenType.ACCESS_TOKEN);
+
+        setAuthentication(email);
       }
 
       filterChain.doFilter(request, response);
 
     } catch (BusinessException e) {
-      log.error("JWT 인증 중 예외 발생: {}", e.getMessage());
       writeErrorResponse(request, response, e);
     }
   }
@@ -70,8 +69,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     return null;
   }
 
-  private void setAuthentication(Long userId) {
-    UserDetails userDetails = userDetailsService.loadUserByUserId(userId);
+  private void setAuthentication(String email) {
+    UserDetails userDetails = userDetailsService.loadUserByUsername(email);
     Authentication authentication =
         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     SecurityContextHolder.getContext().setAuthentication(authentication);

@@ -99,12 +99,12 @@ public class OAuthLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHand
                 .role(MemberRole.MEMBER)
                 .build());
 
-    Long userId = newMember.getId();
+    String email = newMember.getEmail();
 
-    String accessToken = jwtTokenProvider.generateAccessToken(userId, newMember.getRole().name());
-    String refreshToken = jwtTokenProvider.generateRefreshToken(userId);
+    String accessToken = jwtTokenProvider.generateAccessToken(email, newMember.getRole().name());
+    String refreshToken = jwtTokenProvider.generateRefreshToken(email);
 
-    tokenService.createRefreshToken(refreshToken, userId);
+    tokenService.createRefreshToken(refreshToken, email);
 
     String redirectUrl =
         String.format(REGISTER_TOKEN_REDIRECT_URI, redirectUri, accessToken, refreshToken);
@@ -114,13 +114,13 @@ public class OAuthLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHand
   private void handleExistingUser(
       HttpServletRequest request, HttpServletResponse response, Member member) throws IOException {
 
-    Long userId = member.getId();
+    String email = member.getEmail();
 
-    String accessToken = jwtTokenProvider.generateAccessToken(userId, member.getRole().name());
-    String refreshToken = jwtTokenProvider.generateRefreshToken(userId);
+    String accessToken = jwtTokenProvider.generateAccessToken(email, member.getRole().name());
+    String refreshToken = jwtTokenProvider.generateRefreshToken(email);
 
-    tokenService.deleteRefreshTokenByMemberId(member.getId());
-    tokenService.createRefreshToken(refreshToken, userId);
+    tokenService.deleteRefreshTokenByEmail(email);
+    tokenService.createRefreshToken(refreshToken, email);
 
     String redirectUrl =
         String.format(ACCESS_TOKEN_REDIRECT_URI, redirectUri, accessToken, refreshToken);

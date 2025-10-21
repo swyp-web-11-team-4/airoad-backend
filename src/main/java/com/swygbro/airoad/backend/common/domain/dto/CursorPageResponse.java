@@ -2,6 +2,8 @@ package com.swygbro.airoad.backend.common.domain.dto;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -20,6 +22,7 @@ import lombok.Getter;
 public class CursorPageResponse<T> {
 
   @Schema(description = "조회된 데이터 목록")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   private List<T> content;
 
   @Schema(description = "다음 페이지 조회를 위한 커서 (다음 페이지가 없으면 null)", example = "123")

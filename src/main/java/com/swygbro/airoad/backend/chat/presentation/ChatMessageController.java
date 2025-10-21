@@ -5,12 +5,14 @@ import java.security.Principal;
 import jakarta.validation.Valid;
 
 import org.springframework.messaging.handler.annotation.DestinationVariable;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
 
+import com.swygbro.airoad.backend.chat.application.AiMessageService;
 import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageRequest;
+import com.swygbro.airoad.backend.common.exception.BusinessException;
+import com.swygbro.airoad.backend.common.exception.WebSocketErrorCode;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +42,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Controller
 @RequiredArgsConstructor
-public class ChatMessageController {
+public class AiMessageController {
+  private final AiMessageService aiMessageService;
 
   /**
    * 채팅 메시지 전송 처리 (AI와의 1:1 대화)
@@ -50,18 +53,24 @@ public class ChatMessageController {
    *
    * @param chatRoomId 채팅방 ID
    * @param messageRequest 메시지 요청 DTO
-   * @param sessionId WebSocket 세션 ID
    * @param principal 인증된 사용자 정보 (userId)
+   * @throws com.swygbro.airoad.backend.common.exception.BusinessException WS001 - 인증되지 않은 연결
+   * @throws com.swygbro.airoad.backend.common.exception.BusinessException CHAT301 - 존재하지 않는 채팅방
+   * @throws com.swygbro.airoad.backend.common.exception.BusinessException CHAT102 - 지원하지 않는 메시지 타입
    */
   @MessageMapping("/chat/{chatRoomId}/message")
   public void sendMessage(
       @DestinationVariable Long chatRoomId,
       @Valid @Payload ChatMessageRequest messageRequest,
-      @Header("simpSessionId") String sessionId,
       Principal principal) {
 
-    // Principal에서 userId 추출
-    String userId = principal != null ? principal.getName() : sessionId;
+    // 인증되지 않은 사용자는 채팅 불가 (방어적 코드)
+    if (principal == null) {
+      log.error("[Controller] Principal is null - chatRoomId: {}", chatRoomId);
+      throw new BusinessException(WebSocketErrorCode.UNAUTHORIZED_CONNECTION);
+    }
+
+    String userId = principal.getName();
 
     log.info(
         "[Controller] 메시지 수신 - chatRoomId: {}, userId: {}, content: {}",
@@ -70,5 +79,6 @@ public class ChatMessageController {
         messageRequest.content());
 
     // 서비스 레이어에서 메시지 처리 및 WebSocket 응답 전송
+    aiMessageService.processAndSendMessage(chatRoomId, userId, messageRequest);
   }
 }

@@ -64,7 +64,9 @@ public class SecurityConfig {
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
+    // My Local Server Test URL
     configuration.setAllowedOrigins(asList("http://localhost:3000", "http://127.0.0.1:3000"));
+    configuration.setAllowedOrigins(asList("http://localhost:5173", "http://127.0.0.1:5173" , "https://airoad.linguaflow.store"));
     configuration.setAllowedMethods(asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
     configuration.setAllowedHeaders(asList("Authorization", "Content-Type", "Accept", "Cookie"));
     configuration.setExposedHeaders(asList("Set-Cookie", "Authorization"));

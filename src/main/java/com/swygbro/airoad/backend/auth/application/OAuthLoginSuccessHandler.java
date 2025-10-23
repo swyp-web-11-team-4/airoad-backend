@@ -100,7 +100,7 @@ public class OAuthLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHand
     String email = member.getEmail();
     String accessToken = jwtTokenProvider.generateAccessToken(email, member.getRole().name());
     String refreshToken = jwtTokenProvider.generateRefreshToken(email);
-    
+
     if (!isNewUser) {
       tokenService.deleteRefreshTokenByEmail(email);
     }

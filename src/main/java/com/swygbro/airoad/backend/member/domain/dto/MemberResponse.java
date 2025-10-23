@@ -29,9 +29,6 @@ public class MemberResponse {
   @Schema(description = "사용자 이름")
   private String name;
 
-  @Schema(description = "사용자 별명")
-  private String nickname;
-
   @Schema(description = "사용자 프로필 이미지 URL")
   private String imageUrl;
 
@@ -54,7 +51,6 @@ public class MemberResponse {
         .id(member.getId())
         .email(member.getEmail())
         .name(member.getName())
-        .nickname(member.getName()) // nickname이 별도로 있다면 수정
         .imageUrl(member.getImageUrl())
         .provider(member.getProvider().getProviderName())
         .role(member.getRole().name())

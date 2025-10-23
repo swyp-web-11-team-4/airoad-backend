@@ -1,8 +1,10 @@
 package com.swygbro.airoad.backend.auth.cofing;
 
+import java.util.Collections;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -22,11 +24,13 @@ import lombok.RequiredArgsConstructor;
 
 import static java.util.Arrays.*;
 
-@Profile("!test")
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+  @Value("${cors.allowed-origins}")
+  private String allowedOrigins;
 
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
   private final OAuthLoginSuccessHandler oAuthLoginSuccessHandler;
@@ -64,9 +68,7 @@ public class SecurityConfig {
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
-    // My Local Server Test URL
-    configuration.setAllowedOrigins(asList("http://localhost:3000", "http://127.0.0.1:3000"));
-    configuration.setAllowedOrigins(asList("http://localhost:5173", "http://127.0.0.1:5173" , "https://airoad.linguaflow.store"));
+    configuration.setAllowedOrigins(Collections.singletonList(allowedOrigins));
     configuration.setAllowedMethods(asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
     configuration.setAllowedHeaders(asList("Authorization", "Content-Type", "Accept", "Cookie"));
     configuration.setExposedHeaders(asList("Set-Cookie", "Authorization"));

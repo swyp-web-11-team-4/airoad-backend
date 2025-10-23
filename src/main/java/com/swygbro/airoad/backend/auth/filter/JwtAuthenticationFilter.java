@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swygbro.airoad.backend.auth.application.UserDetailsServiceImpl;
 import com.swygbro.airoad.backend.auth.domain.entity.TokenType;
 import com.swygbro.airoad.backend.common.domain.dto.CommonResponse;
@@ -31,16 +32,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private final JwtTokenProvider jwtTokenProvider;
   private final UserDetailsServiceImpl userDetailsService;
+  private final ObjectMapper objectMapper;
 
   @Override
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
-
-    if (request.getMethod().equalsIgnoreCase("OPTIONS")) {
-      filterChain.doFilter(request, response);
-      return;
-    }
 
     try {
       String authorizationHeader = request.getHeader("Authorization");
@@ -88,24 +85,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     response.setStatus(status);
     response.setContentType("application/json;charset=UTF-8");
-    response
-        .getWriter()
-        .write(
-            "{"
-                + "\"success\": "
-                + commonResponse.success()
-                + ","
-                + "\"status\": "
-                + commonResponse.status()
-                + ","
-                + "\"data\": {"
-                + "\"code\": \""
-                + code
-                + "\","
-                + "\"message\": \""
-                + message
-                + "\""
-                + "}"
-                + "}");
+    response.getWriter().write(objectMapper.writeValueAsString(commonResponse));
   }
 }

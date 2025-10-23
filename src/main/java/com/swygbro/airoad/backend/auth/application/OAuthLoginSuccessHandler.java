@@ -13,6 +13,7 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.swygbro.airoad.backend.auth.domain.dto.Auth;
 import com.swygbro.airoad.backend.auth.domain.info.GoogleUserInfo;
 import com.swygbro.airoad.backend.auth.domain.info.OAuth2UserInfo;
 import com.swygbro.airoad.backend.auth.filter.JwtTokenProvider;
@@ -72,58 +73,41 @@ public class OAuthLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHand
       ProviderType providerType)
       throws IOException {
 
-    Member existingMember =
-        memberRepository.findByEmailAndProvider(userInfo.getEmail(), providerType).orElse(null);
+    Auth auth =
+        memberRepository
+            .findByEmailAndProvider(userInfo.getEmail(), providerType)
+            .map(member -> new Auth(member, false))
+            .orElseGet(() -> new Auth(createNewMember(userInfo, providerType), true));
 
-    if (existingMember == null) {
-      handleNewUser(request, response, userInfo, providerType);
-    } else {
-      handleExistingUser(request, response, existingMember);
-    }
+    redirectWithTokens(request, response, auth.member(), auth.isNew());
   }
 
-  private void handleNewUser(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      OAuth2UserInfo userInfo,
-      ProviderType providerType)
+  private Member createNewMember(OAuth2UserInfo userInfo, ProviderType providerType) {
+    return memberRepository.save(
+        Member.builder()
+            .email(userInfo.getEmail())
+            .name(userInfo.getName())
+            .imageUrl(userInfo.getImageUrl())
+            .provider(providerType)
+            .role(MemberRole.MEMBER)
+            .build());
+  }
+
+  private void redirectWithTokens(
+      HttpServletRequest request, HttpServletResponse response, Member member, boolean isNewUser)
       throws IOException {
 
-    Member newMember =
-        memberRepository.save(
-            Member.builder()
-                .email(userInfo.getEmail())
-                .name(userInfo.getName())
-                .imageUrl(userInfo.getImageUrl())
-                .provider(providerType)
-                .role(MemberRole.MEMBER)
-                .build());
-
-    String email = newMember.getEmail();
-
-    String accessToken = jwtTokenProvider.generateAccessToken(email, newMember.getRole().name());
-    String refreshToken = jwtTokenProvider.generateRefreshToken(email);
-
-    tokenService.createRefreshToken(refreshToken, email);
-
-    String redirectUrl =
-        String.format(REGISTER_TOKEN_REDIRECT_URI, redirectUri, accessToken, refreshToken);
-    getRedirectStrategy().sendRedirect(request, response, redirectUrl);
-  }
-
-  private void handleExistingUser(
-      HttpServletRequest request, HttpServletResponse response, Member member) throws IOException {
-
     String email = member.getEmail();
-
     String accessToken = jwtTokenProvider.generateAccessToken(email, member.getRole().name());
     String refreshToken = jwtTokenProvider.generateRefreshToken(email);
-
-    tokenService.deleteRefreshTokenByEmail(email);
+    
+    if (!isNewUser) {
+      tokenService.deleteRefreshTokenByEmail(email);
+    }
     tokenService.createRefreshToken(refreshToken, email);
 
-    String redirectUrl =
-        String.format(ACCESS_TOKEN_REDIRECT_URI, redirectUri, accessToken, refreshToken);
+    String template = isNewUser ? REGISTER_TOKEN_REDIRECT_URI : ACCESS_TOKEN_REDIRECT_URI;
+    String redirectUrl = String.format(template, redirectUri, accessToken, refreshToken);
     getRedirectStrategy().sendRedirect(request, response, redirectUrl);
   }
 }

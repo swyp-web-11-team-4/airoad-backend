@@ -19,7 +19,7 @@ public class AuthService implements AuthUseCase {
 
   @Override
   @Transactional
-  public TokenResponse reissueToken(String refreshToken) {
+  public TokenResponse reissue(String refreshToken) {
     String email =
         jwtTokenProvider.getClaimFromToken(
             refreshToken, "email", String.class, TokenType.REFRESH_TOKEN);

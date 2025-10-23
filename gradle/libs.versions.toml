@@ -66,6 +66,8 @@ sonarqube-plugin = { module = "org.sonarsource.scanner.gradle:sonarqube-gradle-p
 # Spotless
 spotless-plugin = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }
 
+# Spring Security
+spring-security-test = { module = "org.springframework.security:spring-security-test" }
 [bundles]
 jjwt = ["jjwt-api", "jjwt-impl", "jjwt-jackson"]
 

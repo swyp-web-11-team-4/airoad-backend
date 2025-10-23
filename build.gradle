@@ -65,6 +65,7 @@ dependencies {
     testRuntimeOnly libs.h2
     testCompileOnly libs.lombok
     testAnnotationProcessor libs.lombok
+    testImplementation libs.spring.security.test
 }
 
 tasks.named('test') {

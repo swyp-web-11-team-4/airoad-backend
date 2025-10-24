@@ -28,6 +28,8 @@ public class AiConversationFixture {
   }
 
   public static AiConversation.AiConversationBuilder builder() {
-    return AiConversation.builder().member(MemberFixture.create()).tripPlan(TripPlanFixture.create());
+    return AiConversation.builder()
+        .member(MemberFixture.create())
+        .tripPlan(TripPlanFixture.create());
   }
 }

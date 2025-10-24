@@ -6,7 +6,10 @@ import com.swygbro.airoad.backend.trip.domain.entity.Transportation;
 public class TravelSegmentFixture {
 
   public static TravelSegment create() {
-    return TravelSegment.builder().travelTime(30).transportation(Transportation.PUBLIC_TRANSIT).build();
+    return TravelSegment.builder()
+        .travelTime(30)
+        .transportation(Transportation.PUBLIC_TRANSIT)
+        .build();
   }
 
   public static TravelSegment createWalking() {

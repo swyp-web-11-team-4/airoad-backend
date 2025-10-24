@@ -13,3 +13,10 @@ spring:
       hibernate:
         show_sql: true
         format_sql: true
+  ai:
+    vectorstore:
+      pgvector:
+        initialize-schema: false
+    autoconfigure:
+      exclude:
+        - org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreAutoConfiguration

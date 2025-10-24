@@ -67,21 +67,37 @@ public class SwaggerConfig {
                 - `500 Internal Server Error`: 서버 내부 오류
 
 
-                ## WebSocket (STOMP) 실시간 채팅 API
+                ## WebSocket (STOMP) AI 1:1 채팅 API
 
                 ### 연결 정보
                 - **WebSocket 엔드포인트**: `ws://localhost:8080/ws-stomp` (개발환경)
                 - **프로덕션**: `wss://api.example.com/ws-stomp` (HTTPS 환경에서는 반드시 WSS 사용)
 
+                ### 채팅 구조
+                - AI와의 1:1 채팅
+                - 한 사용자는 여러 채팅방(대화 세션)을 가질 수 있음
+                - 각 채팅방은 독립적인 AI 대화 컨텍스트 유지
+
                 ### 메시지 송신 (Client → Server)
-                - **메시지 전송**: `/pub/chatroom/{roomId}/message`
-                  - Payload: `{"content": "메시지 내용"}`
-                - **채팅방 입장**: `/pub/chatroom/{roomId}/enter`
-                - **채팅방 퇴장**: `/pub/chatroom/{roomId}/leave`
+                - **메시지 전송**: `/pub/chat/{chatRoomId}/message`
+                  - Payload: `{"content": "메시지 내용", "messageType": "TEXT"}`
+                  - `chatRoomId`: 채팅방 ID (Long)
 
                 ### 메시지 구독 (Server → Client)
-                - **실시간 메시지 수신**: `/sub/chatroom/{roomId}`
-                  - 해당 채팅방의 모든 메시지를 실시간으로 수신
+                실시간 메시징은 **경로 구분 방식**을 사용합니다. 각 메시지 타입은 독립적인 구독 경로를 가지며, 클라이언트는 필요한 경로만 선택적으로 구독할 수 있습니다.
+
+                #### 1. 채팅 메시지
+                - **경로**: `/user/sub/chat/{chatRoomId}`
+                - **페이로드**: `ChatMessageResponse`
+                - **용도**: AI와의 1:1 대화 메시지
+
+                #### 2. 일정 dto (향후 구현)
+                - **경로**: `/user/sub/schedule`
+                - **페이로드**: `TripPlanDto(아직 미정)`
+                - **용도**: ai로부터 받아오는 여행 일정 전송(1일 단뒤)
+
+
+                **참고**: `/user` prefix는 Spring이 자동으로 현재 사용자에게만 메시지를 전달합니다.
 
                 ### 연결 예시 (JavaScript/React)
                 ```javascript
@@ -89,24 +105,34 @@ public class SwaggerConfig {
                 const socket = new SockJS('http://localhost:8080/ws-stomp');
                 const stompClient = Stomp.over(socket);
 
-                // 2. 구독
-                stompClient.connect({}, () => {
-                  stompClient.subscribe('/sub/chatroom/1', (message) => {
-                    const data = JSON.parse(message.body);
-                    console.log('새 메시지:', data);
+                stompClient.connect({}, (frame) => {
+                  console.log('연결됨. 사용자 ID:', frame.headers['user-name']);
+
+                  // 2. 채팅 메시지 구독
+                  stompClient.subscribe('/user/sub/chat/1', (message) => {
+                    const chatMsg = JSON.parse(message.body);
+                    displayChatMessage(chatMsg);  // ChatMessageResponse 처리
                   });
 
-                  // 3. 메시지 전송
-                  stompClient.send('/pub/chatroom/1/message', {},
-                    JSON.stringify({content: '안녕하세요'})
+                  // 3. 일정 받아오기 구독
+                  stompClient.subscribe('/user/sub/schedule', (message) => {
+                    const schedule = JSON.parse(message.body);
+                    showScheduleNotification(schedule);  // ScheduleNotification 처리
+                  });
+
+                  // 4. 채팅방 1로 메시지 전송
+                  stompClient.send('/pub/chat/1/message', {},
+                    JSON.stringify({
+                      content: '안녕하세요',
+                      messageType: 'TEXT'
+                    })
                   );
                 });
                 ```
 
                 ### 참고
-                - 과거 메시지 조회는 REST API 사용: `GET /api/v1/chatroom/{roomId}/messages`
-                - 필요한 라이브러리: `sockjs-client`, `stompjs` (또는 `@stomp/stompjs`)
-                - React 구현 가이드: https://khdscor.tistory.com/122
+                - 필요한 라이브러리: `sockjs-client`, `@stomp/stompjs`
+                - 각 채팅방은 독립적인 구독이 필요 (채팅방 전환 시 새로 구독)
                 """)
             .contact(contact);
 

@@ -17,6 +17,50 @@ spring:
         show_sql: false
         format_sql: false
     open-in-view: false
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000 # 1 hour (ms)
+      cache-null-values: false
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            client-name: Google
+            authorization-grant-type: authorization_code
+            redirect-uri: ${OAUTH2_BACKEND_REDIRECT_URI}
+            scope:
+              - openid
+              - email
+              - profile
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
+jwt:
+  access-token-secret: ${ACCESS_TOKEN}
+  refresh-token-secret: ${REFRESH_TOKEN}
+  access-token-expiration: ${EXPIRATION_TIME}
+  refresh-token-expiration: ${EXPIRATION_DATE}
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS}
+
+app:
+  oauth2:
+    redirect-uri: ${OAUTH2_FRONTEND_REDIRECT_URI}
+    register: ${REGISTER_TOKEN_REDIRECT_URI}
+    access: ${ACCESS_TOKEN_REDIRECT_URI}
 
 springdoc:
   swagger-ui:

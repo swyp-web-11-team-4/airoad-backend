@@ -1,14 +1,8 @@
-package com.swygbro.airoad.backend.security.domain.info;
+package com.swygbro.airoad.backend.auth.domain.info;
 
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-@Getter
-@AllArgsConstructor
-public class GoogleOAuth2UserInfo implements OAuth2UserInfo {
-  private final Map<String, Object> attributes;
+public record GoogleUserInfo(Map<String, Object> attributes) implements OAuth2UserInfo {
 
   @Override
   public String getId() {
@@ -28,10 +22,5 @@ public class GoogleOAuth2UserInfo implements OAuth2UserInfo {
   @Override
   public String getImageUrl() {
     return (String) attributes.get("picture");
-  }
-
-  @Override
-  public Map<String, Object> getAttributes() {
-    return attributes;
   }
 }

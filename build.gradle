@@ -31,10 +31,12 @@ dependencies {
     implementation libs.spring.boot.openapi.starter.webmvc.ui
     implementation libs.spring.boot.starter.websocket
     implementation libs.spring.boot.starter.actuator
-
-    // TODO: 사용자 인증 관련 개발 시 주석 해제 후 개발 진행
-//    implementation libs.spring.boot.starter.security
-//    implementation libs.spring.boot.starter.oauth2.client
+    /* ───────── Spring Security ───────── */
+    implementation libs.spring.boot.starter.security
+    implementation libs.spring.boot.starter.oauth2.client
+    /* ───────── JWT ───────── */
+    implementation libs.bundles.jjwt
+    implementation libs.spring.boot.starter.data.redis
 
     // Spring AI
     implementation platform(libs.spring.ai.bom)
@@ -42,6 +44,9 @@ dependencies {
 
     // Hibernate
     implementation libs.hibernate.spatial
+
+    // Redis (Lettuce)
+    implementation libs.lettuce.core
 
     // Lombok
     compileOnly libs.lombok
@@ -58,6 +63,7 @@ dependencies {
     testRuntimeOnly libs.h2
     testCompileOnly libs.lombok
     testAnnotationProcessor libs.lombok
+    testImplementation libs.spring.security.test
 }
 
 tasks.named('test') {

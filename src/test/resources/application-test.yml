@@ -13,13 +13,6 @@ spring:
       hibernate:
         show_sql: true
         format_sql: true
-  ai:
-    vectorstore:
-      pgvector:
-        initialize-schema: false
-    autoconfigure:
-      exclude:
-        - org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreAutoConfiguration
   data:
     redis:
       host: localhost
@@ -45,6 +38,9 @@ spring:
             token-uri: https://oauth2.googleapis.com/token
             user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
             user-name-attribute: sub
+  autoconfigure:
+    exclude:
+      - org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreAutoConfiguration
 
 jwt:
   access-token-secret: test-access-token-secret-key-for-testing-purposes-only

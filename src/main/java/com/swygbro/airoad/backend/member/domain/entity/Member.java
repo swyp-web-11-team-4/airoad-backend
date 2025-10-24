@@ -3,8 +3,6 @@ package com.swygbro.airoad.backend.member.domain.entity;
 import jakarta.persistence.*;
 
 import com.swygbro.airoad.backend.common.domain.entity.BaseEntity;
-import com.swygbro.airoad.backend.member.domain.enumerated.MemberRole;
-import com.swygbro.airoad.backend.member.domain.enumerated.ProviderType;
 
 import lombok.*;
 

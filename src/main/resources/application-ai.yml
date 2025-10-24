@@ -1,0 +1,30 @@
+spring:
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+      chat:
+        completions-path: ${CHAT_COMPLETIONS_PATH:/v1/chat/completions}
+        options:
+          model: ${OPENAI_CHAT_MODEL:gpt-4o-mini}
+      embedding:
+        embeddings-path: ${EMBEDDINGS_PATH:/v1/embeddings}
+        options:
+          model: ${EMBEDDING_MODEL:text-embedding-3-small}
+          dimensions: ${EMBEDDING_DIMENSIONS:768}
+          encoding-format: float
+    chat:
+      memory:
+        repository:
+          jdbc:
+            initialize-schema: never
+      observations:
+        log-prompt: true
+    vectorstore:
+      pgvector:
+        table-name: place_embedding
+        dimensions: ${EMBEDDING_DIMENSIONS:768}
+        distance-type: COSINE_DISTANCE
+        index-type: HNSW
+        initialize-schema: true
+        schema-validation: true

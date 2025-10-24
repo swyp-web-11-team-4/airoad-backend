@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.springframework.ai.document.Document;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@ConditionalOnBean(PlaceVectorStoreRepository.class)
 public class PlaceEmbeddingService implements PlaceEmbeddingUseCase {
 
   private static final int BATCH_SIZE = 50;

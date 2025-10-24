@@ -1,8 +1,8 @@
 package com.swygbro.airoad.backend.fixture.member;
 
 import com.swygbro.airoad.backend.member.domain.entity.Member;
-import com.swygbro.airoad.backend.member.domain.enumerated.MemberRole;
-import com.swygbro.airoad.backend.member.domain.enumerated.ProviderType;
+import com.swygbro.airoad.backend.member.domain.entity.MemberRole;
+import com.swygbro.airoad.backend.member.domain.entity.ProviderType;
 
 public class MemberFixture {
 

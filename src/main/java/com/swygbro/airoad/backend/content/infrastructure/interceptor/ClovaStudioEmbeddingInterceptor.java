@@ -66,10 +66,7 @@ public class ClovaStudioEmbeddingInterceptor implements ClientHttpRequestInterce
           // 단일 항목 배열인 경우에만 문자열로 변환
           String singleValue = inputArray.get(0).asText();
           ((ObjectNode) rootNode).put("input", singleValue);
-
           String modifiedBody = objectMapper.writeValueAsString(rootNode);
-          log.debug("=== Clova Studio Embedding Request Modification ===");
-          log.debug("Transformed input array to string: {}", singleValue);
 
           return modifiedBody.getBytes(StandardCharsets.UTF_8);
         } else if (inputArray.size() > 1) {

@@ -6,11 +6,7 @@ kotlin = "2.0.21"
 spring-boot = "3.5.6"
 spring-dependency-management = "1.1.7"
 spring-doc = "2.8.13"
-spring-ai-bom = "1.0.0"
-
-# Swagger
-swagger-core = "2.2.36"
-
+spring-ai-bom = "1.0.3"
 
 # Security & JWT
 jjwt = "0.12.6"
@@ -30,11 +26,6 @@ lettuce = "6.5.2.RELEASE"
 jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
 jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
 jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
-
-# Swagger
-swagger-annotations-jakarta = { module = "io.swagger.core.v3:swagger-annotations-jakarta", version.ref = "swagger-core" }
-swagger-core-jakarta        = { module = "io.swagger.core.v3:swagger-core-jakarta",        version.ref = "swagger-core" }
-swagger-models-jakarta      = { module = "io.swagger.core.v3:swagger-models-jakarta",      version.ref = "swagger-core" }
 
 # Database
 postgresql = { module = "org.postgresql:postgresql" }

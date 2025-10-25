@@ -18,6 +18,8 @@ public enum WebSocketErrorCode implements ErrorCode {
   UNAUTHORIZED_CONNECTION("WS001", HttpStatus.UNAUTHORIZED, "WebSocket 연결 인증에 실패했습니다."),
   SESSION_EXPIRED("WS002", HttpStatus.UNAUTHORIZED, "WebSocket 세션이 만료되었습니다."),
   HANDSHAKE_FAILED("WS003", HttpStatus.BAD_REQUEST, "WebSocket 핸드셰이크에 실패했습니다."),
+  FORBIDDEN_SUBSCRIPTION("WS004", HttpStatus.FORBIDDEN, "구독 권한이 없습니다."),
+  FORBIDDEN_SEND("WS005", HttpStatus.FORBIDDEN, "메시지 전송 권한이 없습니다."),
 
   // 프로토콜 레벨 에러
   INVALID_DESTINATION("WS101", HttpStatus.BAD_REQUEST, "유효하지 않은 메시지 destination입니다."),

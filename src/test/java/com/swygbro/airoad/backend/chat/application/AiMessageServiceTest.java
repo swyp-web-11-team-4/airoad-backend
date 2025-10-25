@@ -10,7 +10,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.chat.messages.MessageType;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
@@ -21,7 +20,6 @@ import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageResponse;
 import com.swygbro.airoad.backend.chat.domain.dto.MessageContentType;
 import com.swygbro.airoad.backend.chat.domain.entity.AiConversation;
 import com.swygbro.airoad.backend.chat.domain.entity.AiMessage;
-import com.swygbro.airoad.backend.chat.domain.event.AiMessageSavedEvent;
 import com.swygbro.airoad.backend.chat.exception.ChatErrorCode;
 import com.swygbro.airoad.backend.chat.fixture.AiConversationFixture;
 import com.swygbro.airoad.backend.chat.fixture.AiMessageFixture;
@@ -38,8 +36,6 @@ import static org.mockito.BDDMockito.*;
 @ActiveProfiles("test")
 class AiMessageServiceTest {
 
-  @Mock private ApplicationEventPublisher eventPublisher;
-
   @Mock private AiMessageRepository aiMessageRepository;
 
   @Mock private AiConversationRepository aiConversationRepository;
@@ -48,64 +44,39 @@ class AiMessageServiceTest {
 
   @Captor ArgumentCaptor<AiMessage> messageCaptor;
 
-  @Captor ArgumentCaptor<AiMessageSavedEvent> eventCaptor;
-
   @Nested
   @DisplayName("processAndSendMessage 메서드는")
   class ProcessAndSendMessage {
 
     @Test
-    @DisplayName("TEXT 메시지를 정상적으로 처리하고 AI 응답을 생성한다")
+    @DisplayName("TEXT 메시지를 정상적으로 처리하고 사용자 메시지를 저장한다")
     void shouldProcessTextMessageSuccessfully() {
       // given
       Long chatRoomId = 1L;
-      String userId = "user123";
+      String userId = "user123@example.com";
       String messageContent = "서울 3박 4일 여행 계획을 짜주세요";
       ChatMessageRequest request = new ChatMessageRequest(messageContent, MessageContentType.TEXT);
 
-      AiConversation conversation = AiConversationFixture.createConversation(chatRoomId);
+      AiConversation conversation = AiConversationFixture.createConversation(chatRoomId, userId);
       AiMessage userMessage = AiMessageFixture.createUserMessage(1L, messageContent, conversation);
-      AiMessage aiMessage =
-          AiMessageFixture.createAssistantMessage(
-              2L, "[AI 응답] " + messageContent + "에 대한 답변입니다.", conversation);
 
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
-      given(aiMessageRepository.save(any(AiMessage.class)))
-          .willReturn(userMessage, aiMessage)
-          .willAnswer(
-              inv -> {
-                throw new AssertionError("save called more than twice");
-              });
+      given(aiMessageRepository.save(any(AiMessage.class))).willReturn(userMessage);
 
       // when
       aiMessageService.processAndSendMessage(chatRoomId, userId, request);
 
       // then
       verify(aiConversationRepository).findById(chatRoomId);
-      verify(aiMessageRepository, times(2)).save(messageCaptor.capture());
-      var first = messageCaptor.getAllValues().get(0);
-      var second = messageCaptor.getAllValues().get(1);
+      verify(aiMessageRepository).save(messageCaptor.capture());
+      AiMessage savedMessage = messageCaptor.getValue();
 
-      // 1) 첫 저장: USER 텍스트
-      assertThat(first.getConversation().getId()).isEqualTo(chatRoomId);
-      assertThat(first.getMessageType()).isEqualTo(MessageType.USER);
-      assertThat(first.getContent()).isEqualTo(messageContent);
+      // 사용자 메시지 저장 검증
+      assertThat(savedMessage.getConversation().getId()).isEqualTo(chatRoomId);
+      assertThat(savedMessage.getMessageType()).isEqualTo(MessageType.USER);
+      assertThat(savedMessage.getContent()).isEqualTo(messageContent);
 
-      // 2) 두 번째 저장: ASSISTANT 응답
-      assertThat(second.getConversation().getId()).isEqualTo(chatRoomId);
-      assertThat(second.getMessageType()).isEqualTo(MessageType.ASSISTANT);
-      assertThat(second.getContent()).contains(messageContent);
-
-      // 3) 이벤트 발행 검증
-      verify(eventPublisher).publishEvent(eventCaptor.capture());
-      AiMessageSavedEvent publishedEvent = eventCaptor.getValue();
-      assertThat(publishedEvent.chatRoomId()).isEqualTo(chatRoomId);
-      assertThat(publishedEvent.userId()).isEqualTo(userId);
-      assertThat(publishedEvent.response().id()).isEqualTo(aiMessage.getId());
-      assertThat(publishedEvent.response().messageType()).isEqualTo(MessageType.ASSISTANT);
-      assertThat(publishedEvent.response().content()).isEqualTo(aiMessage.getContent());
-
-      verifyNoMoreInteractions(aiConversationRepository, aiMessageRepository, eventPublisher);
+      verifyNoMoreInteractions(aiConversationRepository, aiMessageRepository);
     }
 
     @Test
@@ -125,7 +96,6 @@ class AiMessageServiceTest {
 
       verify(aiConversationRepository).findById(chatRoomId);
       verify(aiMessageRepository, never()).save(any());
-      verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
@@ -137,7 +107,7 @@ class AiMessageServiceTest {
       ChatMessageRequest request =
           new ChatMessageRequest("image content", MessageContentType.IMAGE);
 
-      AiConversation conversation = AiConversationFixture.createConversation(chatRoomId);
+      AiConversation conversation = AiConversationFixture.createConversation(chatRoomId, userId);
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
 
       // when & then
@@ -147,7 +117,28 @@ class AiMessageServiceTest {
 
       verify(aiConversationRepository).findById(chatRoomId);
       verify(aiMessageRepository, never()).save(any());
-      verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    @DisplayName("채팅방 소유자가 아닌 사용자의 메시지는 BusinessException을 발생시킨다")
+    void shouldThrowExceptionWhenUserIsNotOwner() {
+      // given
+      Long chatRoomId = 1L;
+      String ownerId = "owner123";
+      String otherUserId = "other456";
+      ChatMessageRequest request = new ChatMessageRequest("안녕하세요", MessageContentType.TEXT);
+
+      AiConversation conversation = AiConversationFixture.createConversation(chatRoomId, ownerId);
+      given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
+
+      // when & then
+      assertThatThrownBy(
+              () -> aiMessageService.processAndSendMessage(chatRoomId, otherUserId, request))
+          .isInstanceOf(BusinessException.class)
+          .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.CONVERSATION_ACCESS_DENIED);
+
+      verify(aiConversationRepository).findById(chatRoomId);
+      verify(aiMessageRepository, never()).save(any());
     }
   }
 

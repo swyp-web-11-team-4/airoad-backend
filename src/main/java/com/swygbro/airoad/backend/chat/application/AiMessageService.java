@@ -1,7 +1,6 @@
 package com.swygbro.airoad.backend.chat.application;
 
 import org.springframework.ai.chat.messages.MessageType;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,7 +10,6 @@ import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageResponse;
 import com.swygbro.airoad.backend.chat.domain.dto.MessageContentType;
 import com.swygbro.airoad.backend.chat.domain.entity.AiConversation;
 import com.swygbro.airoad.backend.chat.domain.entity.AiMessage;
-import com.swygbro.airoad.backend.chat.domain.event.AiMessageSavedEvent;
 import com.swygbro.airoad.backend.chat.exception.ChatErrorCode;
 import com.swygbro.airoad.backend.chat.infrastructure.AiConversationRepository;
 import com.swygbro.airoad.backend.chat.infrastructure.AiMessageRepository;
@@ -24,25 +22,23 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * 채팅 메시지 처리 서비스
  *
- * <p>AI와의 1:1 채팅 메시지를 처리하고 이벤트를 발행합니다.
+ * <p>AI와의 1:1 채팅 메시지를 처리하는 서비스입니다.
  *
- * <h3>이벤트 기반 아키텍처</h3>
+ * <h3>메시지 처리 흐름</h3>
  *
- * <p>이 서비스는 메시지를 DB에d 저장한 후 {@link AiMessageSavedEvent}를 발행합니다. WebSocket 전송은 트랜잭션 커밋 후 {@link
- * AiMessageEventListener}에서 처리됩니다.
- *
- * <ul>
- *   <li><strong>DB 저장</strong>: 트랜잭션 내에서 메시지 저장
- *   <li><strong>이벤트 발행</strong>: AiMessageSavedEvent 발행
- *   <li><strong>WebSocket 전송</strong>: 트랜잭션 커밋 후 이벤트 리스너에서 처리
- * </ul>
+ * <ol>
+ *   <li><strong>사용자 메시지 저장</strong>: 클라이언트로부터 받은 메시지를 DB에 저장
+ *   <li><strong>AI 서버 전송</strong>: AI 서버에 메시지 전송 (구현 예정)
+ *   <li><strong>AI 응답 수신</strong>: AI 서버로부터 응답을 이벤트로 수신
+ *   <li><strong>WebSocket 전송</strong>: {@link
+ *       com.swygbro.airoad.backend.chat.application.AiResponseEventListener}에서 클라이언트로 실시간 전송
+ * </ol>
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class AiMessageService implements AiMessageUseCase {
 
-  private final ApplicationEventPublisher eventPublisher;
   private final AiMessageRepository aiMessageRepository;
   private final AiConversationRepository aiConversationRepository;
 
@@ -57,13 +53,19 @@ public class AiMessageService implements AiMessageUseCase {
             .findById(chatRoomId)
             .orElseThrow(() -> new BusinessException(ChatErrorCode.CONVERSATION_NOT_FOUND));
 
-    // 2. TEXT 메시지만 처리 (이미지, 파일 등은 향후 확장)
+    // 2. 권한 검증 - 해당 사용자가 채팅방 소유자인지 확인
+    if (!aiConversation.isOwner(userId)) {
+      log.warn("[Message] 채팅방 접근 권한 없음 - chatRoomId: {}, userId: {}", chatRoomId, userId);
+      throw new BusinessException(ChatErrorCode.CONVERSATION_ACCESS_DENIED);
+    }
+
+    // 3. TEXT 메시지만 처리 (이미지, 파일 등은 향후 확장)
     if (!request.messageContentType().equals(MessageContentType.TEXT)) {
       log.warn("[Message] TEXT 타입이 아닌 메시지는 현재 지원하지 않습니다 - type: {}", request.messageContentType());
       throw new BusinessException(ChatErrorCode.INVALID_MESSAGE_FORMAT);
     }
 
-    // 3. 사용자 메시지 저장
+    // 4. 사용자 메시지 저장
     AiMessage userMessage =
         AiMessage.builder()
             .messageType(MessageType.USER)
@@ -73,27 +75,17 @@ public class AiMessageService implements AiMessageUseCase {
     aiMessageRepository.save(userMessage);
     log.debug("[Message] 사용자 메시지 저장 완료 - messageId: {}", userMessage.getId());
 
-    // 4. AI 응답 생성 (현재는 더미 응답)
-    // TODO: 실제 LLM API 연동 후 aiService.generateResponse() 호출
-    String aiMessageContent = "[AI 응답] " + request.content() + "에 대한 답변입니다.";
+    // 5. AI 서버에 메시지 전송 요청
+    // TODO: AI 서버 연동 구현 후 실제 호출
+    // Long tripPlanId = aiConversation.getTripPlanId();
+    // aiChatService.sendMessageToAi(chatRoomId, tripPlanId, userId, request.content());
+    // AI 응답은 AiResponseReceivedEvent로 수신되어 AiResponseEventListener에서 WebSocket으로 전송됨
 
-    // 5. AI 응답 메시지 저장
-    AiMessage aiMessage =
-        AiMessage.builder()
-            .messageType(MessageType.ASSISTANT)
-            .content(aiMessageContent)
-            .conversation(aiConversation)
-            .build();
-    AiMessage savedAiMessage = aiMessageRepository.save(aiMessage);
-    log.debug("[Message] AI 응답 메시지 저장 완료 - messageId: {}", savedAiMessage.getId());
-
-    // 6. ChatMessageResponse로 변환
-    ChatMessageResponse response = ChatMessageResponse.from(savedAiMessage);
-
-    // 7. 이벤트 발행 (트랜잭션 커밋 후 WebSocket 전송은 이벤트 리스너에서 처리)
-    eventPublisher.publishEvent(new AiMessageSavedEvent(chatRoomId, userId, response));
-
-    log.info("[Message] 메시지 처리 완료 - chatRoomId: {}, userId: {}", chatRoomId, userId);
+    log.info(
+        "[Message] 사용자 메시지 저장 완료, AI 서버 전송 대기 - chatRoomId: {}, tripPlanId: {}, userId: {}",
+        chatRoomId,
+        aiConversation.getTripPlanId(),
+        userId);
   }
 
   @Override

@@ -47,15 +47,6 @@ dependencies {
     // Hibernate
     implementation libs.hibernate.spatial
 
-    // springdoc BOM으로 내부 버전 정렬
-    implementation(platform("org.springdoc:springdoc-openapi-bom:2.8.13"))
-    implementation(libs.spring.boot.openapi.starter.webmvc.ui)
-
-    // Swagger
-    implementation(libs.swagger.annotations.jakarta)
-    implementation(libs.swagger.core.jakarta)
-    implementation(libs.swagger.models.jakarta)
-
     // Redis (Lettuce)
     implementation libs.lettuce.core
 
@@ -75,11 +66,6 @@ dependencies {
     testCompileOnly libs.lombok
     testAnnotationProcessor libs.lombok
     testImplementation libs.spring.security.test
-}
-configurations.configureEach {
-    exclude(group: "io.swagger.core.v3", module: "swagger-annotations") // javax 라인 차단
-    exclude(group: "io.swagger.core.v3", module: "swagger-core")
-    exclude(group: "io.swagger.core.v3", module: "swagger-models")
 }
 
 tasks.named('test') {

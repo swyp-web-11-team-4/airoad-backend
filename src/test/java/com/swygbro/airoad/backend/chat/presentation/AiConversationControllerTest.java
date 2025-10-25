@@ -14,9 +14,14 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.swygbro.airoad.backend.auth.application.OAuthLoginSuccessHandler;
+import com.swygbro.airoad.backend.auth.application.UserDetailsServiceImpl;
+import com.swygbro.airoad.backend.auth.filter.JwtTokenProvider;
 import com.swygbro.airoad.backend.chat.application.AiMessageService;
 import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageResponse;
 import com.swygbro.airoad.backend.chat.domain.dto.MessageContentType;
@@ -26,9 +31,10 @@ import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(AiConversationController.class)
+@WebMvcTest(controllers = AiConversationController.class)
 @ActiveProfiles("test")
-@Import(AiConversationControllerTest.TestConfig.class) // ← 테스트용 빈 주입
+@Import(AiConversationControllerTest.TestConfig.class)
+@WithMockUser
 class AiConversationControllerTest {
 
   @Autowired private MockMvc mockMvc;
@@ -40,6 +46,26 @@ class AiConversationControllerTest {
     @Bean
     public AiMessageService aiMessageService() {
       return mock(AiMessageService.class);
+    }
+
+    @Bean
+    public JwtTokenProvider jwtTokenProvider() {
+      return mock(JwtTokenProvider.class);
+    }
+
+    @Bean
+    public UserDetailsServiceImpl userDetailsService() {
+      return mock(UserDetailsServiceImpl.class);
+    }
+
+    @Bean
+    public OAuthLoginSuccessHandler oAuthLoginSuccessHandler() {
+      return mock(OAuthLoginSuccessHandler.class);
+    }
+
+    @Bean
+    public SimpMessagingTemplate simpMessagingTemplate() {
+      return mock(SimpMessagingTemplate.class);
     }
   }
 

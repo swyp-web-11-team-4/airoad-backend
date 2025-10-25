@@ -1,6 +1,6 @@
 package com.swygbro.airoad.backend.chat.presentation;
 
-import java.security.Principal;
+import java.util.Collections;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -9,6 +9,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.messaging.support.GenericMessage;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.swygbro.airoad.backend.chat.application.AiMessageService;
@@ -28,8 +35,6 @@ class AiMessageControllerTest {
 
   @Mock private AiMessageService aiMessageService;
 
-  @Mock private Principal principal;
-
   @Nested
   @DisplayName("sendMessage 메서드는")
   class SendMessage {
@@ -39,31 +44,47 @@ class AiMessageControllerTest {
     void shouldProcessMessageWithValidRequestAndAuthenticatedUser() {
       // given
       Long chatRoomId = 1L;
-      String userId = "user123";
+      String userId = "test@example.com";
       ChatMessageRequest request =
           new ChatMessageRequest("서울 3박 4일 여행 계획을 짜주세요", MessageContentType.TEXT);
 
-      given(principal.getName()).willReturn(userId);
+      // StompHeaderAccessor 생성 및 인증 정보 설정
+      UserDetails userDetails =
+          User.builder()
+              .username(userId)
+              .password("password")
+              .authorities(Collections.emptyList())
+              .build();
+      Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null);
+
+      // Message<ChatMessageRequest> 생성
+      Message<ChatMessageRequest> message = new GenericMessage<>(request);
+      StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(message);
+      headerAccessor.setUser(authentication);
+
       willDoNothing().given(aiMessageService).processAndSendMessage(chatRoomId, userId, request);
 
       // when
-      aiMessageController.sendMessage(chatRoomId, request, principal);
+      aiMessageController.sendMessage(chatRoomId, message, headerAccessor);
 
       // then
-      verify(principal).getName();
       verify(aiMessageService).processAndSendMessage(chatRoomId, userId, request);
     }
 
     @Test
-    @DisplayName("Principal이 null이면 BusinessException을 던진다")
-    void shouldThrowExceptionWhenPrincipalIsNull() {
+    @DisplayName("Authentication이 null이면 BusinessException을 던진다")
+    void shouldThrowExceptionWhenAuthenticationIsNull() {
       // given
       Long chatRoomId = 1L;
       ChatMessageRequest request =
           new ChatMessageRequest("서울 3박 4일 여행 계획을 짜주세요", MessageContentType.TEXT);
 
+      Message<ChatMessageRequest> message = new GenericMessage<>(request);
+      StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(message);
+      // Authentication을 설정하지 않음 (null)
+
       // when & then
-      assertThatThrownBy(() -> aiMessageController.sendMessage(chatRoomId, request, null))
+      assertThatThrownBy(() -> aiMessageController.sendMessage(chatRoomId, message, headerAccessor))
           .isInstanceOf(BusinessException.class)
           .hasFieldOrPropertyWithValue("errorCode", WebSocketErrorCode.UNAUTHORIZED_CONNECTION);
 
@@ -71,22 +92,26 @@ class AiMessageControllerTest {
     }
 
     @Test
-    @DisplayName("빈 메시지 내용으로도 서비스 레이어로 전달한다")
-    void shouldPassEmptyContentToServiceLayer() {
+    @DisplayName("Principal이 UserDetails 타입이 아니면 BusinessException을 던진다")
+    void shouldThrowExceptionWhenPrincipalIsNotUserDetails() {
       // given
-      Long chatRoomId = 3L;
-      String userId = "user789";
-      // Validation은 Spring이 처리하므로, Controller 단위 테스트에서는 검증하지 않음
-      ChatMessageRequest request = new ChatMessageRequest("", MessageContentType.TEXT);
+      Long chatRoomId = 1L;
+      ChatMessageRequest request =
+          new ChatMessageRequest("서울 3박 4일 여행 계획을 짜주세요", MessageContentType.TEXT);
 
-      given(principal.getName()).willReturn(userId);
-      willDoNothing().given(aiMessageService).processAndSendMessage(chatRoomId, userId, request);
+      Message<ChatMessageRequest> message = new GenericMessage<>(request);
+      StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(message);
+      // UserDetails가 아닌 다른 Principal 설정
+      Authentication authentication =
+          new UsernamePasswordAuthenticationToken("stringPrincipal", null);
+      headerAccessor.setUser(authentication);
 
-      // when
-      aiMessageController.sendMessage(chatRoomId, request, principal);
+      // when & then
+      assertThatThrownBy(() -> aiMessageController.sendMessage(chatRoomId, message, headerAccessor))
+          .isInstanceOf(BusinessException.class)
+          .hasFieldOrPropertyWithValue("errorCode", WebSocketErrorCode.UNAUTHORIZED_CONNECTION);
 
-      // then
-      verify(aiMessageService).processAndSendMessage(chatRoomId, userId, request);
+      verifyNoInteractions(aiMessageService);
     }
   }
 }

@@ -25,7 +25,6 @@ public class AiFeedback extends BaseEntity {
   @Embedded private Feedback feedback;
 
   /** 피드백 생성 시점의 시스템 프롬프트 */
-  @Lob
   @Column(columnDefinition = "TEXT")
   private String systemPrompt;
 

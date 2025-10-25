@@ -4,6 +4,6 @@ spring:
   profiles:
     active: local
     include:
-      - chat
+      - ai
   jackson:
     default-property-inclusion: non_empty

@@ -28,7 +28,6 @@ public class AiMessage extends BaseEntity {
   private MessageType messageType;
 
   /** 메시지 내용 */
-  @Lob
   @Column(columnDefinition = "TEXT", nullable = false)
   private String content;
 

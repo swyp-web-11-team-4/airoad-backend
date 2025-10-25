@@ -3,7 +3,6 @@ package com.swygbro.airoad.backend.content.domain.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Lob;
 
 import com.swygbro.airoad.backend.common.domain.embeddable.Location;
 import com.swygbro.airoad.backend.common.domain.entity.BaseEntity;
@@ -23,12 +22,10 @@ public class Place extends BaseEntity {
   @Embedded private Location location;
 
   /** 장소 상세 설명 (RAG 임베딩용) */
-  @Lob
   @Column(columnDefinition = "TEXT")
   private String description;
 
   /** 대표 이미지 URL */
-  @Lob
   @Column(columnDefinition = "TEXT")
   private String imageUrl;
 

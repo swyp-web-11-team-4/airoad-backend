@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Map;
 
 import org.springframework.ai.document.Document;
@@ -41,7 +42,7 @@ public class PlaceDocumentConverter {
    */
   public Document toDocument(Place place) {
     String content = buildContent(place);
-    Map<String, Object> metadata = buildMetadata(place);
+    Map<String, Object> metadata = buildMetadata(place, content);
     return new Document(content, metadata);
   }
 
@@ -75,9 +76,12 @@ public class PlaceDocumentConverter {
    * Document의 metadata 구성
    *
    * <p>벡터 검색 후 필터링 및 정렬에 사용할 메타데이터를 구성합니다.
+   *
+   * @param place 변환할 Place 엔티티
+   * @param content 이미 생성된 content 문자열 (중복 생성 방지)
+   * @return metadata Map
    */
-  private Map<String, Object> buildMetadata(Place place) {
-    String content = buildContent(place);
+  private Map<String, Object> buildMetadata(Place place, String content) {
     String contentHash = calculateContentHash(content);
 
     return Map.of(
@@ -98,7 +102,7 @@ public class PlaceDocumentConverter {
         METADATA_CONTENT_HASH,
         contentHash,
         METADATA_EMBEDDED_AT,
-        LocalDateTime.now().toString(),
+        LocalDateTime.now(ZoneOffset.UTC).toString(),
         METADATA_PLACE_UPDATED_AT,
         place.getUpdatedAt().toString());
   }

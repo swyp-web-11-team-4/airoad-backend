@@ -18,8 +18,6 @@ spring:
         repository:
           jdbc:
             initialize-schema: never
-      observations:
-        log-prompt: true
     vectorstore:
       pgvector:
         table-name: place_embedding

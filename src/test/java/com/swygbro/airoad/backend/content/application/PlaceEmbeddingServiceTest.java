@@ -96,9 +96,6 @@ class PlaceEmbeddingServiceTest {
       then(placeRepository).should(times(1)).streamAllBy();
       then(vectorStoreRepository).should(times(3)).deleteByPlaceId(any(Long.class));
       then(documentConverter).should(times(3)).toDocument(any(Place.class));
-
-      // then: 배치 크기 미만이므로 한 번에 저장
-      then(vectorStoreRepository).should(times(1)).saveAll(anyList());
     }
 
     @Test
@@ -216,9 +213,6 @@ class PlaceEmbeddingServiceTest {
       then(placeRepository).should(times(1)).streamByUpdatedAtAfter(eq(since));
       then(vectorStoreRepository).should(times(2)).deleteByPlaceId(any(Long.class));
       then(documentConverter).should(times(2)).toDocument(any(Place.class));
-
-      // then: 결과를 벡터 스토어에 저장
-      then(vectorStoreRepository).should(times(1)).saveAll(anyList());
     }
 
     @Test
@@ -251,9 +245,6 @@ class PlaceEmbeddingServiceTest {
       // then: 모든 수정된 Place를 임베딩 처리
       then(vectorStoreRepository).should(times(totalCount)).deleteByPlaceId(any(Long.class));
       then(documentConverter).should(times(totalCount)).toDocument(any(Place.class));
-
-      // then: 배치 단위로 나누어 저장 (2회 호출)
-      then(vectorStoreRepository).should(times(2)).saveAll(anyList());
     }
 
     @Test

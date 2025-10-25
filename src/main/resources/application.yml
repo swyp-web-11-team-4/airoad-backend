@@ -6,4 +6,4 @@ spring:
     include:
       - chat
   jackson:
-    default-property-inclusion: non_empty
+    default-property-inclusion: non_null

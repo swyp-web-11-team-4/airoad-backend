@@ -7,9 +7,14 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
+import org.springframework.stereotype.Component;
 import org.springframework.util.MimeTypeUtils;
 
+import lombok.extern.slf4j.Slf4j;
+
 /** WebSocket/STOMP 통신 시 기본 Content-Type을 보장하기 위한 인터셉터입니다. */
+@Slf4j
+@Component
 public class WebSocketPayloadTypeInterceptor implements ChannelInterceptor {
 
   @Override

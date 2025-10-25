@@ -71,7 +71,6 @@ public class AiResponseEventListener {
    */
   @Async
   @EventListener
-  @Transactional
   public void handleAiResponseReceived(AiResponseReceivedEvent event) {
     log.debug(
         "[AI Response] 처리 시작 - chatRoomId: {}, tripPlanId: {}, userId: {}, contentType: {}, isComplete: {}",
@@ -134,6 +133,7 @@ public class AiResponseEventListener {
    *
    * @param event AI 응답 수신 이벤트
    */
+  @Transactional
   private void saveChatMessage(AiResponseReceivedEvent event) {
     try {
       AiConversation aiConversation =

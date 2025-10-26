@@ -1,3 +1,19 @@
+# [0.6.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.5.1...v0.6.0) (2025-10-26)
+
+
+### Bug Fixes
+
+* NPE 문제 수정 및 테스트 추가 ([eda2233](https://github.com/swyp-web-11-team-4/airoad-backend/commit/eda223316c053560f4d5d38016e60d101a4b1933))
+
+
+### Features
+
+* AiMessage Repository 및 커서 페이징 쿼리 구현 ([0019f4a](https://github.com/swyp-web-11-team-4/airoad-backend/commit/0019f4a5d72fe5156d99b73bfab938347ee02933))
+* AiMessageService 및 메시지 히스토리 조회 구현 ([7df9d99](https://github.com/swyp-web-11-team-4/airoad-backend/commit/7df9d9931aa0c3c9fbbc7e1df81ce6b3e3f6020e))
+* 이벤트 기반 메시지 처리 아키텍처 구현 ([4776738](https://github.com/swyp-web-11-team-4/airoad-backend/commit/47767388a72dc0743ad45edba50ce0bf8f054999))
+* 채팅 도메인 예외 처리 체계 구축 ([a9b430b](https://github.com/swyp-web-11-team-4/airoad-backend/commit/a9b430b635e95a452ac27927e8351dd1c058d421))
+* 채팅 컨트롤러 구현 및 Swagger 문서화 ([6e04c51](https://github.com/swyp-web-11-team-4/airoad-backend/commit/6e04c5128517f40a451edce64864d8bc7c30f5dd))
+
 ## [0.5.1](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.5.0...v0.5.1) (2025-10-24)
 
 

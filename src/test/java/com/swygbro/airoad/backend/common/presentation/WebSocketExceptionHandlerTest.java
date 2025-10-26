@@ -23,6 +23,7 @@ import org.springframework.test.context.ActiveProfiles;
 import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.common.exception.CommonErrorCode;
+import com.swygbro.airoad.backend.common.exception.WebSocketErrorCode;
 import com.swygbro.airoad.backend.websocket.presentation.WebSocketExceptionHandler;
 
 import static org.assertj.core.api.Assertions.*;
@@ -244,8 +245,9 @@ class WebSocketExceptionHandlerTest {
       assertThat(destinationCaptor.getValue()).isEqualTo("/sub/errors/456");
 
       ErrorResponse errorResponse = errorResponseCaptor.getValue();
-      assertThat(errorResponse.code()).isEqualTo("WS999");
-      assertThat(errorResponse.message()).isEqualTo("메시지 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+      assertThat(errorResponse.code()).isEqualTo(WebSocketErrorCode.INTERNAL_ERROR.getCode());
+      assertThat(errorResponse.message())
+          .isEqualTo(WebSocketErrorCode.INTERNAL_ERROR.getDefaultMessage());
     }
 
     @Test

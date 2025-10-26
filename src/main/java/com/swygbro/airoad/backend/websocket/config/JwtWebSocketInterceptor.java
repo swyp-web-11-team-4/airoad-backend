@@ -168,7 +168,7 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
       throw new BusinessException(WebSocketErrorCode.UNAUTHORIZED_CONNECTION);
     }
 
-    UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+    //UserDetails userDetails = (UserDetails) authentication.getPrincipal();
     String destination = accessor.getDestination();
 
     log.debug("[WebSocket] SUBSCRIBE 요청 - destination: {}", destination);
@@ -196,7 +196,7 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
       throw new BusinessException(WebSocketErrorCode.UNAUTHORIZED_CONNECTION);
     }
 
-    UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+    //UserDetails userDetails = (UserDetails) authentication.getPrincipal();
     String destination = accessor.getDestination();
 
     log.debug("[WebSocket] SEND 요청, destination: {}", destination);

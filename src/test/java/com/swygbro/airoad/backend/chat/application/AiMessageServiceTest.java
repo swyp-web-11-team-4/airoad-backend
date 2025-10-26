@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.ai.chat.messages.MessageType;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
@@ -27,6 +27,7 @@ import com.swygbro.airoad.backend.chat.infrastructure.AiConversationRepository;
 import com.swygbro.airoad.backend.chat.infrastructure.AiMessageRepository;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
+import com.swygbro.airoad.backend.websocket.domain.event.AiRequestEvent;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -40,43 +41,44 @@ class AiMessageServiceTest {
 
   @Mock private AiConversationRepository aiConversationRepository;
 
+  @Mock private ApplicationEventPublisher eventPublisher;
+
   @InjectMocks private AiMessageService aiMessageService;
 
-  @Captor ArgumentCaptor<AiMessage> messageCaptor;
+  @Captor ArgumentCaptor<AiRequestEvent> eventCaptor;
 
   @Nested
   @DisplayName("processAndSendMessage 메서드는")
   class ProcessAndSendMessage {
 
     @Test
-    @DisplayName("TEXT 메시지를 정상적으로 처리하고 사용자 메시지를 저장한다")
-    void shouldProcessTextMessageSuccessfully() {
+    @DisplayName("TEXT 메시지를 정상적으로 처리하고 AI 요청 이벤트를 발행한다")
+    void shouldProcessTextMessageAndPublishEvent() {
       // given
       Long chatRoomId = 1L;
+      Long tripPlanId = 100L;
       String userId = "user123@example.com";
       String messageContent = "서울 3박 4일 여행 계획을 짜주세요";
       ChatMessageRequest request = new ChatMessageRequest(messageContent, MessageContentType.TEXT);
 
-      AiConversation conversation = AiConversationFixture.createConversation(chatRoomId, userId);
-      AiMessage userMessage = AiMessageFixture.createUserMessage(1L, messageContent, conversation);
-
+      AiConversation conversation =
+          AiConversationFixture.createConversation(chatRoomId, userId, tripPlanId);
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
-      given(aiMessageRepository.save(any(AiMessage.class))).willReturn(userMessage);
 
       // when
       aiMessageService.processAndSendMessage(chatRoomId, userId, request);
 
       // then
       verify(aiConversationRepository).findById(chatRoomId);
-      verify(aiMessageRepository).save(messageCaptor.capture());
-      AiMessage savedMessage = messageCaptor.getValue();
+      verify(eventPublisher).publishEvent(eventCaptor.capture());
 
-      // 사용자 메시지 저장 검증
-      assertThat(savedMessage.getConversation().getId()).isEqualTo(chatRoomId);
-      assertThat(savedMessage.getMessageType()).isEqualTo(MessageType.USER);
-      assertThat(savedMessage.getContent()).isEqualTo(messageContent);
+      AiRequestEvent publishedEvent = eventCaptor.getValue();
+      assertThat(publishedEvent.chatRoomId()).isEqualTo(chatRoomId);
+      assertThat(publishedEvent.tripPlanId()).isEqualTo(tripPlanId);
+      assertThat(publishedEvent.userId()).isEqualTo(userId);
+      assertThat(publishedEvent.userMessage()).isEqualTo(messageContent);
 
-      verifyNoMoreInteractions(aiConversationRepository, aiMessageRepository);
+      verifyNoMoreInteractions(aiConversationRepository, eventPublisher);
     }
 
     @Test
@@ -95,7 +97,7 @@ class AiMessageServiceTest {
           .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.CONVERSATION_NOT_FOUND);
 
       verify(aiConversationRepository).findById(chatRoomId);
-      verify(aiMessageRepository, never()).save(any());
+      verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
@@ -116,7 +118,7 @@ class AiMessageServiceTest {
           .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.INVALID_MESSAGE_FORMAT);
 
       verify(aiConversationRepository).findById(chatRoomId);
-      verify(aiMessageRepository, never()).save(any());
+      verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
@@ -138,7 +140,7 @@ class AiMessageServiceTest {
           .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.CONVERSATION_ACCESS_DENIED);
 
       verify(aiConversationRepository).findById(chatRoomId);
-      verify(aiMessageRepository, never()).save(any());
+      verify(eventPublisher, never()).publishEvent(any());
     }
   }
 
@@ -200,7 +202,7 @@ class AiMessageServiceTest {
       SliceImpl<AiMessage> messageSlice = new SliceImpl<>(messages, PageRequest.of(0, size), true);
 
       given(aiConversationRepository.existsById(chatRoomId)).willReturn(true);
-      given(aiMessageRepository.existsById(cursor)).willReturn(true);
+      given(aiMessageRepository.existsByIdAndConversationId(cursor, chatRoomId)).willReturn(true);
       given(
               aiMessageRepository.findMessageHistoryByCursor(
                   eq(chatRoomId), eq(cursor), any(Pageable.class)))
@@ -245,7 +247,7 @@ class AiMessageServiceTest {
       SliceImpl<AiMessage> messageSlice = new SliceImpl<>(messages, PageRequest.of(0, size), false);
 
       given(aiConversationRepository.existsById(chatRoomId)).willReturn(true);
-      given(aiMessageRepository.existsById(cursor)).willReturn(true);
+      given(aiMessageRepository.existsByIdAndConversationId(cursor, chatRoomId)).willReturn(true);
       given(
               aiMessageRepository.findMessageHistoryByCursor(
                   eq(chatRoomId), eq(cursor), any(Pageable.class)))
@@ -313,6 +315,30 @@ class AiMessageServiceTest {
       verify(aiConversationRepository).existsById(chatRoomId);
       verify(aiMessageRepository)
           .findMessageHistoryByCursor(eq(chatRoomId), isNull(), any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("다른 대화방의 메시지 ID를 커서로 사용하면 BusinessException을 발생시킨다")
+    void shouldThrowExceptionWhenCursorBelongsToDifferentConversation() {
+      // given
+      Long chatRoomId = 1L;
+      Long cursorFromOtherRoom = 999L; // 다른 대화방의 메시지 ID
+      int size = 50;
+
+      given(aiConversationRepository.existsById(chatRoomId)).willReturn(true);
+      given(aiMessageRepository.existsByIdAndConversationId(cursorFromOtherRoom, chatRoomId))
+          .willReturn(false);
+
+      // when & then
+      assertThatThrownBy(
+              () -> aiMessageService.getMessageHistory(chatRoomId, cursorFromOtherRoom, size))
+          .isInstanceOf(BusinessException.class)
+          .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.INVALID_CURSOR);
+
+      verify(aiConversationRepository).existsById(chatRoomId);
+      verify(aiMessageRepository).existsByIdAndConversationId(cursorFromOtherRoom, chatRoomId);
+      verify(aiMessageRepository, never())
+          .findMessageHistoryByCursor(any(), any(), any(Pageable.class));
     }
   }
 }

@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.common.config;
+package com.swygbro.airoad.backend.websocket.config;
 
 import org.springframework.lang.NonNull;
 import org.springframework.messaging.Message;

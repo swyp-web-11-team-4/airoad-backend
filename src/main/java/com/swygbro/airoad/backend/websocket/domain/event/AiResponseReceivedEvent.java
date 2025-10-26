@@ -1,6 +1,6 @@
-package com.swygbro.airoad.backend.ai.domain.event;
+package com.swygbro.airoad.backend.websocket.domain.event;
 
-import com.swygbro.airoad.backend.ai.domain.dto.AiResponseContentType;
+import com.swygbro.airoad.backend.websocket.domain.dto.AiResponseContentType;
 
 /**
  * AI 응답 수신 이벤트

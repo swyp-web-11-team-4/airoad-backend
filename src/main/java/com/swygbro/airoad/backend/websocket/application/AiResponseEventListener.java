@@ -1,20 +1,15 @@
-package com.swygbro.airoad.backend.ai.application;
+package com.swygbro.airoad.backend.websocket.application;
 
-import org.springframework.ai.chat.messages.MessageType;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
-import com.swygbro.airoad.backend.ai.domain.dto.AiResponseContentType;
-import com.swygbro.airoad.backend.ai.domain.event.AiResponseReceivedEvent;
-import com.swygbro.airoad.backend.chat.domain.entity.AiConversation;
-import com.swygbro.airoad.backend.chat.domain.entity.AiMessage;
-import com.swygbro.airoad.backend.chat.exception.ChatErrorCode;
 import com.swygbro.airoad.backend.chat.infrastructure.AiConversationRepository;
 import com.swygbro.airoad.backend.chat.infrastructure.AiMessageRepository;
-import com.swygbro.airoad.backend.common.exception.BusinessException;
+import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
+import com.swygbro.airoad.backend.common.exception.WebSocketErrorCode;
+import com.swygbro.airoad.backend.websocket.domain.event.AiResponseReceivedEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,11 +55,6 @@ public class AiResponseEventListener {
    *
    * <ol>
    *   <li><strong>WebSocket 전송</strong>: 모든 청크를 즉시 클라이언트에게 전송 (실시간 스트리밍)
-   *   <li><strong>DB 저장</strong>: 완료된 응답만 저장
-   *       <ul>
-   *         <li>CHAT: AiMessage 테이블에 저장
-   *         <li>SCHEDULE: 향후 TripPlan 관련 테이블에 저장 (TODO)
-   *       </ul>
    * </ol>
    *
    * @param event AI 응답 수신 이벤트
@@ -80,17 +70,13 @@ public class AiResponseEventListener {
         event.contentType(),
         event.isComplete());
 
-    // 1. WebSocket 전송 (모든 청크 즉시 전송)
     sendToWebSocket(event);
-
-    // 2. DB 저장 (완료된 메시지만)
-    if (event.isComplete()) {
-      saveToDatabase(event);
-    }
   }
 
   /**
    * WebSocket을 통해 클라이언트에게 응답 전송
+   *
+   * <p>전송 실패 시 클라이언트에게 에러 메시지를 전송하여 스트리밍 중단을 알립니다.
    *
    * @param event AI 응답 수신 이벤트
    */
@@ -112,70 +98,38 @@ public class AiResponseEventListener {
           event.userId(),
           e.getMessage(),
           e);
+
+      // 클라이언트에게 전송 실패 알림
+      sendErrorToClient(event.userId(), event.chatRoomId(), e);
     }
   }
 
   /**
-   * 완료된 AI 응답을 DB에 저장
+   * WebSocket 전송 실패 시 클라이언트에게 에러 메시지 전송
    *
-   * @param event AI 응답 수신 이벤트
-   */
-  private void saveToDatabase(AiResponseReceivedEvent event) {
-    if (event.contentType() == AiResponseContentType.CHAT) {
-      saveChatMessage(event);
-    } else if (event.contentType() == AiResponseContentType.SCHEDULE) {
-      saveSchedule(event);
-    }
-  }
-
-  /**
-   * CHAT 타입 응답을 AiMessage 테이블에 저장
+   * <p>/user/sub/errors/{chatRoomId} 채널로 에러를 전송하여 클라이언트가 스트리밍 중단을 인지할 수 있도록 합니다.
    *
-   * @param event AI 응답 수신 이벤트
+   * @param userId 사용자 ID
+   * @param chatRoomId 채팅방 ID (null이면 "unknown" 사용)
+   * @param originalException 원본 예외
    */
-  @Transactional
-  private void saveChatMessage(AiResponseReceivedEvent event) {
+  private void sendErrorToClient(String userId, Long chatRoomId, Exception originalException) {
     try {
-      AiConversation aiConversation =
-          aiConversationRepository
-              .findById(event.chatRoomId())
-              .orElseThrow(() -> new BusinessException(ChatErrorCode.CONVERSATION_NOT_FOUND));
+      ErrorResponse errorResponse =
+          ErrorResponse.of(
+              WebSocketErrorCode.MESSAGE_SEND_FAILED.getCode(),
+              "AI 응답 전송에 실패했습니다. 새로고침 후 다시 시도해주세요.",
+              "/ws-stomp");
 
-      AiMessage aiMessage =
-          AiMessage.builder()
-              .messageType(MessageType.ASSISTANT)
-              .content(event.content())
-              .conversation(aiConversation)
-              .build();
-      aiMessageRepository.save(aiMessage);
+      // chatRoomId가 있으면 해당 채팅방의 에러 채널로 전송
+      String destination = chatRoomId != null ? "/sub/errors/" + chatRoomId : "/sub/errors/unknown";
+      messagingTemplate.convertAndSendToUser(userId, destination, errorResponse);
 
-      log.info(
-          "[DB] CHAT 메시지 저장 완료 - chatRoomId: {}, messageId: {}",
-          event.chatRoomId(),
-          aiMessage.getId());
+      log.info("[WebSocket] 에러 메시지 전송 완료 - userId: {}, destination: {}", userId, destination);
     } catch (Exception e) {
-      log.error(
-          "[DB] CHAT 메시지 저장 실패 - chatRoomId: {}, userId: {}, error: {}",
-          event.chatRoomId(),
-          event.userId(),
-          e.getMessage(),
-          e);
+      // 에러 전송마저 실패한 경우 로그만 남김
+      log.error("[WebSocket] 에러 메시지 전송 실패 - userId: {}, error: {}", userId, e.getMessage(), e);
     }
-  }
-
-  /**
-   * SCHEDULE 타입 응답을 TripPlan 관련 테이블에 저장
-   *
-   * <p>TODO: 여행 일정 저장 로직 구현 필요
-   *
-   * @param event AI 응답 수신 이벤트
-   */
-  private void saveSchedule(AiResponseReceivedEvent event) {
-    log.info(
-        "[DB] SCHEDULE 저장 시작 - tripPlanId: {}, userId: {} (TODO: 구현 필요)",
-        event.tripPlanId(),
-        event.userId());
-    // TODO: TripPlan 관련 엔티티에 일정 데이터 저장
   }
 
   /**

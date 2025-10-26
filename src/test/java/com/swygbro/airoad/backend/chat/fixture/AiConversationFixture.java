@@ -66,8 +66,36 @@ public class AiConversationFixture {
     return conversation;
   }
 
+  public static AiConversation createConversation(Long id, String userEmail, Long tripPlanId) {
+    Member member =
+        Member.builder()
+            .email(userEmail)
+            .name("테스트유저")
+            .imageUrl("https://example.com/image.png")
+            .provider(ProviderType.GOOGLE)
+            .role(MemberRole.MEMBER)
+            .build();
+
+    TripPlan tripPlan =
+        TripPlan.builder()
+            .member(member)
+            .title("테스트 여행")
+            .startDate(LocalDate.now())
+            .endDate(LocalDate.now().plusDays(3))
+            .isCompleted(false)
+            .region("서울")
+            .transportation(Transportation.PUBLIC_TRANSIT)
+            .peopleCount(2)
+            .build();
+    ReflectionTestUtils.setField(tripPlan, "id", tripPlanId);
+    AiConversation conversation =
+        AiConversation.builder().member(member).tripPlan(tripPlan).build();
+    ReflectionTestUtils.setField(conversation, "id", id);
+    return conversation;
+  }
+
   /**
-   * 기본 ID(1L)를 가진 AiConversation 객체 생성
+   * AiConversation 객체 생성
    *
    * @return AiConversation 객체
    */

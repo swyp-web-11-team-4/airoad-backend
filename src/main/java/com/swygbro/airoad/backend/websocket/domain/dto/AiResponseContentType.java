@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.ai.domain.dto;
+package com.swygbro.airoad.backend.websocket.domain.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

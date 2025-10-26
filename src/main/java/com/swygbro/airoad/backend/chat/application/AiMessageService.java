@@ -1,6 +1,6 @@
 package com.swygbro.airoad.backend.chat.application;
 
-import org.springframework.ai.chat.messages.MessageType;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +15,7 @@ import com.swygbro.airoad.backend.chat.infrastructure.AiConversationRepository;
 import com.swygbro.airoad.backend.chat.infrastructure.AiMessageRepository;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
+import com.swygbro.airoad.backend.websocket.domain.event.AiRequestEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,7 @@ public class AiMessageService implements AiMessageUseCase {
 
   private final AiMessageRepository aiMessageRepository;
   private final AiConversationRepository aiConversationRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Override
   @Transactional
@@ -65,27 +67,20 @@ public class AiMessageService implements AiMessageUseCase {
       throw new BusinessException(ChatErrorCode.INVALID_MESSAGE_FORMAT);
     }
 
-    // 4. 사용자 메시지 저장
-    AiMessage userMessage =
-        AiMessage.builder()
-            .messageType(MessageType.USER)
-            .content(request.content())
-            .conversation(aiConversation)
-            .build();
-    aiMessageRepository.save(userMessage);
-    log.debug("[Message] 사용자 메시지 저장 완료 - messageId: {}", userMessage.getId());
+    // 4. AI 서버에 메시지 전송 요청 이벤트 발행
+    Long tripPlanId = aiConversation.getTripPlanId();
+    AiRequestEvent aiRequestEvent =
+        new AiRequestEvent(chatRoomId, tripPlanId, userId, request.content());
 
-    // 5. AI 서버에 메시지 전송 요청
-    // TODO: AI 서버 연동 구현 후 실제 호출
-    // Long tripPlanId = aiConversation.getTripPlanId();
-    // aiChatService.sendMessageToAi(chatRoomId, tripPlanId, userId, request.content());
-    // AI 응답은 AiResponseReceivedEvent로 수신되어 AiResponseEventListener에서 WebSocket으로 전송됨
+    eventPublisher.publishEvent(aiRequestEvent);
 
     log.info(
-        "[Message] 사용자 메시지 저장 완료, AI 서버 전송 대기 - chatRoomId: {}, tripPlanId: {}, userId: {}",
+        "[Message] AI 요청 이벤트 발행 완료 - chatRoomId: {}, tripPlanId: {}, userId: {}",
         chatRoomId,
-        aiConversation.getTripPlanId(),
+        tripPlanId,
         userId);
+
+    // AI 응답은 AiResponseReceivedEvent로 수신되어 AiResponseEventListener에서 WebSocket으로 전송됨
   }
 
   @Override
@@ -108,8 +103,8 @@ public class AiMessageService implements AiMessageUseCase {
       throw new BusinessException(ChatErrorCode.CONVERSATION_NOT_FOUND);
     }
 
-    // 3. 커서가 제공된 경우, 해당 커서의 메시지가 실제로 존재하는지 검증
-    if (cursor != null && !aiMessageRepository.existsById(cursor)) {
+    // 3. 커서가 제공된 경우, 해당 커서의 메시지가 해당 대화방에 속하는지 검증
+    if (cursor != null && !aiMessageRepository.existsByIdAndConversationId(cursor, chatRoomId)) {
       throw new BusinessException(ChatErrorCode.INVALID_CURSOR);
     }
 

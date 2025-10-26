@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.common.config;
+package com.swygbro.airoad.backend.websocket.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

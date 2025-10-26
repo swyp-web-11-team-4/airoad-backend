@@ -30,4 +30,18 @@ public interface AiMessageRepository extends JpaRepository<AiMessage, Long> {
       @Param("conversationId") Long conversationId,
       @Param("cursor") Long cursor,
       Pageable pageable);
+
+  /**
+   * 특정 메시지가 해당 대화방에 속하는지 확인
+   *
+   * @param messageId 메시지 ID
+   * @param conversationId 대화 세션 ID
+   * @return 메시지가 해당 대화방에 속하면 true, 아니면 false
+   */
+  @Query(
+      "SELECT CASE WHEN COUNT(m) > 0 THEN true ELSE false END "
+          + "FROM AiMessage m "
+          + "WHERE m.id = :messageId AND m.conversation.id = :conversationId")
+  boolean existsByIdAndConversationId(
+      @Param("messageId") Long messageId, @Param("conversationId") Long conversationId);
 }

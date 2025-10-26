@@ -41,8 +41,12 @@ public class AiConversation extends BaseEntity {
    *
    * @param email 확인할 사용자 이메일
    * @return 소유자인 경우 true, 아니면 false
+   * @throws IllegalArgumentException email이 null인 경우
    */
   public boolean isOwner(String email) {
+    if (email == null) {
+      throw new IllegalArgumentException("email은 null일 수 없습니다");
+    }
     return this.member.getEmail().equals(email);
   }
 

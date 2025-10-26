@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.common.presentation;
+package com.swygbro.airoad.backend.websocket.presentation;
 
 import java.security.Principal;
 import java.util.regex.Matcher;
@@ -24,8 +24,8 @@ import lombok.extern.slf4j.Slf4j;
  * <h3>처리 방식</h3>
  *
  * <ul>
- *   <li>예외 발생 시 {@code /user/sub/errors/{tripPlanId}} 경로로 에러 메시지 전송
- *   <li>destination에서 tripPlanId 추출하여 해당 여행 계획의 에러 채널로 전송
+ *   <li>예외 발생 시 {@code /user/sub/errors/{chatRoomId}} 경로로 에러 메시지 전송
+ *   <li>destination에서 chatRoomId 추출하여 해당 채팅방의 에러 채널로 전송
  *   <li>사용자별 개인 메시지로 전송 (다른 사용자에게 노출되지 않음)
  *   <li>모든 예외는 로그에 기록
  * </ul>
@@ -40,6 +40,8 @@ import lombok.extern.slf4j.Slf4j;
  *   showErrorNotification(error.message);
  * });
  * }</pre>
+ *
+ * @see com.swygbro.airoad.backend.websocket.application.AiResponseEventListener
  */
 @Slf4j
 @ControllerAdvice
@@ -48,8 +50,10 @@ public class WebSocketExceptionHandler {
 
   private final SimpMessagingTemplate messagingTemplate;
 
-  private static final Pattern CHAT_DESTINATION_PATTERN =
+  private static final Pattern SEND_DESTINATION_PATTERN =
       Pattern.compile("^/pub/chat/(\\d+)/message$");
+  private static final Pattern SUBSCRIBE_DESTINATION_PATTERN =
+      Pattern.compile("^/user/sub/chat/(\\d+)$");
 
   /**
    * BusinessException 처리
@@ -105,6 +109,13 @@ public class WebSocketExceptionHandler {
   /**
    * STOMP 메시지 destination에서 chatRoomId 추출
    *
+   * <p>다음 패턴에서 chatRoomId를 추출합니다:
+   *
+   * <ul>
+   *   <li>SEND: {@code /pub/chat/{chatRoomId}/message}
+   *   <li>SUBSCRIBE: {@code /user/sub/chat/{chatRoomId}}
+   * </ul>
+   *
    * @param headerAccessor STOMP 메시지 헤더 접근자
    * @return chatRoomId (추출 실패 시 null)
    */
@@ -119,12 +130,23 @@ public class WebSocketExceptionHandler {
     }
 
     // /pub/chat/{chatRoomId}/message 패턴에서 chatRoomId 추출
-    Matcher matcher = CHAT_DESTINATION_PATTERN.matcher(destination);
-    if (matcher.matches()) {
+    Matcher sendMatcher = SEND_DESTINATION_PATTERN.matcher(destination);
+    if (sendMatcher.matches()) {
       try {
-        return Long.parseLong(matcher.group(1));
+        return Long.parseLong(sendMatcher.group(1));
       } catch (NumberFormatException e) {
-        log.warn("[WebSocket] chatRoomId 파싱 실패 - destination: {}", destination);
+        log.warn("[WebSocket] chatRoomId 파싱 실패 (SEND) - destination: {}", destination);
+        return null;
+      }
+    }
+
+    // /user/sub/chat/{chatRoomId} 패턴에서 chatRoomId 추출
+    Matcher subscribeMatcher = SUBSCRIBE_DESTINATION_PATTERN.matcher(destination);
+    if (subscribeMatcher.matches()) {
+      try {
+        return Long.parseLong(subscribeMatcher.group(1));
+      } catch (NumberFormatException e) {
+        log.warn("[WebSocket] chatRoomId 파싱 실패 (SUBSCRIBE) - destination: {}", destination);
         return null;
       }
     }

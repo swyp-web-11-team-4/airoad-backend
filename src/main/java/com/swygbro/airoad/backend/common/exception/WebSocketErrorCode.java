@@ -27,9 +27,10 @@ public enum WebSocketErrorCode implements ErrorCode {
 
   // 전송 및 세션 관련 에러
   MESSAGE_DELIVERY_FAILED("WS201", HttpStatus.INTERNAL_SERVER_ERROR, "메시지 전송에 실패했습니다."),
-  SEND_BUFFER_OVERFLOW("WS202", HttpStatus.SERVICE_UNAVAILABLE, "전송 버퍼가 가득 찼습니다."),
-  SEND_TIMEOUT("WS203", HttpStatus.REQUEST_TIMEOUT, "메시지 전송 시간이 초과되었습니다."),
-  CONNECTION_LIMIT_EXCEEDED("WS204", HttpStatus.TOO_MANY_REQUESTS, "동시 연결 수가 제한을 초과했습니다."),
+  MESSAGE_SEND_FAILED("WS202", HttpStatus.INTERNAL_SERVER_ERROR, "메시지 전송에 실패했습니다."),
+  SEND_BUFFER_OVERFLOW("WS203", HttpStatus.SERVICE_UNAVAILABLE, "전송 버퍼가 가득 찼습니다."),
+  SEND_TIMEOUT("WS204", HttpStatus.REQUEST_TIMEOUT, "메시지 전송 시간이 초과되었습니다."),
+  CONNECTION_LIMIT_EXCEEDED("WS205", HttpStatus.TOO_MANY_REQUESTS, "동시 연결 수가 제한을 초과했습니다."),
 
   // 서비스 레이어 에러
   AI_SERVICE_UNAVAILABLE("WS301", HttpStatus.SERVICE_UNAVAILABLE, "AI 서비스를 사용할 수 없습니다."),

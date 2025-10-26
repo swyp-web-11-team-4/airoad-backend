@@ -212,6 +212,70 @@ Conventional Commits + Semantic Release 사용:
 - **Dependency Management**: `gradle/libs.versions.toml`에서 중앙 관리
 - **Custom Gradle Plugins**: `buildSrc/src/main/kotlin/plugin/`에 정의 (coverage, spotless, sonar)
 
+## Additional Patterns and Features
+
+### 5. WebSocket Event-Driven Architecture
+프로젝트는 실시간 AI 응답 처리를 위해 WebSocket과 Spring Event를 결합한 아키텍처를 사용합니다.
+
+```java
+// WebSocket 도메인 구조
+websocket/
+├── presentation/           # WebSocket 엔드포인트 및 예외 핸들러
+├── application/           # 이벤트 리스너
+├── domain/
+│   ├── dto/              # WebSocket 메시지 DTO
+│   └── event/            # Spring Application Events
+└── config/               # WebSocket 설정 및 인터셉터
+```
+
+**주요 구성 요소**:
+- **Event Publishing**: 비즈니스 로직에서 `ApplicationEventPublisher`로 이벤트 발행
+- **Event Listener**: `@EventListener` 또는 `@TransactionalEventListener`로 비동기 처리
+- **WebSocket Interceptor**: JWT 인증 및 페이로드 검증 인터셉터 체인
+
+### 6. Spring AI Integration
+LLM 통합을 위해 Spring AI 프레임워크를 사용합니다.
+
+```java
+// Spring AI 의존성
+implementation platform('org.springframework.ai:spring-ai-bom')
+implementation 'org.springframework.ai:spring-ai-openai'
+```
+
+**구현 시 고려사항**:
+- `ChatClient` 또는 `ChatModel` 인터페이스 사용
+- Prompt 템플릿과 변수 바인딩 활용
+- RAG 구현 시 `VectorStore`와 `EmbeddingModel` 조합
+
+### 7. Authentication & Security Pattern
+JWT 기반 인증과 OAuth2 소셜 로그인을 결합한 보안 아키텍처입니다.
+
+**인증 흐름**:
+1. OAuth2 로그인 성공 → `OAuthLoginSuccessHandler` 호출
+2. JWT Access/Refresh Token 쌍 생성 및 반환
+3. 이후 요청마다 `JwtTokenProvider`로 토큰 검증
+4. Refresh Token으로 Access Token 재발급 (`AuthService.reissue`)
+
+**WebSocket 인증**:
+- `JwtWebSocketInterceptor`가 연결 시 토큰 검증
+- STOMP 헤더 또는 쿼리 파라미터로 토큰 전달
+
+## Custom Slash Commands
+
+프로젝트는 개발 워크플로우를 위한 커스텀 슬래시 명령어를 제공합니다 (`.claude/commands/`):
+
+- `/task [description] or [issue-number]`: GitHub 이슈 번호 또는 설명으로 완전한 기능 구현 (API 설계 → 구현 → 테스트 → 품질 검사)
+- `/commit [additional-instructions]`: 프로젝트 커밋 컨벤션에 맞춰 커밋 생성
+- `/pr-create [issue-number]`: 이슈와 연결된 PR 생성
+
+**사용 예시**:
+```bash
+/task 27                           # GitHub 이슈 #27의 요구사항 구현
+/task 사용자 프로필 조회 API 구현     # 텍스트 설명으로 구현
+/commit                            # 변경사항 분석 후 커밋
+/pr-create 27                      # 이슈 #27에 대한 PR 생성
+```
+
 ## Domain-Specific Implementation Guidance
 
 ### Trip Planning Domain
@@ -230,3 +294,4 @@ Conventional Commits + Semantic Release 사용:
 - **Chat Memory**: 직접 수정 및 대화 이력 JSON 형태로 저장, LLM 컨텍스트에 최근 N개 포함
 - **Naver 거리 측정 API**: 초기 생성 시 N×N 거리 매트릭스, 수정 시 변경 구간만 재계산
 - **토큰 최적화**: 전체 재생성 대신 부분 수정, Chat Memory로 컨텍스트 관리
+- **실시간 스트리밍**: WebSocket + Spring Event로 LLM 응답을 청크 단위로 클라이언트에 전달

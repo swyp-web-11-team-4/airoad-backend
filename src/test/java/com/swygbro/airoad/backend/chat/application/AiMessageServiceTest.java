@@ -142,6 +142,27 @@ class AiMessageServiceTest {
       verify(aiConversationRepository).findById(chatRoomId);
       verify(eventPublisher, never()).publishEvent(any());
     }
+
+    @Test
+    @DisplayName("발견한 채팅방에 대응하는 TripPlanId가 없으면 BusinessException을 발생시킨다")
+    void shouldThrowExceptionWhenTripPlanIsNotFounded() {
+      // given
+      Long chatRoomId = 1L;
+      String ownerId = "owner123";
+      ChatMessageRequest request = new ChatMessageRequest("안녕하세요", MessageContentType.TEXT);
+
+      AiConversation conversation =
+          AiConversationFixture.createConversation(chatRoomId, ownerId, null);
+      given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
+
+      // when & then
+      assertThatThrownBy(() -> aiMessageService.processAndSendMessage(chatRoomId, ownerId, request))
+          .isInstanceOf(BusinessException.class)
+          .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.INVALID_CONVERSATION_FORMAT);
+
+      verify(aiConversationRepository).findById(chatRoomId);
+      verify(eventPublisher, never()).publishEvent(any());
+    }
   }
 
   @Nested

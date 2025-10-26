@@ -72,6 +72,10 @@ public class AiMessageService implements AiMessageUseCase {
 
     // 4. AI 서버에 메시지 전송 요청 이벤트 발행
     Long tripPlanId = aiConversation.getTripPlanId();
+    if (tripPlanId == null) {
+      log.warn("[Message] 여행 계획 id 없음");
+      throw new BusinessException(ChatErrorCode.INVALID_CONVERSATION_FORMAT);
+    }
     AiRequestEvent aiRequestEvent =
         new AiRequestEvent(chatRoomId, tripPlanId, userId, request.content());
 

@@ -28,7 +28,8 @@ public enum ChatErrorCode implements ErrorCode {
   // 채팅방 관련
   CONVERSATION_NOT_FOUND("CHAT301", HttpStatus.NOT_FOUND, "존재하지 않는 채팅방입니다."),
   CONVERSATION_ACCESS_DENIED("CHAT302", HttpStatus.FORBIDDEN, "해당 채팅방에 접근 권한이 없습니다."),
-  CONVERSATION_ALREADY_EXISTS("CHAT303", HttpStatus.CONFLICT, "이미 존재하는 대화방입니다.");
+  CONVERSATION_ALREADY_EXISTS("CHAT303", HttpStatus.CONFLICT, "이미 존재하는 대화방입니다."),
+  INVALID_CONVERSATION_FORMAT("CHAT304", HttpStatus.NOT_FOUND, "채팅방에 대응하는 여행 계획이 없습니다.");
 
   private final String code;
   private final HttpStatus httpStatus;

@@ -1,5 +1,7 @@
 package com.swygbro.airoad.backend.websocket.domain.event;
 
+import java.util.Objects;
+
 /**
  * AI 서버로 메시지 전송 요청 이벤트
  *
@@ -17,8 +19,17 @@ package com.swygbro.airoad.backend.websocket.domain.event;
  * </ol>
  *
  * @param chatRoomId 채팅방 ID (AiConversation.id)
- * @param tripPlanId 여행 계획 ID (TripPlan.id, null 가능)
+ * @param tripPlanId 여행 계획 ID (TripPlan.id)
  * @param userId 사용자 ID (이메일)
  * @param userMessage 사용자가 보낸 메시지 내용
  */
-public record AiRequestEvent(Long chatRoomId, Long tripPlanId, String userId, String userMessage) {}
+public record AiRequestEvent(Long chatRoomId, Long tripPlanId, String userId, String userMessage) {
+  public AiRequestEvent {
+    Objects.requireNonNull(chatRoomId, "chatRoomId must not be null");
+    Objects.requireNonNull(tripPlanId, "tripPlanId must not be null");
+    Objects.requireNonNull(userId, "userId must not be null");
+    Objects.requireNonNull(userMessage, "userMessage must not be null");
+    if (userId.isBlank()) throw new IllegalArgumentException("userId must not be blank");
+    if (userMessage.isBlank()) throw new IllegalArgumentException("userMessage must not be blank");
+  }
+}

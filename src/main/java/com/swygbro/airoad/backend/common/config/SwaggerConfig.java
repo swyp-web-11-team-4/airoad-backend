@@ -72,11 +72,13 @@ public class SwaggerConfig {
                 ### 연결 정보
                 - **WebSocket 엔드포인트**: `ws://localhost:8080/ws-stomp` (개발환경)
                 - **프로덕션**: `wss://api.example.com/ws-stomp` (HTTPS 환경에서는 반드시 WSS 사용)
+                - **인증 방식**: STOMP CONNECT 프레임에 `Authorization: Bearer <JWT>` 헤더 필수
 
                 ### 채팅 구조
                 - AI와의 1:1 채팅
                 - 한 사용자는 여러 채팅방(대화 세션)을 가질 수 있음
                 - 각 채팅방은 독립적인 AI 대화 컨텍스트 유지
+                - 각 채팅방은 하나의 여행 계획(TripPlan)과 연결됨
 
                 ### 메시지 송신 (Client → Server)
                 - **메시지 전송**: `/pub/chat/{chatRoomId}/message`
@@ -91,36 +93,59 @@ public class SwaggerConfig {
                 - **페이로드**: `ChatMessageResponse`
                 - **용도**: AI와의 1:1 대화 메시지
 
-                #### 2. 일정 dto (향후 구현)
-                - **경로**: `/user/sub/schedule`
-                - **페이로드**: `TripPlanDto(아직 미정)`
-                - **용도**: ai로부터 받아오는 여행 일정 전송(1일 단뒤)
+                #### 2. 일정 데이터
+                - **경로**: `/user/sub/schedule/{tripPlanId}`
+                - **페이로드**: `TripPlanDto`
+                - **용도**: AI로부터 받아오는 여행 일정 전송 (여행 계획별로 구분)
 
+                #### 3. 에러 메시지
+                - **경로**: `/user/sub/errors/{chatRoomId}`
+                - **페이로드**: `ErrorResponse`
+                  ```json
+                  {
+                    "code": "WS999",
+                    "message": "메시지 처리 중 오류가 발생했습니다.",
+                    "path": "/websocket"
+                  }
+                  ```
+                - **용도**: 특정 채팅방에서 발생한 WebSocket 예외를 사용자에게 전달
+                - **에러 코드**:
+                  - `WS999`: 일반 예외 (서버 내부 오류)
+                  - 기타 비즈니스 예외 코드 (도메인별 ErrorCode 참조)
 
                 **참고**: `/user` prefix는 Spring이 자동으로 현재 사용자에게만 메시지를 전달합니다.
 
                 ### 연결 예시 (JavaScript/React)
                 ```javascript
-                // 1. 연결
+                // 1. 연결 (JWT 인증 포함)
                 const socket = new SockJS('http://localhost:8080/ws-stomp');
                 const stompClient = Stomp.over(socket);
 
-                stompClient.connect({}, (frame) => {
+                stompClient.connect({
+                  Authorization: 'Bearer ' + accessToken  // JWT 토큰 추가 (필수)
+                }, (frame) => {
                   console.log('연결됨. 사용자 ID:', frame.headers['user-name']);
 
-                  // 2. 채팅 메시지 구독
+                  // 2. 채팅방 1의 에러 메시지 구독 (필수)
+                  stompClient.subscribe('/user/sub/errors/1', (message) => {
+                    const error = JSON.parse(message.body);
+                    console.error('WebSocket 에러:', error);
+                    showErrorNotification(error.message);  // ErrorResponse 처리
+                  });
+
+                  // 3. 채팅방 1의 채팅 메시지 구독
                   stompClient.subscribe('/user/sub/chat/1', (message) => {
                     const chatMsg = JSON.parse(message.body);
                     displayChatMessage(chatMsg);  // ChatMessageResponse 처리
                   });
 
-                  // 3. 일정 받아오기 구독
-                  stompClient.subscribe('/user/sub/schedule', (message) => {
+                  // 4. 여행 계획 1의 일정 구독
+                  stompClient.subscribe('/user/sub/schedule/1', (message) => {
                     const schedule = JSON.parse(message.body);
-                    showScheduleNotification(schedule);  // ScheduleNotification 처리
+                    displaySchedule(schedule);  // TripPlanDto 처리
                   });
 
-                  // 4. 채팅방 1로 메시지 전송
+                  // 5. 채팅방 1로 메시지 전송
                   stompClient.send('/pub/chat/1/message', {},
                     JSON.stringify({
                       content: '안녕하세요',

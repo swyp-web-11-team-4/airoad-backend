@@ -35,4 +35,27 @@ public class AiConversation extends BaseEntity {
     this.member = member;
     this.tripPlan = tripPlan;
   }
+
+  /**
+   * 주어진 이메일이 이 대화방의 소유자인지 확인합니다.
+   *
+   * @param email 확인할 사용자 이메일
+   * @return 소유자인 경우 true, 아니면 false
+   * @throws IllegalArgumentException email이 null인 경우
+   */
+  public boolean isOwner(String email) {
+    if (email == null) {
+      throw new IllegalArgumentException("email은 null일 수 없습니다");
+    }
+    return this.member.getEmail().equals(email);
+  }
+
+  /**
+   * 대화와 관련된 여행 계획 ID를 반환합니다.
+   *
+   * @return 여행 계획 ID
+   */
+  public Long getTripPlanId() {
+    return this.tripPlan.getId();
+  }
 }

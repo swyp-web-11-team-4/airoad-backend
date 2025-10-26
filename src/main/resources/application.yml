@@ -6,4 +6,4 @@ spring:
     include:
       - ai
   jackson:
-    default-property-inclusion: non_empty
+    default-property-inclusion: non_null

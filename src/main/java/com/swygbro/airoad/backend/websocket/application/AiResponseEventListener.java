@@ -5,8 +5,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import com.swygbro.airoad.backend.chat.infrastructure.AiConversationRepository;
-import com.swygbro.airoad.backend.chat.infrastructure.AiMessageRepository;
 import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
 import com.swygbro.airoad.backend.common.exception.WebSocketErrorCode;
 import com.swygbro.airoad.backend.websocket.domain.event.AiResponseReceivedEvent;
@@ -45,8 +43,6 @@ import lombok.extern.slf4j.Slf4j;
 public class AiResponseEventListener {
 
   private final SimpMessagingTemplate messagingTemplate;
-  private final AiMessageRepository aiMessageRepository;
-  private final AiConversationRepository aiConversationRepository;
 
   /**
    * AI 응답 수신 이벤트 처리

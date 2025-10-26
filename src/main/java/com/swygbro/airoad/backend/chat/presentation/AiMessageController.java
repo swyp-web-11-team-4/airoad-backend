@@ -107,8 +107,7 @@ public class AiMessageController {
    *   <li>채팅방 존재 여부 확인
    *   <li>사용자 권한 검증 (채팅방 소유자인지 email 기반 확인)
    *   <li>메시지 타입 검증 (현재 TEXT만 지원)
-   *   <li>사용자 메시지 DB 저장
-   *   <li>AI 서버에 메시지 전송 (구현 예정)
+   *   <li>AI 요청 이벤트 발행 (AiRequestEvent)
    *   <li>AI 응답을 /user/sub/chat/{chatRoomId}로 실시간 전송
    * </ol>
    *

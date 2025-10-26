@@ -71,10 +71,9 @@ public class WebSocketExceptionHandler {
     Long chatRoomId = extractChatRoomId(headerAccessor);
 
     log.warn(
-        "[WebSocket] 비즈니스 예외 발생 - code: {}, message: {}, userId: {}, chatRoomId: {}",
+        "[WebSocket] 비즈니스 예외 발생 - code: {}, message: {}, chatRoomId: {}",
         e.getErrorCode().getCode(),
         e.getMessage(),
-        userId,
         chatRoomId);
 
     ErrorResponse errorResponse =
@@ -98,7 +97,7 @@ public class WebSocketExceptionHandler {
     String userId = getUserId(principal);
     Long chatRoomId = extractChatRoomId(headerAccessor);
 
-    log.error("[WebSocket] 예외 발생 - userId: {}, chatRoomId: {}", userId, chatRoomId, e);
+    log.error("[WebSocket] 예외 발생 - chatRoomId: {}", chatRoomId, e);
 
     ErrorResponse errorResponse =
         ErrorResponse.of("WS999", "메시지 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", "/websocket");
@@ -168,10 +167,7 @@ public class WebSocketExceptionHandler {
     messagingTemplate.convertAndSendToUser(userId, destination, errorResponse);
 
     log.debug(
-        "[WebSocket] 에러 메시지 전송 - userId: {}, destination: {}, code: {}",
-        userId,
-        destination,
-        errorResponse.code());
+        "[WebSocket] 에러 메시지 전송 - destination: {}, code: {}", destination, errorResponse.code());
   }
 
   /**

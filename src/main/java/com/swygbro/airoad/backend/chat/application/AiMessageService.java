@@ -108,10 +108,7 @@ public class AiMessageService implements AiMessageUseCase {
             .orElseThrow(() -> new BusinessException(ChatErrorCode.CONVERSATION_NOT_FOUND));
 
     if (!aiConversation.isOwner(userId)) {
-      log.warn(
-          "[MessageHistory] 채팅방 접근 권한 없음 - chatRoomId: {}, owner: {}",
-          chatRoomId,
-          aiConversation.getMember().getEmail());
+      log.warn("[MessageHistory] 채팅방 접근 권한 없음 - chatRoomId: {}", chatRoomId);
       throw new BusinessException(ChatErrorCode.CONVERSATION_ACCESS_DENIED);
     }
 

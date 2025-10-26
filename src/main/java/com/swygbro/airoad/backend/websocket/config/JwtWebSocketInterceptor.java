@@ -138,7 +138,7 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
 
       accessor.setUser(authentication);
 
-      log.info("[WebSocket] STOMP CONNECT 인증 성공 - userId: {}", userDetails.getUsername());
+      // log.info("[WebSocket] STOMP CONNECT 인증 성공 - userId: {}", userDetails.getUsername());
 
     } catch (BusinessException e) {
       log.error("[WebSocket] JWT 검증 실패 (BusinessException): {}", e.getMessage());
@@ -178,10 +178,7 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
         && !destination.startsWith("/user/sub/chat/")
         && !destination.startsWith("/user/sub/schedule/")
         && !destination.startsWith("/user/sub/errors/")) {
-      log.error(
-          "[WebSocket] 허용되지 않은 구독 경로 - userId: {}, destination: {}",
-          userDetails.getUsername(),
-          destination);
+      log.error("[WebSocket] 허용되지 않은 구독 경로, destination: {}", destination);
       throw new BusinessException(WebSocketErrorCode.FORBIDDEN_SUBSCRIPTION);
     }
   }
@@ -202,17 +199,11 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
     UserDetails userDetails = (UserDetails) authentication.getPrincipal();
     String destination = accessor.getDestination();
 
-    log.debug(
-        "[WebSocket] SEND 요청 - userId: {}, destination: {}",
-        userDetails.getUsername(),
-        destination);
+    log.debug("[WebSocket] SEND 요청, destination: {}", destination);
 
     // 메시지 전송 경로 검증 (/pub/chat/{chatRoomId}/message만 허용)
     if (destination != null && !destination.matches("^/pub/chat/\\d+/message$")) {
-      log.error(
-          "[WebSocket] 허용되지 않은 전송 경로 - userId: {}, destination: {}",
-          userDetails.getUsername(),
-          destination);
+      log.error("[WebSocket] 허용되지 않은 전송 경로, destination: {}", destination);
       throw new BusinessException(WebSocketErrorCode.FORBIDDEN_SEND);
     }
   }

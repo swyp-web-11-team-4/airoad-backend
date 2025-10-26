@@ -15,12 +15,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import com.swygbro.airoad.backend.auth.application.OAuthLoginSuccessHandler;
 import com.swygbro.airoad.backend.auth.application.UserDetailsServiceImpl;
+import com.swygbro.airoad.backend.auth.domain.info.UserPrincipal;
 import com.swygbro.airoad.backend.auth.filter.JwtTokenProvider;
 import com.swygbro.airoad.backend.chat.application.AiMessageService;
 import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageResponse;
@@ -34,12 +37,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(controllers = AiConversationController.class)
 @ActiveProfiles("test")
 @Import(AiConversationControllerTest.TestConfig.class)
-@WithMockUser
 class AiConversationControllerTest {
 
   @Autowired private MockMvc mockMvc;
 
   @Autowired private AiMessageService aiMessageService;
+
+  private UserPrincipal userPrincipal;
 
   @TestConfiguration
   static class TestConfig {
@@ -71,7 +75,15 @@ class AiConversationControllerTest {
 
   @BeforeEach
   void resetMocks() {
+
     reset(aiMessageService); // 스텁/호출기록 모두 초기화
+    userPrincipal = mock(UserPrincipal.class);
+    when(userPrincipal.getUsername()).thenReturn("user1234");
+  }
+
+  private RequestPostProcessor auth() {
+    return SecurityMockMvcRequestPostProcessors.authentication(
+        new UsernamePasswordAuthenticationToken(userPrincipal, null, List.of()));
   }
 
   @Nested
@@ -84,6 +96,7 @@ class AiConversationControllerTest {
       // given
       Long chatRoomId = 1L;
       int size = 50;
+      String userId = "user1234";
 
       List<ChatMessageResponse> messages =
           List.of(
@@ -104,12 +117,14 @@ class AiConversationControllerTest {
 
       CursorPageResponse<ChatMessageResponse> response = CursorPageResponse.of(messages, 3L, true);
 
-      given(aiMessageService.getMessageHistory(chatRoomId, null, size)).willReturn(response);
+      given(aiMessageService.getMessageHistory(chatRoomId, userId, null, size))
+          .willReturn(response);
 
       // when & then
       mockMvc
           .perform(
               get("/api/v1/chatroom/{chatRoomId}/messages", chatRoomId)
+                  .with(auth())
                   .param("size", String.valueOf(size))
                   .contentType(MediaType.APPLICATION_JSON))
           .andExpect(status().isOk())
@@ -126,7 +141,7 @@ class AiConversationControllerTest {
           .andExpect(jsonPath("$.data.hasNext").value(true))
           .andExpect(jsonPath("$.data.size").value(2));
 
-      verify(aiMessageService).getMessageHistory(chatRoomId, null, size);
+      verify(aiMessageService).getMessageHistory(chatRoomId, userId, null, size);
     }
 
     @Test
@@ -135,6 +150,7 @@ class AiConversationControllerTest {
       // given
       Long chatRoomId = 1L;
       Long cursor = 5L;
+      String userId = "user1234";
       int size = 50;
 
       List<ChatMessageResponse> messages =
@@ -157,12 +173,14 @@ class AiConversationControllerTest {
       CursorPageResponse<ChatMessageResponse> response =
           CursorPageResponse.of(messages, null, false);
 
-      given(aiMessageService.getMessageHistory(chatRoomId, cursor, size)).willReturn(response);
+      given(aiMessageService.getMessageHistory(chatRoomId, userId, cursor, size))
+          .willReturn(response);
 
       // when & then
       mockMvc
           .perform(
               get("/api/v1/chatroom/{chatRoomId}/messages", chatRoomId)
+                  .with(auth())
                   .param("size", String.valueOf(size))
                   .param("cursor", String.valueOf(cursor))
                   .contentType(MediaType.APPLICATION_JSON))
@@ -173,7 +191,7 @@ class AiConversationControllerTest {
           .andExpect(jsonPath("$.data.content[1].id").value(3))
           .andExpect(jsonPath("$.data.hasNext").value(false));
 
-      verify(aiMessageService).getMessageHistory(chatRoomId, cursor, size);
+      verify(aiMessageService).getMessageHistory(chatRoomId, userId, cursor, size);
     }
 
     @Test
@@ -182,6 +200,7 @@ class AiConversationControllerTest {
       // given
       Long chatRoomId = 1L;
       int defaultSize = 50;
+      String userId = "user1234";
 
       List<ChatMessageResponse> messages =
           List.of(
@@ -195,19 +214,21 @@ class AiConversationControllerTest {
 
       CursorPageResponse<ChatMessageResponse> response = CursorPageResponse.last(messages);
 
-      given(aiMessageService.getMessageHistory(chatRoomId, null, defaultSize)).willReturn(response);
+      given(aiMessageService.getMessageHistory(chatRoomId, userId, null, defaultSize))
+          .willReturn(response);
 
       // when & then
       mockMvc
           .perform(
               get("/api/v1/chatroom/{chatRoomId}/messages", chatRoomId)
+                  .with(auth())
                   .contentType(MediaType.APPLICATION_JSON))
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.success").value(true))
           .andExpect(jsonPath("$.data.content.length()").value(1));
 
       // size 파라미터를 전달하지 않았으므로 기본값 50으로 호출되었는지 검증
-      verify(aiMessageService).getMessageHistory(chatRoomId, null, defaultSize);
+      verify(aiMessageService).getMessageHistory(chatRoomId, userId, null, defaultSize);
     }
 
     @Test
@@ -216,15 +237,18 @@ class AiConversationControllerTest {
       // given
       Long chatRoomId = 1L;
       int size = 50;
+      String userId = "user1234";
 
       CursorPageResponse<ChatMessageResponse> response = CursorPageResponse.last(List.of());
 
-      given(aiMessageService.getMessageHistory(chatRoomId, null, size)).willReturn(response);
+      given(aiMessageService.getMessageHistory(chatRoomId, userId, null, size))
+          .willReturn(response);
 
       // when & then
       mockMvc
           .perform(
               get("/api/v1/chatroom/{chatRoomId}/messages", chatRoomId)
+                  .with(auth())
                   .param("size", String.valueOf(size))
                   .contentType(MediaType.APPLICATION_JSON))
           .andExpect(status().isOk())
@@ -234,7 +258,7 @@ class AiConversationControllerTest {
           .andExpect(jsonPath("$.data.hasNext").value(false))
           .andExpect(jsonPath("$.data.size").value(0));
 
-      verify(aiMessageService).getMessageHistory(chatRoomId, null, size);
+      verify(aiMessageService).getMessageHistory(chatRoomId, userId, null, size);
     }
 
     @Test
@@ -243,6 +267,7 @@ class AiConversationControllerTest {
       // given
       Long chatRoomId = 1L;
       int customSize = 10;
+      String userId = "user1234";
 
       List<ChatMessageResponse> messages =
           List.of(
@@ -256,19 +281,21 @@ class AiConversationControllerTest {
 
       CursorPageResponse<ChatMessageResponse> response = CursorPageResponse.of(messages, 2L, true);
 
-      given(aiMessageService.getMessageHistory(chatRoomId, null, customSize)).willReturn(response);
+      given(aiMessageService.getMessageHistory(chatRoomId, userId, null, customSize))
+          .willReturn(response);
 
       // when & then
       mockMvc
           .perform(
               get("/api/v1/chatroom/{chatRoomId}/messages", chatRoomId)
+                  .with(auth())
                   .param("size", String.valueOf(customSize))
                   .contentType(MediaType.APPLICATION_JSON))
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.success").value(true))
           .andExpect(jsonPath("$.data.size").value(1));
 
-      verify(aiMessageService).getMessageHistory(chatRoomId, null, customSize);
+      verify(aiMessageService).getMessageHistory(chatRoomId, userId, null, customSize);
     }
   }
 }

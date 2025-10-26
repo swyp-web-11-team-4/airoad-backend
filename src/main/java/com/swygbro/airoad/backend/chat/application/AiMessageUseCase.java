@@ -24,9 +24,11 @@ public interface AiMessageUseCase {
    * 채팅방의 메시지 히스토리를 커서 기반 페이지네이션으로 조회
    *
    * @param chatRoomId 채팅방 ID
+   * @param userId 사용자 ID (권한 검증용)
    * @param cursor 커서 (메시지 ID, null이면 최신 메시지부터 조회)
    * @param size 조회할 메시지 개수
    * @return 메시지 히스토리 커서 페이지 응답
    */
-  CursorPageResponse<ChatMessageResponse> getMessageHistory(Long chatRoomId, Long cursor, int size);
+  CursorPageResponse<ChatMessageResponse> getMessageHistory(
+      Long chatRoomId, String userId, Long cursor, int size);
 }

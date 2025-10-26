@@ -85,10 +85,11 @@ public class AiMessageService implements AiMessageUseCase {
   @Override
   @Transactional(readOnly = true)
   public CursorPageResponse<ChatMessageResponse> getMessageHistory(
-      Long chatRoomId, Long cursor, int size) {
+      Long chatRoomId, String userId, Long cursor, int size) {
     log.info(
-        "[MessageHistory] 메시지 히스토리 조회 요청 - chatRoomId: {}, cursor: {}, size: {}",
+        "[MessageHistory] 메시지 히스토리 조회 요청 - chatRoomId: {}, userId: {}, cursor: {}, size: {}",
         chatRoomId,
+        userId,
         cursor,
         size);
 
@@ -97,9 +98,19 @@ public class AiMessageService implements AiMessageUseCase {
       throw new BusinessException(ChatErrorCode.INVALID_PAGE_SIZE);
     }
 
-    // 2. 대화 세션 존재 여부 확인
-    if (!aiConversationRepository.existsById(chatRoomId)) {
-      throw new BusinessException(ChatErrorCode.CONVERSATION_NOT_FOUND);
+    // 2. 대화 세션 존재 여부 및 소유자 검증
+    AiConversation aiConversation =
+        aiConversationRepository
+            .findById(chatRoomId)
+            .orElseThrow(() -> new BusinessException(ChatErrorCode.CONVERSATION_NOT_FOUND));
+
+    if (!aiConversation.isOwner(userId)) {
+      log.warn(
+          "[MessageHistory] 채팅방 접근 권한 없음 - chatRoomId: {}, userId: {}, owner: {}",
+          chatRoomId,
+          userId,
+          aiConversation.getMember().getEmail());
+      throw new BusinessException(ChatErrorCode.CONVERSATION_ACCESS_DENIED);
     }
 
     // 3. 커서가 제공된 경우, 해당 커서의 메시지가 해당 대화방에 속하는지 검증

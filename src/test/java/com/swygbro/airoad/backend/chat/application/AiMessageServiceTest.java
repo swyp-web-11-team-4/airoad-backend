@@ -153,8 +153,9 @@ class AiMessageServiceTest {
     void shouldGetLatestMessagesWithoutCursor() {
       // given
       Long chatRoomId = 1L;
+      String userId = "user123";
       int size = 50;
-      AiConversation conversation = AiConversationFixture.createConversation(chatRoomId);
+      AiConversation conversation = AiConversationFixture.createConversation(chatRoomId, userId);
 
       List<AiMessage> messages =
           List.of(
@@ -164,7 +165,7 @@ class AiMessageServiceTest {
 
       SliceImpl<AiMessage> messageSlice = new SliceImpl<>(messages, PageRequest.of(0, size), false);
 
-      given(aiConversationRepository.existsById(chatRoomId)).willReturn(true);
+      given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
       given(
               aiMessageRepository.findMessageHistoryByCursor(
                   eq(chatRoomId), isNull(), any(Pageable.class)))
@@ -172,7 +173,7 @@ class AiMessageServiceTest {
 
       // when
       CursorPageResponse<ChatMessageResponse> response =
-          aiMessageService.getMessageHistory(chatRoomId, null, size);
+          aiMessageService.getMessageHistory(chatRoomId, userId, null, size);
 
       // then
       assertThat(response.getContent()).hasSize(3);
@@ -180,7 +181,7 @@ class AiMessageServiceTest {
       assertThat(response.isHasNext()).isFalse();
       assertThat(response.getSize()).isEqualTo(3);
 
-      verify(aiConversationRepository).existsById(chatRoomId);
+      verify(aiConversationRepository).findById(chatRoomId);
       verify(aiMessageRepository)
           .findMessageHistoryByCursor(eq(chatRoomId), isNull(), any(Pageable.class));
     }
@@ -190,9 +191,10 @@ class AiMessageServiceTest {
     void shouldGetMessagesWithCursor() {
       // given
       Long chatRoomId = 1L;
+      String userId = "user123";
       Long cursor = 10L;
       int size = 2;
-      AiConversation conversation = AiConversationFixture.createConversation(chatRoomId);
+      AiConversation conversation = AiConversationFixture.createConversation(chatRoomId, userId);
 
       List<AiMessage> messages =
           List.of(
@@ -201,7 +203,7 @@ class AiMessageServiceTest {
 
       SliceImpl<AiMessage> messageSlice = new SliceImpl<>(messages, PageRequest.of(0, size), true);
 
-      given(aiConversationRepository.existsById(chatRoomId)).willReturn(true);
+      given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
       given(aiMessageRepository.existsByIdAndConversationId(cursor, chatRoomId)).willReturn(true);
       given(
               aiMessageRepository.findMessageHistoryByCursor(
@@ -210,7 +212,7 @@ class AiMessageServiceTest {
 
       // when
       CursorPageResponse<ChatMessageResponse> response =
-          aiMessageService.getMessageHistory(chatRoomId, cursor, size);
+          aiMessageService.getMessageHistory(chatRoomId, userId, cursor, size);
 
       // then
       assertThat(response.getContent()).hasSize(2);
@@ -218,12 +220,12 @@ class AiMessageServiceTest {
       assertThat(response.isHasNext()).isTrue();
       assertThat(response.getSize()).isEqualTo(2);
 
-      verify(aiConversationRepository).existsById(chatRoomId);
+      verify(aiConversationRepository).findById(chatRoomId);
       verify(aiMessageRepository)
           .findMessageHistoryByCursor(eq(chatRoomId), eq(cursor), any(Pageable.class));
 
       InOrder inOrder = inOrder(aiConversationRepository, aiMessageRepository);
-      inOrder.verify(aiConversationRepository).existsById(chatRoomId);
+      inOrder.verify(aiConversationRepository).findById(chatRoomId);
       inOrder
           .verify(aiMessageRepository)
           .findMessageHistoryByCursor(eq(chatRoomId), eq(cursor), any(Pageable.class));
@@ -235,9 +237,10 @@ class AiMessageServiceTest {
     void shouldGetLastMessagesWithCursor() {
       // given
       Long chatRoomId = 1L;
+      String userId = "user123";
       Long cursor = 3L;
       int size = 2;
-      AiConversation conversation = AiConversationFixture.createConversation(chatRoomId);
+      AiConversation conversation = AiConversationFixture.createConversation(chatRoomId, userId);
 
       List<AiMessage> messages =
           List.of(
@@ -246,7 +249,7 @@ class AiMessageServiceTest {
 
       SliceImpl<AiMessage> messageSlice = new SliceImpl<>(messages, PageRequest.of(0, size), false);
 
-      given(aiConversationRepository.existsById(chatRoomId)).willReturn(true);
+      given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
       given(aiMessageRepository.existsByIdAndConversationId(cursor, chatRoomId)).willReturn(true);
       given(
               aiMessageRepository.findMessageHistoryByCursor(
@@ -255,7 +258,7 @@ class AiMessageServiceTest {
 
       // when
       CursorPageResponse<ChatMessageResponse> response =
-          aiMessageService.getMessageHistory(chatRoomId, cursor, size);
+          aiMessageService.getMessageHistory(chatRoomId, userId, cursor, size);
 
       // then
       assertThat(response.getContent()).hasSize(2);
@@ -263,7 +266,7 @@ class AiMessageServiceTest {
       assertThat(response.isHasNext()).isFalse(); // 더 이상 없음
       assertThat(response.getSize()).isEqualTo(2);
 
-      verify(aiConversationRepository).existsById(chatRoomId);
+      verify(aiConversationRepository).findById(chatRoomId);
       verify(aiMessageRepository)
           .findMessageHistoryByCursor(eq(chatRoomId), eq(cursor), any(Pageable.class));
     }
@@ -273,16 +276,17 @@ class AiMessageServiceTest {
     void shouldThrowExceptionWhenChatRoomNotFoundInHistory() {
       // given
       Long chatRoomId = 999L;
+      String userId = "user123";
       int size = 50;
 
-      given(aiConversationRepository.existsById(chatRoomId)).willReturn(false);
+      given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.empty());
 
       // when & then
-      assertThatThrownBy(() -> aiMessageService.getMessageHistory(chatRoomId, null, size))
+      assertThatThrownBy(() -> aiMessageService.getMessageHistory(chatRoomId, userId, null, size))
           .isInstanceOf(BusinessException.class)
           .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.CONVERSATION_NOT_FOUND);
 
-      verify(aiConversationRepository).existsById(chatRoomId);
+      verify(aiConversationRepository).findById(chatRoomId);
       verify(aiMessageRepository, never())
           .findMessageHistoryByCursor(any(), any(), any(Pageable.class));
     }
@@ -292,11 +296,13 @@ class AiMessageServiceTest {
     void shouldReturnEmptyListWhenNoMessages() {
       // given
       Long chatRoomId = 1L;
+      String userId = "user123";
       int size = 50;
+      AiConversation conversation = AiConversationFixture.createConversation(chatRoomId, userId);
 
       SliceImpl<AiMessage> emptySlice = new SliceImpl<>(List.of(), PageRequest.of(0, size), false);
 
-      given(aiConversationRepository.existsById(chatRoomId)).willReturn(true);
+      given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
       given(
               aiMessageRepository.findMessageHistoryByCursor(
                   eq(chatRoomId), isNull(), any(Pageable.class)))
@@ -304,7 +310,7 @@ class AiMessageServiceTest {
 
       // when
       CursorPageResponse<ChatMessageResponse> response =
-          aiMessageService.getMessageHistory(chatRoomId, null, size);
+          aiMessageService.getMessageHistory(chatRoomId, userId, null, size);
 
       // then
       assertThat(response.getContent()).isEmpty();
@@ -312,7 +318,7 @@ class AiMessageServiceTest {
       assertThat(response.isHasNext()).isFalse();
       assertThat(response.getSize()).isEqualTo(0);
 
-      verify(aiConversationRepository).existsById(chatRoomId);
+      verify(aiConversationRepository).findById(chatRoomId);
       verify(aiMessageRepository)
           .findMessageHistoryByCursor(eq(chatRoomId), isNull(), any(Pageable.class));
     }
@@ -322,21 +328,47 @@ class AiMessageServiceTest {
     void shouldThrowExceptionWhenCursorBelongsToDifferentConversation() {
       // given
       Long chatRoomId = 1L;
+      String userId = "user123";
       Long cursorFromOtherRoom = 999L; // 다른 대화방의 메시지 ID
       int size = 50;
+      AiConversation conversation = AiConversationFixture.createConversation(chatRoomId, userId);
 
-      given(aiConversationRepository.existsById(chatRoomId)).willReturn(true);
+      given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
       given(aiMessageRepository.existsByIdAndConversationId(cursorFromOtherRoom, chatRoomId))
           .willReturn(false);
 
       // when & then
       assertThatThrownBy(
-              () -> aiMessageService.getMessageHistory(chatRoomId, cursorFromOtherRoom, size))
+              () ->
+                  aiMessageService.getMessageHistory(chatRoomId, userId, cursorFromOtherRoom, size))
           .isInstanceOf(BusinessException.class)
           .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.INVALID_CURSOR);
 
-      verify(aiConversationRepository).existsById(chatRoomId);
+      verify(aiConversationRepository).findById(chatRoomId);
       verify(aiMessageRepository).existsByIdAndConversationId(cursorFromOtherRoom, chatRoomId);
+      verify(aiMessageRepository, never())
+          .findMessageHistoryByCursor(any(), any(), any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("채팅방 소유자가 아닌 사용자가 조회 시 BusinessException을 발생시킨다")
+    void shouldThrowExceptionWhenUserIsNotOwnerInHistory() {
+      // given
+      Long chatRoomId = 1L;
+      String ownerId = "owner123";
+      String otherUserId = "other456";
+      int size = 50;
+
+      AiConversation conversation = AiConversationFixture.createConversation(chatRoomId, ownerId);
+      given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
+
+      // when & then
+      assertThatThrownBy(
+              () -> aiMessageService.getMessageHistory(chatRoomId, otherUserId, null, size))
+          .isInstanceOf(BusinessException.class)
+          .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.CONVERSATION_ACCESS_DENIED);
+
+      verify(aiConversationRepository).findById(chatRoomId);
       verify(aiMessageRepository, never())
           .findMessageHistoryByCursor(any(), any(), any(Pageable.class));
     }

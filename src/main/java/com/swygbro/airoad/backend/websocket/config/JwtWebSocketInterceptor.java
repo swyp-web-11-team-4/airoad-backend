@@ -94,6 +94,10 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
         // ChannelInterceptor에서 발생한 예외는 @MessageExceptionHandler에 포착되지 않으므로
         // 직접 STOMP ERROR 프레임을 생성하여 반환
         return createErrorMessage(accessor, e);
+      } catch (Exception e) {
+        log.error("[WebSocket] 예상치 못한 예외 발생: {}", e.getMessage(), e);
+        return createErrorMessage(
+            accessor, new BusinessException(WebSocketErrorCode.UNAUTHORIZED_CONNECTION));
       }
     }
 

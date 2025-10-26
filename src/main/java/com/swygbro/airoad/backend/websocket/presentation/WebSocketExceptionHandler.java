@@ -7,11 +7,11 @@ import java.util.regex.Pattern;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 
 import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
+import com.swygbro.airoad.backend.common.exception.WebSocketErrorCode;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -100,7 +100,10 @@ public class WebSocketExceptionHandler {
     log.error("[WebSocket] 예외 발생 - chatRoomId: {}", chatRoomId, e);
 
     ErrorResponse errorResponse =
-        ErrorResponse.of("WS999", "메시지 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", "/websocket");
+        ErrorResponse.of(
+            WebSocketErrorCode.INTERNAL_ERROR.getCode(),
+            WebSocketErrorCode.INTERNAL_ERROR.getDefaultMessage(),
+            "/websocket");
 
     sendErrorToUser(userId, chatRoomId, errorResponse);
   }
@@ -177,9 +180,9 @@ public class WebSocketExceptionHandler {
    * @return 사용자 ID (principal이 null이면 "unknown")
    */
   private String getUserId(Principal principal) {
-    if (principal instanceof UserDetails) {
-      return ((UserDetails) principal).getUsername();
+    if (principal == null) {
+      return "unknown";
     }
-    return principal != null ? principal.getName() : "unknown";
+    return principal.getName();
   }
 }

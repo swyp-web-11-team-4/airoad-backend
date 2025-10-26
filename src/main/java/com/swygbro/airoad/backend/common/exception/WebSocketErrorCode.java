@@ -33,8 +33,10 @@ public enum WebSocketErrorCode implements ErrorCode {
 
   // 서비스 레이어 에러
   AI_SERVICE_UNAVAILABLE("WS301", HttpStatus.SERVICE_UNAVAILABLE, "AI 서비스를 사용할 수 없습니다."),
-  MESSAGE_SAVE_FAILED("WS302", HttpStatus.INTERNAL_SERVER_ERROR, "메시지 저장에 실패했습니다.");
+  MESSAGE_SAVE_FAILED("WS302", HttpStatus.INTERNAL_SERVER_ERROR, "메시지 저장에 실패했습니다."),
 
+  // 내부 서버 에러 (예상치 못한 예외)
+  INTERNAL_ERROR("WS999", HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다.");
   private final String code;
   private final HttpStatus httpStatus;
   private final String defaultMessage;

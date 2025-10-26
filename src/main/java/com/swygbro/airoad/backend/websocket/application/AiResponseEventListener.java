@@ -63,10 +63,9 @@ public class AiResponseEventListener {
   @EventListener
   public void handleAiResponseReceived(AiResponseReceivedEvent event) {
     log.debug(
-        "[AI Response] 처리 시작 - chatRoomId: {}, tripPlanId: {}, userId: {}, contentType: {}, isComplete: {}",
+        "[AI Response] 처리 시작 - chatRoomId: {}, tripPlanId: {}, contentType: {}, isComplete: {}",
         event.chatRoomId(),
         event.tripPlanId(),
-        event.userId(),
         event.contentType(),
         event.isComplete());
 
@@ -86,16 +85,15 @@ public class AiResponseEventListener {
       messagingTemplate.convertAndSendToUser(event.userId(), destination, event.content());
 
       log.debug(
-          "[WebSocket] 전송 성공 - userId: {}, destination: {}, isComplete: {}",
-          event.userId(),
+          "[WebSocket] 전송 성공 - chatRoomId: {}, destination: {}, isComplete: {}",
+          event.chatRoomId(),
           destination,
           event.isComplete());
     } catch (Exception e) {
       log.error(
-          "[WebSocket] 전송 실패 - chatRoomId: {}, tripPlanId: {}, userId: {}, error: {}",
+          "[WebSocket] 전송 실패 - chatRoomId: {}, tripPlanId: {}, error: {}",
           event.chatRoomId(),
           event.tripPlanId(),
-          event.userId(),
           e.getMessage(),
           e);
 
@@ -125,10 +123,10 @@ public class AiResponseEventListener {
       String destination = chatRoomId != null ? "/sub/errors/" + chatRoomId : "/sub/errors/unknown";
       messagingTemplate.convertAndSendToUser(userId, destination, errorResponse);
 
-      log.info("[WebSocket] 에러 메시지 전송 완료 - userId: {}, destination: {}", userId, destination);
+      log.info("[WebSocket] 에러 메시지 전송 완료, destination: {}", destination);
     } catch (Exception e) {
       // 에러 전송마저 실패한 경우 로그만 남김
-      log.error("[WebSocket] 에러 메시지 전송 실패 - userId: {}, error: {}", userId, e.getMessage(), e);
+      log.error("[WebSocket] 에러 메시지 전송 실패 - error: {}", e.getMessage(), e);
     }
   }
 

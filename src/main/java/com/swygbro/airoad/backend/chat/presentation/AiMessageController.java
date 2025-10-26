@@ -140,10 +140,7 @@ public class AiMessageController {
     String userId = userDetails.getUsername();
 
     log.info(
-        "[Controller] 메시지 수신 - chatRoomId: {}, userId: {}, content: {}",
-        chatRoomId,
-        userId,
-        messageRequest.content());
+        "[Controller] 메시지 수신 - chatRoomId: {}, content: {}", chatRoomId, messageRequest.content());
 
     // 서비스 레이어에서 메시지 처리 및 WebSocket 응답 전송
     aiMessageService.processAndSendMessage(chatRoomId, userId, messageRequest);

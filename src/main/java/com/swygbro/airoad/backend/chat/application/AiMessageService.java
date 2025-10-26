@@ -46,7 +46,7 @@ public class AiMessageService implements AiMessageUseCase {
   @Override
   @Transactional
   public void processAndSendMessage(Long chatRoomId, String userId, ChatMessageRequest request) {
-    log.info("[Message] 메시지 수신 - chatRoomId: {}, userId: {}", chatRoomId, userId);
+    log.info("[Message] 메시지 수신 - chatRoomId: {}", chatRoomId);
 
     // 1. 대화 세션 조회
     AiConversation aiConversation =
@@ -56,7 +56,7 @@ public class AiMessageService implements AiMessageUseCase {
 
     // 2. 권한 검증 - 해당 사용자가 채팅방 소유자인지 확인
     if (!aiConversation.isOwner(userId)) {
-      log.warn("[Message] 채팅방 접근 권한 없음 - chatRoomId: {}, userId: {}", chatRoomId, userId);
+      log.debug("[Message] 채팅방 접근 권한 없음 - chatRoomId: {}", chatRoomId);
       throw new BusinessException(ChatErrorCode.CONVERSATION_ACCESS_DENIED);
     }
 
@@ -81,11 +81,7 @@ public class AiMessageService implements AiMessageUseCase {
 
     eventPublisher.publishEvent(aiRequestEvent);
 
-    log.info(
-        "[Message] AI 요청 이벤트 발행 완료 - chatRoomId: {}, tripPlanId: {}, userId: {}",
-        chatRoomId,
-        tripPlanId,
-        userId);
+    log.debug("[Message] AI 요청 이벤트 발행 완료 - chatRoomId: {}, tripPlanId: {}", chatRoomId, tripPlanId);
 
     // AI 응답은 AiResponseReceivedEvent로 수신되어 AiResponseEventListener에서 WebSocket으로 전송됨
   }
@@ -95,9 +91,8 @@ public class AiMessageService implements AiMessageUseCase {
   public CursorPageResponse<ChatMessageResponse> getMessageHistory(
       Long chatRoomId, String userId, Long cursor, int size) {
     log.info(
-        "[MessageHistory] 메시지 히스토리 조회 요청 - chatRoomId: {}, userId: {}, cursor: {}, size: {}",
+        "[MessageHistory] 메시지 히스토리 조회 요청 - chatRoomId: {}, cursor: {}, size: {}",
         chatRoomId,
-        userId,
         cursor,
         size);
 
@@ -114,9 +109,8 @@ public class AiMessageService implements AiMessageUseCase {
 
     if (!aiConversation.isOwner(userId)) {
       log.warn(
-          "[MessageHistory] 채팅방 접근 권한 없음 - chatRoomId: {}, userId: {}, owner: {}",
+          "[MessageHistory] 채팅방 접근 권한 없음 - chatRoomId: {}, owner: {}",
           chatRoomId,
-          userId,
           aiConversation.getMember().getEmail());
       throw new BusinessException(ChatErrorCode.CONVERSATION_ACCESS_DENIED);
     }

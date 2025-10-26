@@ -171,10 +171,7 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
     UserDetails userDetails = (UserDetails) authentication.getPrincipal();
     String destination = accessor.getDestination();
 
-    log.debug(
-        "[WebSocket] SUBSCRIBE 요청 - userId: {}, destination: {}",
-        userDetails.getUsername(),
-        destination);
+    log.debug("[WebSocket] SUBSCRIBE 요청 - destination: {}", destination);
 
     // 구독 경로 검증 (에러 채널과 사용자별 채널만 허용)
     if (destination != null

@@ -247,6 +247,7 @@ class AiMessageServiceTest {
 
       InOrder inOrder = inOrder(aiConversationRepository, aiMessageRepository);
       inOrder.verify(aiConversationRepository).findById(chatRoomId);
+      inOrder.verify(aiMessageRepository).existsByIdAndConversationId(cursor, chatRoomId);
       inOrder
           .verify(aiMessageRepository)
           .findMessageHistoryByCursor(eq(chatRoomId), eq(cursor), any(Pageable.class));

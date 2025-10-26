@@ -87,7 +87,7 @@ class AiConversationControllerTest {
   }
 
   @Nested
-  @DisplayName("GET /api/v1/chatroom/{chatRoomId}/messages 는")
+  @DisplayName("GET /api/v1/chats/{chatRoomId}/messages 는")
   class GetMessages {
 
     @Test
@@ -123,7 +123,7 @@ class AiConversationControllerTest {
       // when & then
       mockMvc
           .perform(
-              get("/api/v1/chatroom/{chatRoomId}/messages", chatRoomId)
+              get("/api/v1/chats/{chatRoomId}/messages", chatRoomId)
                   .with(auth())
                   .param("size", String.valueOf(size))
                   .contentType(MediaType.APPLICATION_JSON))
@@ -179,7 +179,7 @@ class AiConversationControllerTest {
       // when & then
       mockMvc
           .perform(
-              get("/api/v1/chatroom/{chatRoomId}/messages", chatRoomId)
+              get("/api/v1/chats/{chatRoomId}/messages", chatRoomId)
                   .with(auth())
                   .param("size", String.valueOf(size))
                   .param("cursor", String.valueOf(cursor))
@@ -220,7 +220,7 @@ class AiConversationControllerTest {
       // when & then
       mockMvc
           .perform(
-              get("/api/v1/chatroom/{chatRoomId}/messages", chatRoomId)
+              get("/api/v1/chats/{chatRoomId}/messages", chatRoomId)
                   .with(auth())
                   .contentType(MediaType.APPLICATION_JSON))
           .andExpect(status().isOk())
@@ -247,7 +247,7 @@ class AiConversationControllerTest {
       // when & then
       mockMvc
           .perform(
-              get("/api/v1/chatroom/{chatRoomId}/messages", chatRoomId)
+              get("/api/v1/chats/{chatRoomId}/messages", chatRoomId)
                   .with(auth())
                   .param("size", String.valueOf(size))
                   .contentType(MediaType.APPLICATION_JSON))
@@ -287,7 +287,7 @@ class AiConversationControllerTest {
       // when & then
       mockMvc
           .perform(
-              get("/api/v1/chatroom/{chatRoomId}/messages", chatRoomId)
+              get("/api/v1/chats/{chatRoomId}/messages", chatRoomId)
                   .with(auth())
                   .param("size", String.valueOf(customSize))
                   .contentType(MediaType.APPLICATION_JSON))

@@ -10,7 +10,8 @@ package com.swygbro.airoad.backend.websocket.domain.event;
  * <ol>
  *   <li>사용자가 WebSocket으로 메시지 전송 ({@code /pub/chat/{chatRoomId}/message})
  *   <li>{@link com.swygbro.airoad.backend.chat.application.AiMessageService}에서 이 이벤트 발행
- *   <li>{@link com.swygbro.airoad.backend.websocket.application.AiRequestEventListener}에서 이벤트 수신
+ *   <li>{@link com.swygbro.airoad.backend.websocket.application.AiRequestEventListener}(나중에 구현)에서
+ *       이벤트 수신
  *   <li>AI 서버로 HTTP 요청 전송
  *   <li>AI 응답은 {@link AiResponseReceivedEvent}로 수신되어 WebSocket으로 전송됨
  * </ol>

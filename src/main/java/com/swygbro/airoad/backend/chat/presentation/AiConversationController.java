@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 
 @Tag(name = "ChatRoom", description = "채팅방 관리 API")
 @RestController
-@RequestMapping("/api/v1/chatroom")
+@RequestMapping("/api/v1/chats")
 @RequiredArgsConstructor
 public class AiConversationController {
   private final AiMessageService aiMessageService;
@@ -58,17 +58,17 @@ public class AiConversationController {
                         "content": [
                           {
                             "id": 2,
-                            "senderType": "USER",
+                            "messageType": "USER",
                             "content": "서울 3박 4일 여행 계획을 짜주세요",
-                            "messageType": "TEXT",
+                            "messageContentType": "TEXT",
                             "mediaUrl": null,
                             "createdAt": "2025-01-15T10:31:00"
                           },
                           {
                             "id": 1,
-                            "senderType": "AI",
+                            "messageType": "ASSISTANT",
                             "content": "서울 3박 4일 여행 계획을 제안드립니다.",
-                            "messageType": "TEXT",
+                            "messageContentType": "TEXT",
                             "mediaUrl": null,
                             "createdAt": "2025-01-15T10:32:00"
                           }

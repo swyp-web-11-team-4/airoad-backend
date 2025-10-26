@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "채팅 메시지 응답 DTO")
 public record ChatMessageResponse(
     @Schema(description = "메시지 ID", example = "1") Long id,
-    @Schema(description = "발신자 타입 (USER, AI)", example = "USER") MessageType messageType,
+    @Schema(description = "발신자 타입 (USER, ASSISTANT)", example = "USER") MessageType messageType,
     @Schema(description = "메시지 내용", example = "서울 3박 4일 여행 계획을 짜주세요") String content,
     @Schema(description = "메시지 타입", example = "TEXT") MessageContentType messageContentType,
     @Schema(

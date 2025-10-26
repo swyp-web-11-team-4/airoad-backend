@@ -60,9 +60,13 @@ public class AiMessageService implements AiMessageUseCase {
       throw new BusinessException(ChatErrorCode.CONVERSATION_ACCESS_DENIED);
     }
 
-    // 3. TEXT 메시지만 처리 (이미지, 파일 등은 향후 확장)
+    // 3. 본문/타입 검증
     if (request.messageContentType() != MessageContentType.TEXT) {
       log.warn("[Message] TEXT 타입이 아닌 메시지는 현재 지원하지 않습니다 - type: {}", request.messageContentType());
+      throw new BusinessException(ChatErrorCode.INVALID_MESSAGE_FORMAT);
+    }
+    if (!org.springframework.util.StringUtils.hasText(request.content())) {
+      log.warn("[Message] 빈 메시지는 허용되지 않습니다");
       throw new BusinessException(ChatErrorCode.INVALID_MESSAGE_FORMAT);
     }
 

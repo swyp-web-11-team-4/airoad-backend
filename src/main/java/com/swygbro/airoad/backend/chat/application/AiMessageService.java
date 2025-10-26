@@ -62,7 +62,7 @@ public class AiMessageService implements AiMessageUseCase {
     }
 
     // 3. TEXT 메시지만 처리 (이미지, 파일 등은 향후 확장)
-    if (!request.messageContentType().equals(MessageContentType.TEXT)) {
+    if (request.messageContentType() != MessageContentType.TEXT) {
       log.warn("[Message] TEXT 타입이 아닌 메시지는 현재 지원하지 않습니다 - type: {}", request.messageContentType());
       throw new BusinessException(ChatErrorCode.INVALID_MESSAGE_FORMAT);
     }

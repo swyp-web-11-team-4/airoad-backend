@@ -3,6 +3,7 @@ package com.swygbro.airoad.backend.chat.domain.entity;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
 
 import com.swygbro.airoad.backend.chat.fixture.AiConversationFixture;
 
@@ -14,6 +15,7 @@ import static org.assertj.core.api.Assertions.*;
  * <p>AiConversation 엔티티의 비즈니스 로직을 검증합니다.
  */
 @DisplayName("AiConversation 엔티티")
+@ActiveProfiles("test")
 class AiConversationTest {
 
   @Nested

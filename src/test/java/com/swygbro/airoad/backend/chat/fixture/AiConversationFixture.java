@@ -66,6 +66,14 @@ public class AiConversationFixture {
     return conversation;
   }
 
+  /**
+   * ID, 사용자 이메일, 여행 계획 ID를 가진 AiConversation 객체 생성
+   *
+   * @param id 대화 세션 ID
+   * @param userEmail 사용자 이메일
+   * @param tripPlanId 여행 계획 ID
+   * @return AiConversation 객체
+   */
   public static AiConversation createConversation(Long id, String userEmail, Long tripPlanId) {
     Member member =
         Member.builder()

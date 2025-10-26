@@ -18,8 +18,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-  @Value("${cors.allowed-origins}")
-  private String allowedOrigins;
+  @Value("${cors.allowed-origins:*}")
+  private String[] allowedOriginPatterns;
 
   private final JwtWebSocketInterceptor jwtWebSocketInterceptor;
   private final WebSocketPayloadTypeInterceptor webSocketPayloadTypeInterceptor;
@@ -40,9 +40,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
-    registry.addEndpoint("/ws-stomp").setAllowedOrigins(allowedOrigins);
+    registry.addEndpoint("/ws-stomp").setAllowedOriginPatterns(allowedOriginPatterns);
 
-    registry.addEndpoint("/ws-stomp").setAllowedOrigins(allowedOrigins).withSockJS();
+    registry.addEndpoint("/ws-stomp").setAllowedOriginPatterns(allowedOriginPatterns);
   }
 
   @Override

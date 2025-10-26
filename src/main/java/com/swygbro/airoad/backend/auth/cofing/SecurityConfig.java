@@ -49,6 +49,8 @@ public class SecurityConfig {
                     .hasRole(MemberRole.MEMBER.getRole())
                     .requestMatchers("/api/v1/chats/**")
                     .hasRole(MemberRole.MEMBER.getRole())
+                    .requestMatchers("/ws-stomp/**")
+                    .permitAll() // WebSocket Handshake는 인증 없이 허용, STOMP CONNECT에서 인증
                     .requestMatchers("/api/v1/auth/**")
                     .permitAll()
                     .requestMatchers(

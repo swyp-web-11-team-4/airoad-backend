@@ -1,5 +1,6 @@
-package com.swygbro.airoad.backend.common.config;
+package com.swygbro.airoad.backend.websocket.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
@@ -10,9 +11,18 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration;
 
+import lombok.RequiredArgsConstructor;
+
 @Configuration
 @EnableWebSocketMessageBroker
+@RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+
+  @Value("${cors.allowed-origins:*}")
+  private String[] allowedOriginPatterns;
+
+  private final JwtWebSocketInterceptor jwtWebSocketInterceptor;
+  private final WebSocketPayloadTypeInterceptor webSocketPayloadTypeInterceptor;
 
   private static final int MESSAGE_SIZE_LIMIT = 2 * 1024 * 1024; // 2MB
   private static final int SEND_BUFFER_SIZE_LIMIT = 2 * 1024 * 1024; // 2MB
@@ -30,16 +40,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
-    registry
-        .addEndpoint("/ws-stomp")
-        .setAllowedOriginPatterns("*")
-        .setHandshakeHandler(new StompPrincipalHandshakeHandler());
+    registry.addEndpoint("/ws-stomp").setAllowedOriginPatterns(allowedOriginPatterns);
 
-    registry
-        .addEndpoint("/ws-stomp")
-        .setAllowedOriginPatterns("*")
-        .setHandshakeHandler(new StompPrincipalHandshakeHandler())
-        .withSockJS();
+    registry.addEndpoint("/ws-stomp").setAllowedOriginPatterns(allowedOriginPatterns).withSockJS();
   }
 
   @Override
@@ -66,6 +69,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
   @Override
   public void configureClientInboundChannel(ChannelRegistration registration) {
-    registration.interceptors(new WebSocketPayloadTypeInterceptor());
+    registration.interceptors(jwtWebSocketInterceptor, webSocketPayloadTypeInterceptor);
   }
 }

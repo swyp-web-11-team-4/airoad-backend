@@ -28,8 +28,7 @@ import lombok.extern.slf4j.Slf4j;
  * <h3>메시지 처리 흐름</h3>
  *
  * <ol>
- *   <li><strong>사용자 메시지 저장</strong>: 클라이언트로부터 받은 메시지를 DB에 저장
- *   <li><strong>AI 서버 전송</strong>: AI 서버에 메시지 전송 (구현 예정)
+ *   <li><strong>AI 요청 이벤트 발행</strong>: AI 처리를 위한 이벤트 발행
  *   <li><strong>AI 응답 수신</strong>: AI 서버로부터 응답을 이벤트로 수신
  *   <li><strong>WebSocket 전송</strong>: {@link
  *       com.swygbro.airoad.backend.chat.application.AiResponseEventListener}에서 클라이언트로 실시간 전송

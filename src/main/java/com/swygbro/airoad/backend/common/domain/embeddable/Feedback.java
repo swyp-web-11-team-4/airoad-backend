@@ -2,7 +2,6 @@ package com.swygbro.airoad.backend.common.domain.embeddable;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import jakarta.persistence.Lob;
 
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -20,7 +19,6 @@ public class Feedback {
   private Integer score;
 
   /** 사용자 피드백 내용 */
-  @Lob
   @Column(columnDefinition = "TEXT")
   private String comment;
 

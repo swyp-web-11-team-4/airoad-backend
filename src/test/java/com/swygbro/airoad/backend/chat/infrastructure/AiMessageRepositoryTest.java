@@ -20,6 +20,8 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.swygbro.airoad.backend.chat.domain.entity.AiConversation;
 import com.swygbro.airoad.backend.chat.domain.entity.AiMessage;
+import com.swygbro.airoad.backend.chat.infrastructure.repository.AiConversationRepository;
+import com.swygbro.airoad.backend.chat.infrastructure.repository.AiMessageRepository;
 import com.swygbro.airoad.backend.member.domain.entity.Member;
 import com.swygbro.airoad.backend.member.domain.entity.MemberRole;
 import com.swygbro.airoad.backend.member.domain.entity.ProviderType;

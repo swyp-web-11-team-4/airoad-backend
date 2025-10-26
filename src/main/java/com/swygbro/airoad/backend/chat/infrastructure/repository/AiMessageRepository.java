@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.chat.infrastructure;
+package com.swygbro.airoad.backend.chat.infrastructure.repository;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;

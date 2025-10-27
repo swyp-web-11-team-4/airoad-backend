@@ -5,10 +5,9 @@ import java.util.Collections;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -22,10 +21,9 @@ import com.swygbro.airoad.backend.member.domain.entity.MemberRole;
 
 import lombok.RequiredArgsConstructor;
 
-import static java.util.Arrays.*;
+import static java.util.Arrays.asList;
 
 @Configuration
-@EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -36,29 +34,47 @@ public class SecurityConfig {
   private final OAuthLoginSuccessHandler oAuthLoginSuccessHandler;
 
   @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+  @Profile({"local", "dev"})
+  public SecurityFilterChain localDevFilterChain(HttpSecurity http) throws Exception {
+    http.cors(AbstractHttpConfigurer::disable)
         .csrf(AbstractHttpConfigurer::disable)
-        .sessionManagement(
-            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
+        .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
-            authorize ->
-                authorize
-                    .requestMatchers("/api/v1/members/**")
-                    .hasRole(MemberRole.MEMBER.getRole())
-                    .requestMatchers("/api/v1/chats/**")
-                    .hasRole(MemberRole.MEMBER.getRole())
-                    .requestMatchers("/ws-stomp/**")
-                    .permitAll() // WebSocket Handshake는 인증 없이 허용, STOMP CONNECT에서 인증
+            auth ->
+                auth.requestMatchers("/ws-stomp/**")
+                    .permitAll()
+                    .requestMatchers("/actuator/**")
+                    .permitAll()
+                    .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")
+                    .permitAll()
                     .requestMatchers("/api/v1/auth/**")
                     .permitAll()
-                    .requestMatchers(
-                        "/swagger-ui/**",
-                        "/swagger-ui.html",
-                        "/v3/api-docs/**",
-                        "/swagger-resources/**")
+                    .requestMatchers("/api/v1/**")
+                    .hasRole(MemberRole.MEMBER.getRole())
+                    .anyRequest()
+                    .permitAll())
+        .oauth2Login(oauth2 -> oauth2.successHandler(oAuthLoginSuccessHandler))
+        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+    return http.build();
+  }
+
+  @Bean
+  @Profile("prod")
+  public SecurityFilterChain prodFilterChain(HttpSecurity http) throws Exception {
+    http.cors(c -> c.configurationSource(corsConfigurationSource()))
+        .csrf(AbstractHttpConfigurer::disable)
+        .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(
+            auth ->
+                auth.requestMatchers("/ws-stomp/**")
                     .permitAll()
+                    .requestMatchers("/actuator/**")
+                    .permitAll()
+                    .requestMatchers("/api/v1/auth/**")
+                    .permitAll()
+                    .requestMatchers("/api/v1/**")
+                    .hasRole(MemberRole.MEMBER.getRole())
                     .anyRequest()
                     .authenticated())
         .oauth2Login(oauth2 -> oauth2.successHandler(oAuthLoginSuccessHandler))
@@ -69,14 +85,15 @@ public class SecurityConfig {
 
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOrigins(Collections.singletonList(allowedOrigins));
-    configuration.setAllowedMethods(asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-    configuration.setAllowedHeaders(asList("Authorization", "Content-Type", "Accept", "Cookie"));
-    configuration.setExposedHeaders(asList("Set-Cookie", "Authorization"));
-    configuration.setAllowCredentials(true);
+    CorsConfiguration config = new CorsConfiguration();
+    config.setAllowedOrigins(Collections.singletonList(allowedOrigins));
+    config.setAllowedMethods(asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+    config.setAllowedHeaders(asList("Authorization", "Content-Type", "Accept", "Cookie"));
+    config.setExposedHeaders(asList("Set-Cookie", "Authorization"));
+    config.setAllowCredentials(true);
+
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", configuration);
+    source.registerCorsConfiguration("/**", config);
     return source;
   }
 }

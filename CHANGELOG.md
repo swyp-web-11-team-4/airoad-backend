@@ -1,3 +1,10 @@
+# [0.7.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.6.0...v0.7.0) (2025-10-26)
+
+
+### Features
+
+* 장소 데이터 임베딩 및 벡터 스토어 적재 구현 ([#26](https://github.com/swyp-web-11-team-4/airoad-backend/issues/26)) ([c16afcd](https://github.com/swyp-web-11-team-4/airoad-backend/commit/c16afcdedeed0c96c895041286618c36c61d6640)), closes [#1](https://github.com/swyp-web-11-team-4/airoad-backend/issues/1) [#3](https://github.com/swyp-web-11-team-4/airoad-backend/issues/3) [#4](https://github.com/swyp-web-11-team-4/airoad-backend/issues/4) [#7](https://github.com/swyp-web-11-team-4/airoad-backend/issues/7)
+
 # [0.6.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.5.1...v0.6.0) (2025-10-26)
 
 

@@ -25,8 +25,8 @@ import org.springframework.test.context.ActiveProfiles;
 import com.swygbro.airoad.backend.auth.application.UserDetailsServiceImpl;
 import com.swygbro.airoad.backend.auth.domain.entity.TokenType;
 import com.swygbro.airoad.backend.auth.filter.JwtTokenProvider;
+import com.swygbro.airoad.backend.chat.config.JwtWebSocketInterceptor;
 import com.swygbro.airoad.backend.common.exception.WebSocketErrorCode;
-import com.swygbro.airoad.backend.websocket.config.JwtWebSocketInterceptor;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;

@@ -1,6 +1,8 @@
-package com.swygbro.airoad.backend.auth.cofing;
+package com.swygbro.airoad.backend.auth.config;
 
 import java.util.Collections;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -18,6 +20,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.swygbro.airoad.backend.auth.application.OAuthLoginSuccessHandler;
 import com.swygbro.airoad.backend.auth.filter.JwtAuthenticationFilter;
+import com.swygbro.airoad.backend.auth.infrastructure.HttpCookieOAuth2AuthorizationRequestRepository;
 import com.swygbro.airoad.backend.member.domain.entity.MemberRole;
 
 import lombok.RequiredArgsConstructor;
@@ -34,6 +37,8 @@ public class SecurityConfig {
 
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
   private final OAuthLoginSuccessHandler oAuthLoginSuccessHandler;
+  private final HttpCookieOAuth2AuthorizationRequestRepository
+      httpCookieOAuth2AuthorizationRequestRepository;
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -61,7 +66,17 @@ public class SecurityConfig {
                     .permitAll()
                     .anyRequest()
                     .authenticated())
-        .oauth2Login(oauth2 -> oauth2.successHandler(oAuthLoginSuccessHandler))
+        .oauth2Login(
+            oauth2 ->
+                oauth2
+                    // 쿠키 기반 Authorization Request 저장소 사용
+                    .authorizationEndpoint(
+                        authorization ->
+                            authorization.authorizationRequestRepository(
+                                httpCookieOAuth2AuthorizationRequestRepository))
+                    // OAuth2 로그인 성공 시 JWT 발급
+                    .successHandler(oAuthLoginSuccessHandler))
+        // JWT 인증 필터 추가
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();

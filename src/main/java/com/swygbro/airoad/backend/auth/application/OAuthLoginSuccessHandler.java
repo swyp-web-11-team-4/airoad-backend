@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.swygbro.airoad.backend.auth.domain.dto.Auth;
+import com.swygbro.airoad.backend.auth.domain.entity.TokenType;
 import com.swygbro.airoad.backend.auth.domain.info.GoogleUserInfo;
 import com.swygbro.airoad.backend.auth.domain.info.OAuth2UserInfo;
 import com.swygbro.airoad.backend.auth.filter.JwtTokenProvider;
@@ -107,7 +108,8 @@ public class OAuthLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHand
     tokenService.createRefreshToken(refreshToken, email);
 
     String template = isNewUser ? REGISTER_TOKEN_REDIRECT_URI : ACCESS_TOKEN_REDIRECT_URI;
-    String redirectUrl = String.format(template, redirectUri, accessToken, refreshToken);
+    String redirectUrl =
+        String.format(template, redirectUri, accessToken, refreshToken, TokenType.BEARER);
     getRedirectStrategy().sendRedirect(request, response, redirectUrl);
   }
 }

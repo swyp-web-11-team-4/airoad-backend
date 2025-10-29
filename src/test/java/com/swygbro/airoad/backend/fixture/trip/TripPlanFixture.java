@@ -14,7 +14,6 @@ public class TripPlanFixture {
   public static TripPlan create() {
     return TripPlan.builder()
         .member(MemberFixture.create())
-        .tripTheme(TripThemeFixture.create())
         .title("서울 3박 4일 여행")
         .startDate(LocalDate.of(2025, 12, 1))
         .endDate(LocalDate.of(2025, 12, 4))
@@ -31,7 +30,6 @@ public class TripPlanFixture {
   public static TripPlan createCompleted() {
     return TripPlan.builder()
         .member(MemberFixture.create())
-        .tripTheme(TripThemeFixture.create())
         .title("제주도 2박 3일 여행")
         .startDate(LocalDate.of(2025, 11, 15))
         .endDate(LocalDate.of(2025, 11, 17))
@@ -48,7 +46,6 @@ public class TripPlanFixture {
   public static TripPlan createWithMember(Member member) {
     return TripPlan.builder()
         .member(member)
-        .tripTheme(TripThemeFixture.create())
         .title("서울 3박 4일 여행")
         .startDate(LocalDate.of(2025, 12, 1))
         .endDate(LocalDate.of(2025, 12, 4))
@@ -65,7 +62,6 @@ public class TripPlanFixture {
   public static TripPlan createWithMemberAndTheme(Member member, TripTheme tripTheme) {
     return TripPlan.builder()
         .member(member)
-        .tripTheme(tripTheme)
         .title("서울 3박 4일 여행")
         .startDate(LocalDate.of(2025, 12, 1))
         .endDate(LocalDate.of(2025, 12, 4))
@@ -82,7 +78,6 @@ public class TripPlanFixture {
   public static TripPlan.TripPlanBuilder builder() {
     return TripPlan.builder()
         .member(MemberFixture.create())
-        .tripTheme(TripThemeFixture.create())
         .title("테스트 여행")
         .startDate(LocalDate.now())
         .endDate(LocalDate.now().plusDays(2))

@@ -85,16 +85,18 @@ public class ExampleService implements ExampleUseCase {
 
 ### 2. Base Entity Pattern
 모든 엔티티는 `BaseEntity`를 상속받아 생성일시/수정일시를 자동 관리합니다.
-`@SoftDelete`를 통해 논리적 삭제를 지원하며, `@PreRemove`로 `deletedAt` 필드가 자동 설정됩니다.
 
 ```java
 @Entity
 public class Example extends BaseEntity {
-  // createdAt, updatedAt, deletedAt 필드는 BaseEntity에서 상속됨
+  // id, createdAt, updatedAt 필드는 BaseEntity에서 상속됨
+  // id는 IDENTITY 전략으로 자동 생성됨
 }
 ```
 
 **중요**: JPA Auditing을 사용하므로 `@EnableJpaAuditing`이 `JpaConfig`에 설정되어 있어야 합니다.
+- `@CreatedDate`: 엔티티 생성 시 자동으로 현재 시각 저장
+- `@LastModifiedDate`: 엔티티 수정 시 자동으로 현재 시각 업데이트
 
 ### 3. Structured Exception Handling
 `ErrorCode` 인터페이스와 `BusinessException`을 통해 일관된 예외 처리를 제공합니다.
@@ -138,10 +140,17 @@ return CommonResponse.error(HttpStatus.BAD_REQUEST, errorResponse);
 - **Profile**: `@ActiveProfiles("test")` 사용
 - **Coverage**: 전체 60% 이상 (LINE/BRANCH), 개별 클래스 60% 이상 (LINE)
 
+### Service Test Example
 ```java
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
 class ExampleServiceTest {
+
+  @Mock
+  private ExampleRepository repository;
+
+  @InjectMocks
+  private ExampleService service;
 
   @Nested
   @DisplayName("getExampleById 메서드는")
@@ -159,6 +168,59 @@ class ExampleServiceTest {
       // then
       assertThat(response).isNotNull();
       verify(repository).findById(1L);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 ID로 조회 시 예외를 발생시킨다")
+    void shouldThrowExceptionWhenNotFound() {
+      // given
+      given(repository.findById(1L)).willReturn(Optional.empty());
+
+      // when & then
+      assertThatThrownBy(() -> service.getExampleById(1L))
+          .isInstanceOf(BusinessException.class)
+          .hasFieldOrPropertyWithValue("errorCode", ExampleErrorCode.EXAMPLE_NOT_FOUND);
+    }
+  }
+}
+```
+
+### Controller Test Example
+```java
+@WebMvcTest(ExampleController.class)
+@ActiveProfiles("test")
+class ExampleControllerTest {
+
+  @Autowired
+  private MockMvc mockMvc;
+
+  @MockBean
+  private ExampleUseCase exampleUseCase;
+
+  @Nested
+  @DisplayName("GET /api/examples/{id}")
+  class GetExampleById {
+
+    @Test
+    @WithMockUser
+    @DisplayName("Example을 조회하여 반환한다")
+    void shouldReturnExample() throws Exception {
+      // given
+      ExampleResponse response = ExampleResponse.builder()
+          .id(1L)
+          .name("Test Example")
+          .build();
+      given(exampleUseCase.getExampleById(1L)).willReturn(response);
+
+      // when & then
+      mockMvc.perform(get("/api/examples/{id}", 1L)
+              .contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.success").value(true))
+          .andExpect(jsonPath("$.data.id").value(1L))
+          .andExpect(jsonPath("$.data.name").value("Test Example"));
+
+      verify(exampleUseCase).getExampleById(1L);
     }
   }
 }
@@ -211,27 +273,134 @@ Conventional Commits + Semantic Release 사용:
 - **Test DB**: H2 (in-memory)
 - **Dependency Management**: `gradle/libs.versions.toml`에서 중앙 관리
 - **Custom Gradle Plugins**: `buildSrc/src/main/kotlin/plugin/`에 정의 (coverage, spotless, sonar)
+- **Test Profile**: `@ActiveProfiles("test")` 사용하여 H2 데이터베이스로 테스트 실행
+
+## Security & Authentication
+
+### OAuth2 + JWT Pattern
+프로젝트는 OAuth2 소셜 로그인과 JWT 토큰 기반 인증을 사용합니다.
+
+**인증 흐름**:
+1. OAuth2 로그인 → Google OAuth2 인증
+2. `OAuthLoginSuccessHandler`에서 인증 성공 처리
+3. JWT 액세스 토큰 + 리프레시 토큰 발급
+4. `JwtAuthenticationFilter`에서 요청마다 토큰 검증
+5. `UserPrincipal`로 인증된 사용자 정보 관리
+
+**주요 컴포넌트**:
+- `JwtTokenProvider`: JWT 토큰 생성/검증
+- `JwtAuthenticationFilter`: 요청마다 토큰 검증 및 SecurityContext 설정
+- `UserPrincipal`: Spring Security UserDetails 구현
+- `RefreshToken`: Redis에 저장되는 리프레시 토큰 엔티티
+- `SecurityConfig`: Spring Security 설정 (CORS, OAuth2, JWT 필터 체인)
+
+**토큰 갱신**:
+```java
+// POST /api/auth/refresh
+// RefreshToken으로 새로운 AccessToken 발급
+```
+
+### 테스트에서 인증 처리
+```java
+@WithMockUser(username = "test@example.com", roles = "USER")
+@Test
+void authenticatedTest() {
+  // SecurityContext에 인증된 사용자가 자동 설정됨
+}
+```
+
+## WebSocket & Chat
+
+### STOMP over WebSocket
+실시간 채팅 기능을 위해 STOMP 프로토콜을 사용합니다.
+
+**연결 설정**:
+- Endpoint: `/ws` (SockJS fallback 지원)
+- Message Broker: `/topic` (구독), `/app` (메시지 전송)
+- Redis Pub/Sub을 통한 메시지 브로커
+
+**주요 구성**:
+- `WebSocketConfig`: STOMP 설정 및 인터셉터 등록
+- `StompPrincipalHandshakeHandler`: WebSocket 연결 시 사용자 인증
+- `WebSocketPayloadTypeInterceptor`: 메시지 타입 검증
+- `WebSocketEventListener`: 연결/해제 이벤트 처리
+
+**메시지 흐름**:
+```
+Client → /app/chat.sendMessage → ChatMessageController
+       → /topic/chatroom/{roomId} → Subscribed Clients
+```
+
+## Domain Relationships
+
+프로젝트는 다음 도메인들로 구성되며, 각 도메인은 명확한 책임을 가집니다:
+
+```
+member (회원)
+  ↓ 1:N
+auth (인증) - OAuth2UserInfo, RefreshToken
+  ↓
+trip (여행 일정)
+  ↓ 1:N
+  ├─ TripPlan (여행 계획)
+  │   ↓ 1:N
+  │   └─ DailyPlan (일별 계획)
+  │       ↓ 1:N
+  │       └─ ScheduledPlace (방문 장소)
+  └─ chat (채팅방)
+      ↓ 1:N
+      └─ AiConversation (AI 대화 이력)
+
+content (관광지 정보) - RAG 시스템에서 참조
+```
+
+**도메인 간 의존성**:
+- `member` → `auth`: 회원 정보로 인증 토큰 생성
+- `member` → `trip`: 회원의 여행 일정 관리
+- `trip` → `content`: 여행 일정에 관광지 정보 참조 (RAG 검색)
+- `trip` → `chat`: 여행 일정 수정을 위한 채팅방 연결
 
 ## Additional Patterns and Features
 
-### 5. WebSocket Event-Driven Architecture
-프로젝트는 실시간 AI 응답 처리를 위해 WebSocket과 Spring Event를 결합한 아키텍처를 사용합니다.
+### 5. Event-Driven Listener Architecture
+프로젝트는 도메인 간 느슨한 결합을 위해 Spring Application Events를 활용합니다.
 
-```java
-// WebSocket 도메인 구조
-websocket/
-├── presentation/           # WebSocket 엔드포인트 및 예외 핸들러
-├── application/           # 이벤트 리스너
-├── domain/
-│   ├── dto/              # WebSocket 메시지 DTO
-│   └── event/            # Spring Application Events
-└── config/               # WebSocket 설정 및 인터셉터
+**핵심 원칙: 리스너는 소속 도메인의 `presentation/listener/` 패키지에 위치**
+
+```
+ai/presentation/listener/
+├── TripPlanGenerationListener    # AI 서비스 호출 및 도메인 이벤트 발행
+└── AiResponseListener             # AI 응답 처리
+
+websocket/presentation/listener/
+└── TripPlanProgressListener       # WebSocket 메시지 전송 전담
 ```
 
-**주요 구성 요소**:
-- **Event Publishing**: 비즈니스 로직에서 `ApplicationEventPublisher`로 이벤트 발행
-- **Event Listener**: `@EventListener` 또는 `@TransactionalEventListener`로 비동기 처리
-- **WebSocket Interceptor**: JWT 인증 및 페이로드 검증 인터셉터 체인
+**이벤트 흐름 예시**:
+```java
+// 1. Controller가 도메인 이벤트 발행
+eventPublisher.publishEvent(new TripPlanGenerationRequestedEvent(...));
+
+// 2. AI 리스너가 처리 후 결과 이벤트 발행
+@EventListener
+public void handleTripPlanGenerationRequested(TripPlanGenerationRequestedEvent event) {
+  // AI 서비스 호출
+  eventPublisher.publishEvent(new DailyPlanGeneratedEvent(...));
+}
+
+// 3. WebSocket 리스너가 클라이언트에 전송
+@EventListener
+public void handleDailyPlanGenerated(DailyPlanGeneratedEvent event) {
+  messagingTemplate.convertAndSend(destination, message);
+}
+```
+
+**리스너 설계 가이드**:
+- ✅ 각 리스너는 자기 도메인의 책임만 수행 (단일 책임 원칙)
+- ✅ 리스너는 이벤트를 소비하고 필요시 새 이벤트 발행
+- ✅ `ApplicationEventPublisher` 주입으로 도메인 이벤트 발행
+- ❌ 리스너에서 직접 다른 도메인의 서비스 호출 금지
+- ❌ WebSocket 전송 로직을 AI 도메인에 포함 금지
 
 ### 6. Spring AI Integration
 LLM 통합을 위해 Spring AI 프레임워크를 사용합니다.

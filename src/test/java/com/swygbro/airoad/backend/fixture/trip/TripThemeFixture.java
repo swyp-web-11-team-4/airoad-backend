@@ -1,32 +1,36 @@
 package com.swygbro.airoad.backend.fixture.trip;
 
-import com.swygbro.airoad.backend.content.domain.entity.Place;
-import com.swygbro.airoad.backend.fixture.content.PlaceFixture;
+import com.swygbro.airoad.backend.trip.domain.entity.PlaceTheme;
+import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
 import com.swygbro.airoad.backend.trip.domain.entity.TripTheme;
 
 public class TripThemeFixture {
 
   public static TripTheme create() {
-    return TripTheme.builder().place(PlaceFixture.create()).themeName("힐링").build();
+    return TripTheme.builder().placeTheme(PlaceThemeFixture.create()).priority(1).build();
   }
 
   public static TripTheme createActivity() {
-    return TripTheme.builder().place(PlaceFixture.createTouristSpot()).themeName("액티비티").build();
+    return TripTheme.builder().placeTheme(PlaceThemeFixture.createActivity()).priority(1).build();
   }
 
   public static TripTheme createFoodTour() {
-    return TripTheme.builder().place(PlaceFixture.createRestaurant()).themeName("맛집 투어").build();
+    return TripTheme.builder().placeTheme(PlaceThemeFixture.createFoodTour()).priority(2).build();
   }
 
   public static TripTheme createCulture() {
-    return TripTheme.builder().place(PlaceFixture.createMustVisit()).themeName("문화/역사").build();
+    return TripTheme.builder().placeTheme(PlaceThemeFixture.createCulture()).priority(3).build();
   }
 
-  public static TripTheme createWithPlace(Place place) {
-    return TripTheme.builder().place(place).themeName("테스트 테마").build();
+  public static TripTheme createWithPlaceTheme(PlaceTheme placeTheme) {
+    return TripTheme.builder().placeTheme(placeTheme).priority(1).build();
+  }
+
+  public static TripTheme createWithTripPlan(TripPlan tripPlan, PlaceTheme placeTheme) {
+    return TripTheme.builder().tripPlan(tripPlan).placeTheme(placeTheme).priority(1).build();
   }
 
   public static TripTheme.TripThemeBuilder builder() {
-    return TripTheme.builder().place(PlaceFixture.create()).themeName("테스트 테마");
+    return TripTheme.builder().placeTheme(PlaceThemeFixture.create()).priority(1);
   }
 }

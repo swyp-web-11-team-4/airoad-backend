@@ -1,3 +1,15 @@
+# [0.8.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.7.0...v0.8.0) (2025-10-29)
+
+
+### Bug Fixes
+
+* Spring Actuator 관련 리다이렉트 실패 발생 문제 개선 ([#35](https://github.com/swyp-web-11-team-4/airoad-backend/issues/35)) ([3297267](https://github.com/swyp-web-11-team-4/airoad-backend/commit/3297267d6887ef37ea821a8feb1b423767069ba2))
+
+
+### Features
+
+* 여행 일정 생성 이벤트 기반 아키텍처 구현 ([#33](https://github.com/swyp-web-11-team-4/airoad-backend/issues/33)) ([076e892](https://github.com/swyp-web-11-team-4/airoad-backend/commit/076e8921e6641ce81d4fc2d27af24d74b38b9eae))
+
 # [0.7.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.6.0...v0.7.0) (2025-10-26)
 
 

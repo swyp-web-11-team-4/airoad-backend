@@ -20,11 +20,11 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ActiveProfiles;
 
+import com.swygbro.airoad.backend.chat.presentation.web.WebSocketExceptionHandler;
 import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.common.exception.CommonErrorCode;
 import com.swygbro.airoad.backend.common.exception.WebSocketErrorCode;
-import com.swygbro.airoad.backend.websocket.presentation.WebSocketExceptionHandler;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;

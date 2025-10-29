@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.test.context.ActiveProfiles;
 
+import com.swygbro.airoad.backend.ai.domain.event.AiRequestEvent;
 import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageRequest;
 import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageResponse;
 import com.swygbro.airoad.backend.chat.domain.dto.MessageContentType;
@@ -27,7 +28,6 @@ import com.swygbro.airoad.backend.chat.infrastructure.repository.AiConversationR
 import com.swygbro.airoad.backend.chat.infrastructure.repository.AiMessageRepository;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
-import com.swygbro.airoad.backend.websocket.domain.event.AiRequestEvent;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;

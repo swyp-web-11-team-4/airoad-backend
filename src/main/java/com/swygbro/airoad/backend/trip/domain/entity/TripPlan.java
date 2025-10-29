@@ -1,6 +1,8 @@
 package com.swygbro.airoad.backend.trip.domain.entity;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.persistence.*;
 
@@ -19,10 +21,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TripPlan extends BaseEntity {
 
-  /** 여행 테마 */
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn
-  private TripTheme tripTheme;
+  /** 여행 테마 목록 */
+  @OneToMany(mappedBy = "tripPlan", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<TripTheme> tripThemes = new ArrayList<>();
 
   /** 여행 계획을 생성한 사용자 */
   @ManyToOne(fetch = FetchType.LAZY)
@@ -78,7 +79,6 @@ public class TripPlan extends BaseEntity {
 
   @Builder
   private TripPlan(
-      TripTheme tripTheme,
       Member member,
       String title,
       LocalDate startDate,
@@ -90,7 +90,6 @@ public class TripPlan extends BaseEntity {
       Integer peopleCount,
       Location startLocation,
       Location endLocation) {
-    this.tripTheme = tripTheme;
     this.member = member;
     this.title = title;
     this.startDate = startDate;

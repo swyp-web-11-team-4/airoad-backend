@@ -6,8 +6,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import com.swygbro.airoad.backend.ai.domain.event.AiStreamChunkReceivedEvent;
+import com.swygbro.airoad.backend.chat.domain.dto.ChatStreamDto;
 import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
 import com.swygbro.airoad.backend.common.exception.WebSocketErrorCode;
+import com.swygbro.airoad.backend.trip.domain.dto.DailyPlanDto;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -78,7 +80,11 @@ public class AiResponseEventListener {
   private void sendToWebSocket(AiStreamChunkReceivedEvent event) {
     try {
       String destination = determineDestination(event);
-      messagingTemplate.convertAndSendToUser(event.userId(), destination, event.content());
+
+      // contentType에 따라 다른 DTO 생성 및 전송
+      Object response = createStreamResponse(event);
+
+      messagingTemplate.convertAndSendToUser(event.userId(), destination, response);
 
       log.debug(
           "[WebSocket] 전송 성공 - chatRoomId: {}, destination: {}, isComplete: {}",
@@ -96,6 +102,19 @@ public class AiResponseEventListener {
       // 클라이언트에게 전송 실패 알림
       sendErrorToClient(event.userId(), event.chatRoomId(), e);
     }
+  }
+
+  /**
+   * AiStreamChunkReceivedEvent로부터 채널별 DTO를 생성합니다.
+   *
+   * @param event AI 스트림 청크 수신 이벤트
+   * @return ChatStreamDto 또는 DailyPlanDto
+   */
+  private Object createStreamResponse(AiStreamChunkReceivedEvent event) {
+    return switch (event.contentType()) {
+      case CHAT -> ChatStreamDto.of((String) event.content(), event.isComplete());
+      case SCHEDULE -> (DailyPlanDto) event.content();
+    };
   }
 
   /**

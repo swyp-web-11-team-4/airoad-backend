@@ -77,8 +77,10 @@ public class TripPlanStreamListener {
   private void handleScheduleStream(AiStreamChunkReceivedEvent event) {
     log.info("여행 일정 스트림 수신 - tripPlanId: {}, 완료 여부: {}", event.tripPlanId(), event.isComplete());
 
-    log.debug(
-        "일정 응답 내용 (처음 100자): {}",
-        event.content().substring(0, Math.min(100, event.content().length())));
+    // TODO: 실제 일정 생성 시 DailyPlanDto로 교체 예정
+    // 현재는 더미 String 데이터
+    if (event.contentType() == AiResponseContentType.SCHEDULE) {
+      log.debug("일정 응답 내용 (처음 100자): {}", event.content());
+    }
   }
 }

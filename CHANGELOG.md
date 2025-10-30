@@ -1,3 +1,10 @@
+# [0.9.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.8.0...v0.9.0) (2025-10-30)
+
+
+### Features
+
+* WebSocket 스트리밍 응답 구조화 및 더미 AI 서비스 구현 ([68dc112](https://github.com/swyp-web-11-team-4/airoad-backend/commit/68dc112c3a2273f5dab017ee76b8c680d146ccb8))
+
 # [0.8.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.7.0...v0.8.0) (2025-10-29)
 
 

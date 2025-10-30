@@ -21,10 +21,11 @@ import org.springframework.test.context.ActiveProfiles;
 import com.swygbro.airoad.backend.chat.application.AiMessageService;
 import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageRequest;
 import com.swygbro.airoad.backend.chat.domain.dto.MessageContentType;
+import com.swygbro.airoad.backend.chat.presentation.message.AiMessageController;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.common.exception.WebSocketErrorCode;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)

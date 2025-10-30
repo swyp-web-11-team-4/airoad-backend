@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.chat.presentation.web;
+package com.swygbro.airoad.backend.chat.presentation.message;
 
 import java.security.Principal;
 import java.util.regex.Matcher;
@@ -9,7 +9,6 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 
-import com.swygbro.airoad.backend.chat.presentation.message.AiResponseEventListener;
 import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.common.exception.WebSocketErrorCode;

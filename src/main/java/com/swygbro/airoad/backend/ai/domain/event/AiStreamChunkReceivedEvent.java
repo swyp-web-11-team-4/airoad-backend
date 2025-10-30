@@ -18,6 +18,6 @@ public record AiStreamChunkReceivedEvent(
     Long chatRoomId,
     Long tripPlanId,
     String userId,
-    String content,
+    Object content,
     AiResponseContentType contentType,
     boolean isComplete) {}

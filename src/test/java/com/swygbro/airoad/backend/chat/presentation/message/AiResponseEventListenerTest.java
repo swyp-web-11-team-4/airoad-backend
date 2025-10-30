@@ -4,6 +4,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -12,7 +14,10 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.swygbro.airoad.backend.ai.domain.dto.AiResponseContentType;
 import com.swygbro.airoad.backend.ai.domain.event.AiStreamChunkReceivedEvent;
+import com.swygbro.airoad.backend.chat.domain.dto.ChatStreamDto;
+import com.swygbro.airoad.backend.trip.domain.dto.DailyPlanDto;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.*;
@@ -30,6 +35,10 @@ class AiResponseEventListenerTest {
   @Mock private SimpMessagingTemplate messagingTemplate;
 
   @InjectMocks private AiResponseEventListener eventListener;
+
+  @Captor private ArgumentCaptor<ChatStreamDto> chatDtoCaptor;
+
+  @Captor private ArgumentCaptor<DailyPlanDto> dailyPlanDtoCaptor;
 
   @Nested
   @DisplayName("handleAiStreamChunkReceived 메서드는")
@@ -52,7 +61,15 @@ class AiResponseEventListenerTest {
       eventListener.handleAiStreamChunkReceived(event);
 
       // then
-      then(messagingTemplate).should().convertAndSendToUser(userId, expectedDestination, content);
+      then(messagingTemplate)
+          .should()
+          .convertAndSendToUser(eq(userId), eq(expectedDestination), chatDtoCaptor.capture());
+
+      ChatStreamDto capturedDto = chatDtoCaptor.getValue();
+      assertThat(capturedDto.message()).isEqualTo(content);
+      assertThat(capturedDto.sender()).isEqualTo("AI");
+      assertThat(capturedDto.isComplete()).isFalse();
+      assertThat(capturedDto.timestamp()).isNotNull();
     }
 
     @Test
@@ -62,17 +79,31 @@ class AiResponseEventListenerTest {
       Long chatRoomId = 1L;
       Long tripPlanId = 20L;
       String userId = "user123@example.com";
-      String content = "{\"day\": 1, \"activities\": [...]}";
+
+      DailyPlanDto dailyPlan =
+          DailyPlanDto.builder()
+              .dayNumber(1)
+              .date(java.time.LocalDate.now())
+              .places(java.util.List.of())
+              .build();
+
       String expectedDestination = "/sub/schedule/" + tripPlanId;
       AiStreamChunkReceivedEvent event =
           new AiStreamChunkReceivedEvent(
-              chatRoomId, tripPlanId, userId, content, AiResponseContentType.SCHEDULE, false);
+              chatRoomId, tripPlanId, userId, dailyPlan, AiResponseContentType.SCHEDULE, false);
 
       // when
       eventListener.handleAiStreamChunkReceived(event);
 
       // then
-      then(messagingTemplate).should().convertAndSendToUser(userId, expectedDestination, content);
+      then(messagingTemplate)
+          .should()
+          .convertAndSendToUser(eq(userId), eq(expectedDestination), dailyPlanDtoCaptor.capture());
+
+      DailyPlanDto capturedDto = dailyPlanDtoCaptor.getValue();
+      assertThat(capturedDto.dayNumber()).isEqualTo(1);
+      assertThat(capturedDto.date()).isNotNull();
+      assertThat(capturedDto.places()).isEmpty();
     }
 
     @Test
@@ -92,13 +123,15 @@ class AiResponseEventListenerTest {
 
       willThrow(new RuntimeException("WebSocket 연결 실패"))
           .given(messagingTemplate)
-          .convertAndSendToUser(userId, expectedDestination, content);
+          .convertAndSendToUser(eq(userId), eq(expectedDestination), any(ChatStreamDto.class));
 
       // when
       eventListener.handleAiStreamChunkReceived(event);
 
       // then
-      then(messagingTemplate).should().convertAndSendToUser(userId, expectedDestination, content);
+      then(messagingTemplate)
+          .should()
+          .convertAndSendToUser(eq(userId), eq(expectedDestination), any(ChatStreamDto.class));
       then(messagingTemplate)
           .should()
           .convertAndSendToUser(eq(userId), eq(expectedErrorDestination), any());
@@ -134,17 +167,19 @@ class AiResponseEventListenerTest {
 
       // then
       then(messagingTemplate)
-          .should(times(1))
-          .convertAndSendToUser(userId, expectedDestination, "서울");
-      then(messagingTemplate)
-          .should(times(1))
-          .convertAndSendToUser(userId, expectedDestination, " 3박");
-      then(messagingTemplate)
-          .should(times(1))
-          .convertAndSendToUser(userId, expectedDestination, " 4일 여행");
-      then(messagingTemplate)
-          .should(times(1))
-          .convertAndSendToUser(userId, expectedDestination, " 일정입니다.");
+          .should(times(4))
+          .convertAndSendToUser(eq(userId), eq(expectedDestination), chatDtoCaptor.capture());
+
+      var capturedDtos = chatDtoCaptor.getAllValues();
+      assertThat(capturedDtos).hasSize(4);
+      assertThat(capturedDtos.get(0).message()).isEqualTo("서울");
+      assertThat(capturedDtos.get(0).isComplete()).isFalse();
+      assertThat(capturedDtos.get(1).message()).isEqualTo(" 3박");
+      assertThat(capturedDtos.get(1).isComplete()).isFalse();
+      assertThat(capturedDtos.get(2).message()).isEqualTo(" 4일 여행");
+      assertThat(capturedDtos.get(2).isComplete()).isFalse();
+      assertThat(capturedDtos.get(3).message()).isEqualTo(" 일정입니다.");
+      assertThat(capturedDtos.get(3).isComplete()).isTrue();
     }
 
     @Test
@@ -164,11 +199,13 @@ class AiResponseEventListenerTest {
 
       // then
       then(messagingTemplate)
-          .should(times(1))
-          .convertAndSendToUser("user1@example.com", "/sub/chat/1", "첫 번째 응답");
-      then(messagingTemplate)
-          .should(times(1))
-          .convertAndSendToUser("user2@example.com", "/sub/chat/2", "두 번째 응답");
+          .should(times(2))
+          .convertAndSendToUser(any(String.class), any(String.class), chatDtoCaptor.capture());
+
+      var capturedDtos = chatDtoCaptor.getAllValues();
+      assertThat(capturedDtos).hasSize(2);
+      assertThat(capturedDtos.get(0).message()).isEqualTo("첫 번째 응답");
+      assertThat(capturedDtos.get(1).message()).isEqualTo("두 번째 응답");
     }
   }
 }

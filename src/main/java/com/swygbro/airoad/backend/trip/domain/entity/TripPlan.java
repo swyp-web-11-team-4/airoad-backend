@@ -10,6 +10,7 @@ import com.swygbro.airoad.backend.common.domain.embeddable.Location;
 import com.swygbro.airoad.backend.common.domain.entity.BaseEntity;
 import com.swygbro.airoad.backend.member.domain.entity.Member;
 
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -77,6 +78,10 @@ public class TripPlan extends BaseEntity {
   @AttributeOverride(name = "address", column = @Column(name = "end_address"))
   private Location endLocation;
 
+  /** 타이틀 이미지 */
+  @Column
+  private String imageUrl;
+
   @Builder
   private TripPlan(
       Member member,
@@ -101,5 +106,13 @@ public class TripPlan extends BaseEntity {
     this.peopleCount = peopleCount;
     this.startLocation = startLocation;
     this.endLocation = endLocation;
+  }
+
+  /**
+   * 여행 계획의 타이틀 이미지 url을 업데이트합니다.
+   * @param imageUrl 이미지 url
+   */
+  public void updateImageUrl(String imageUrl) {
+    Objects.requireNonNull(imageUrl);
   }
 }

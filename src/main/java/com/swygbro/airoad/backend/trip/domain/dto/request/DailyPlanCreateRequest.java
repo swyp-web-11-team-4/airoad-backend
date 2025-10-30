@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.trip.domain.dto;
+package com.swygbro.airoad.backend.trip.domain.dto.request;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -15,4 +15,4 @@ import lombok.Builder;
  * @param places 방문할 장소 목록 (방문 순서대로 정렬)
  */
 @Builder
-public record DailyPlanDto(Integer dayNumber, LocalDate date, List<ScheduledPlaceDto> places) {}
+public record DailyPlanCreateRequest(Integer dayNumber, LocalDate date, List<ScheduledPlaceCreateRequest> places) {}

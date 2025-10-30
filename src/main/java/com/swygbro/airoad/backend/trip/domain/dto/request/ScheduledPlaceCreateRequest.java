@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.trip.domain.dto;
+package com.swygbro.airoad.backend.trip.domain.dto.request;
 
 import java.time.LocalTime;
 
@@ -12,20 +12,20 @@ import lombok.Builder;
  *
  * <p>일정 생성 및 조회 시 방문할 장소의 정보를 담습니다.
  *
- * @param placeId 장소 ID (Place 엔티티의 ID, null이면 장소명으로 검색 필요)
- * @param placeName 장소 이름
+ * @param placeId 장소 ID (Place 엔티티의 ID)
  * @param visitOrder 방문 순서
  * @param category 일정 분류 (MORNING, LUNCH, AFTERNOON, CAFE, DINNER, EVENING)
- * @param plannedTime 계획된 방문 시간
+ * @param startTime 계획된 시작 시간
+ * @param endTime 계획된 종료 시간
  * @param travelTime 이전 장소로부터의 이동 시간 (분)
  * @param transportation 이동 수단
  */
 @Builder
-public record ScheduledPlaceDto(
+public record ScheduledPlaceCreateRequest(
     Long placeId,
-    String placeName,
     Integer visitOrder,
     ScheduledCategory category,
-    LocalTime plannedTime,
+    LocalTime startTime,
+    LocalTime endTime,
     Integer travelTime,
     Transportation transportation) {}

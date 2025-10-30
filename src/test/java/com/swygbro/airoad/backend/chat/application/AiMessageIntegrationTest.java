@@ -55,12 +55,12 @@ class AiMessageIntegrationTest {
     void shouldSaveUserMessageToDatabase() {
       // given
       AiConversation conversation = createAndSaveConversation();
-      String userId = conversation.getMember().getEmail();
+      String username = conversation.getMember().getEmail();
       String messageContent = "서울 3박 4일 여행 계획을 짜주세요";
       ChatMessageRequest request = new ChatMessageRequest(messageContent, MessageContentType.TEXT);
 
       // when
-      aiMessageService.processAndSendMessage(conversation.getId(), userId, request);
+      aiMessageService.processAndSendMessage(conversation.getId(), username, request);
       entityManager.flush();
       entityManager.clear();
 
@@ -78,12 +78,12 @@ class AiMessageIntegrationTest {
     void shouldRecordAiResponseReceivedEvent() {
       // given
       AiConversation conversation = createAndSaveConversation();
-      String userId = conversation.getMember().getEmail();
+      String username = conversation.getMember().getEmail();
       String messageContent = "부산 맛집 추천해줘";
       ChatMessageRequest request = new ChatMessageRequest(messageContent, MessageContentType.TEXT);
 
       // when
-      aiMessageService.processAndSendMessage(conversation.getId(), userId, request);
+      aiMessageService.processAndSendMessage(conversation.getId(), username, request);
 
       // then - AiResponseReceivedEvent가 발행되었는지 확인
       long eventCount =
@@ -101,16 +101,16 @@ class AiMessageIntegrationTest {
     void shouldSaveMultipleUserMessages() {
       // given
       AiConversation conversation = createAndSaveConversation();
-      String userId = conversation.getMember().getEmail();
+      String username = conversation.getMember().getEmail();
 
       ChatMessageRequest request1 = new ChatMessageRequest("서울 여행 계획 짜줘", MessageContentType.TEXT);
       ChatMessageRequest request2 = new ChatMessageRequest("부산은 어때?", MessageContentType.TEXT);
       ChatMessageRequest request3 = new ChatMessageRequest("제주도 추천해줘", MessageContentType.TEXT);
 
       // when
-      aiMessageService.processAndSendMessage(conversation.getId(), userId, request1);
-      aiMessageService.processAndSendMessage(conversation.getId(), userId, request2);
-      aiMessageService.processAndSendMessage(conversation.getId(), userId, request3);
+      aiMessageService.processAndSendMessage(conversation.getId(), username, request1);
+      aiMessageService.processAndSendMessage(conversation.getId(), username, request2);
+      aiMessageService.processAndSendMessage(conversation.getId(), username, request3);
 
       entityManager.flush();
       entityManager.clear();

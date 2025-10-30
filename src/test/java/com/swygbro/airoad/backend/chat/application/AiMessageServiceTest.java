@@ -15,7 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.test.context.ActiveProfiles;
 
-import com.swygbro.airoad.backend.ai.domain.event.AiRequestEvent;
+import com.swygbro.airoad.backend.chat.domain.event.AiChatRequestedEvent;
 import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageRequest;
 import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageResponse;
 import com.swygbro.airoad.backend.chat.domain.dto.MessageContentType;
@@ -45,7 +45,7 @@ class AiMessageServiceTest {
 
   @InjectMocks private AiMessageService aiMessageService;
 
-  @Captor ArgumentCaptor<AiRequestEvent> eventCaptor;
+  @Captor ArgumentCaptor<AiChatRequestedEvent> eventCaptor;
 
   @Nested
   @DisplayName("processAndSendMessage 메서드는")
@@ -72,10 +72,10 @@ class AiMessageServiceTest {
       verify(aiConversationRepository).findById(chatRoomId);
       verify(eventPublisher).publishEvent(eventCaptor.capture());
 
-      AiRequestEvent publishedEvent = eventCaptor.getValue();
+      AiChatRequestedEvent publishedEvent = eventCaptor.getValue();
       assertThat(publishedEvent.chatRoomId()).isEqualTo(chatRoomId);
       assertThat(publishedEvent.tripPlanId()).isEqualTo(tripPlanId);
-      assertThat(publishedEvent.userId()).isEqualTo(userId);
+      assertThat(publishedEvent.username()).isEqualTo(userId);
       assertThat(publishedEvent.userMessage()).isEqualTo(messageContent);
 
       verifyNoMoreInteractions(aiConversationRepository, eventPublisher);

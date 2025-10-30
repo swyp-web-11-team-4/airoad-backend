@@ -168,7 +168,7 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
 
       accessor.setUser(authentication);
 
-      log.info("[WebSocket] STOMP CONNECT 인증 성공 - userId: {}", userDetails.getUsername());
+      log.info("[WebSocket] STOMP CONNECT 인증 성공 - username: {}", userDetails.getUsername());
 
     } catch (BusinessException e) {
       log.error("[WebSocket] JWT 검증 실패 (BusinessException): {}", e.getMessage());
@@ -308,7 +308,7 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
       eventPublisher.publishEvent(new WebSocketErrorEvent(userId, errorChannel, errorResponse));
 
       log.info(
-          "[WebSocket] SEND 에러 이벤트 발행 완료 - userId: {}, channel: {}, code: {}",
+          "[WebSocket] SEND 에러 이벤트 발행 완료 - username: {}, channel: {}, code: {}",
           userId,
           errorChannel,
           errorCode.getCode());

@@ -21,7 +21,6 @@ import org.springframework.test.context.ActiveProfiles;
 import com.swygbro.airoad.backend.chat.application.AiMessageService;
 import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageRequest;
 import com.swygbro.airoad.backend.chat.domain.dto.MessageContentType;
-import com.swygbro.airoad.backend.chat.presentation.message.AiMessageController;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.common.exception.WebSocketErrorCode;
 

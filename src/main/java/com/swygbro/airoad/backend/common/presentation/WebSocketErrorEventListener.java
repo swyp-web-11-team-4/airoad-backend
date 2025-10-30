@@ -38,14 +38,14 @@ public class WebSocketErrorEventListener {
           event.userId(), event.errorChannel(), event.errorResponse());
 
       log.info(
-          "[WebSocket] 에러 이벤트 처리 완료 - userId: {}, channel: {}, code: {}",
+          "[WebSocket] 에러 이벤트 처리 완료 - username: {}, channel: {}, code: {}",
           event.userId(),
           event.errorChannel(),
           event.errorResponse().code());
 
     } catch (Exception e) {
       log.error(
-          "[WebSocket] 에러 이벤트 처리 실패 - userId: {}, error: {}", event.userId(), e.getMessage(), e);
+          "[WebSocket] 에러 이벤트 처리 실패 - username: {}, error: {}", event.userId(), e.getMessage(), e);
     }
   }
 }

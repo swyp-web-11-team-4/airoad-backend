@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.chat.presentation.message;
+package com.swygbro.airoad.backend.chat.presentation.web;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;

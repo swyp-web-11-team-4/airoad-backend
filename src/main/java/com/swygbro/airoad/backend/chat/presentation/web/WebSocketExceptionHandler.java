@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.chat.presentation.message;
+package com.swygbro.airoad.backend.chat.presentation.web;
 
 import java.security.Principal;
 import java.util.regex.Matcher;
@@ -41,7 +41,6 @@ import lombok.extern.slf4j.Slf4j;
  * });
  * }</pre>
  *
- * @see AiResponseEventListener
  */
 @Slf4j
 @ControllerAdvice

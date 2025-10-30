@@ -9,7 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
 
-import com.swygbro.airoad.backend.ai.domain.event.AiRequestEvent;
+import com.swygbro.airoad.backend.chat.domain.event.AiChatRequestedEvent;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -38,8 +38,8 @@ class AiChatRequestListenerTest {
    *
    * @return 테스트용 AiRequestEvent
    */
-  private AiRequestEvent createTestAiRequestEvent() {
-    return new AiRequestEvent(
+  private AiChatRequestedEvent createTestAiRequestEvent() {
+    return new AiChatRequestedEvent(
         TEST_CHAT_ROOM_ID, TEST_TRIP_PLAN_ID, TEST_USER_ID, TEST_USER_MESSAGE);
   }
 
@@ -51,7 +51,7 @@ class AiChatRequestListenerTest {
     @DisplayName("AI 채팅 요청 이벤트를 수신하고 예외 없이 처리한다")
     void shouldReceiveEventWithoutException() {
       // given - AI 채팅 요청 이벤트 준비
-      AiRequestEvent event = createTestAiRequestEvent();
+      AiChatRequestedEvent event = createTestAiRequestEvent();
 
       // when & then - 이벤트 처리 시 예외가 발생하지 않음
       assertThatCode(() -> listener.handleAiChatRequest(event)).doesNotThrowAnyException();
@@ -61,7 +61,7 @@ class AiChatRequestListenerTest {
     @DisplayName("chatRoomId, tripPlanId, userId를 포함한 이벤트를 정상 처리한다")
     void shouldHandleEventWithAllIdentifiers() {
       // given - 모든 식별자를 포함한 이벤트 준비
-      AiRequestEvent event = createTestAiRequestEvent();
+      AiChatRequestedEvent event = createTestAiRequestEvent();
 
       // when & then - 정상적으로 처리됨
       assertThatCode(() -> listener.handleAiChatRequest(event)).doesNotThrowAnyException();
@@ -71,7 +71,7 @@ class AiChatRequestListenerTest {
     @DisplayName("사용자 메시지가 포함된 요청을 정상 처리한다")
     void shouldHandleEventWithUserMessage() {
       // given - 사용자 메시지가 포함된 이벤트 준비
-      AiRequestEvent event = createTestAiRequestEvent();
+      AiChatRequestedEvent event = createTestAiRequestEvent();
 
       // when & then - 사용자 메시지가 포함된 이벤트도 정상 처리됨
       assertThatCode(() -> listener.handleAiChatRequest(event)).doesNotThrowAnyException();
@@ -81,8 +81,8 @@ class AiChatRequestListenerTest {
     @DisplayName("다양한 길이의 메시지를 처리한다")
     void shouldHandleMessagesOfVariousLengths() {
       // given - 짧은 메시지
-      AiRequestEvent shortMessageEvent =
-          new AiRequestEvent(TEST_CHAT_ROOM_ID, TEST_TRIP_PLAN_ID, TEST_USER_ID, "안녕");
+      AiChatRequestedEvent shortMessageEvent =
+          new AiChatRequestedEvent(TEST_CHAT_ROOM_ID, TEST_TRIP_PLAN_ID, TEST_USER_ID, "안녕");
 
       // when & then - 짧은 메시지 정상 처리
       assertThatCode(() -> listener.handleAiChatRequest(shortMessageEvent))
@@ -90,8 +90,8 @@ class AiChatRequestListenerTest {
 
       // given - 긴 메시지
       String longMessage = "안녕하세요, AI! 저는 제주도 여행을 계획하고 있는데요. ".repeat(10);
-      AiRequestEvent longMessageEvent =
-          new AiRequestEvent(TEST_CHAT_ROOM_ID, TEST_TRIP_PLAN_ID, TEST_USER_ID, longMessage);
+      AiChatRequestedEvent longMessageEvent =
+          new AiChatRequestedEvent(TEST_CHAT_ROOM_ID, TEST_TRIP_PLAN_ID, TEST_USER_ID, longMessage);
 
       // when & then - 긴 메시지 정상 처리
       assertThatCode(() -> listener.handleAiChatRequest(longMessageEvent))
@@ -102,8 +102,8 @@ class AiChatRequestListenerTest {
     @DisplayName("여행 일정 관련 질문을 처리한다")
     void shouldHandleTripPlanningQuestions() {
       // given - 여행 일정 관련 질문
-      AiRequestEvent event =
-          new AiRequestEvent(
+      AiChatRequestedEvent event =
+          new AiChatRequestedEvent(
               TEST_CHAT_ROOM_ID, TEST_TRIP_PLAN_ID, TEST_USER_ID, "제주도에서 가볼만한 맛집 추천해줘");
 
       // when & then - 여행 일정 관련 질문 정상 처리
@@ -114,8 +114,8 @@ class AiChatRequestListenerTest {
     @DisplayName("일정 수정 요청을 처리한다")
     void shouldHandleScheduleModificationRequests() {
       // given - 일정 수정 요청
-      AiRequestEvent event =
-          new AiRequestEvent(
+      AiChatRequestedEvent event =
+          new AiChatRequestedEvent(
               TEST_CHAT_ROOM_ID, TEST_TRIP_PLAN_ID, TEST_USER_ID, "2일차 일정에서 점심 식사 장소를 바꿔줘");
 
       // when & then - 일정 수정 요청 정상 처리
@@ -126,13 +126,13 @@ class AiChatRequestListenerTest {
     @DisplayName("여러 사용자의 요청을 독립적으로 처리한다")
     void shouldHandleMultipleUsersIndependently() {
       // given - 첫 번째 사용자의 요청
-      AiRequestEvent event1 = new AiRequestEvent(1L, 100L, "user1@example.com", "첫 번째 사용자 메시지");
+      AiChatRequestedEvent event1 = new AiChatRequestedEvent(1L, 100L, "user1@example.com", "첫 번째 사용자 메시지");
 
       // when & then - 첫 번째 사용자 요청 정상 처리
       assertThatCode(() -> listener.handleAiChatRequest(event1)).doesNotThrowAnyException();
 
       // given - 두 번째 사용자의 요청
-      AiRequestEvent event2 = new AiRequestEvent(2L, 200L, "user2@example.com", "두 번째 사용자 메시지");
+      AiChatRequestedEvent event2 = new AiChatRequestedEvent(2L, 200L, "user2@example.com", "두 번째 사용자 메시지");
 
       // when & then - 두 번째 사용자 요청 정상 처리
       assertThatCode(() -> listener.handleAiChatRequest(event2)).doesNotThrowAnyException();
@@ -142,14 +142,14 @@ class AiChatRequestListenerTest {
     @DisplayName("동일 사용자의 연속된 요청을 처리한다")
     void shouldHandleConsecutiveRequestsFromSameUser() {
       // given - 첫 번째 메시지
-      AiRequestEvent event1 = createTestAiRequestEvent();
+      AiChatRequestedEvent event1 = createTestAiRequestEvent();
 
       // when & then - 첫 번째 메시지 정상 처리
       assertThatCode(() -> listener.handleAiChatRequest(event1)).doesNotThrowAnyException();
 
       // given - 두 번째 메시지
-      AiRequestEvent event2 =
-          new AiRequestEvent(TEST_CHAT_ROOM_ID, TEST_TRIP_PLAN_ID, TEST_USER_ID, "추가 질문입니다");
+      AiChatRequestedEvent event2 =
+          new AiChatRequestedEvent(TEST_CHAT_ROOM_ID, TEST_TRIP_PLAN_ID, TEST_USER_ID, "추가 질문입니다");
 
       // when & then - 두 번째 메시지 정상 처리
       assertThatCode(() -> listener.handleAiChatRequest(event2)).doesNotThrowAnyException();
@@ -169,7 +169,7 @@ class AiChatRequestListenerTest {
       boolean hasAsyncAnnotation =
           listener
               .getClass()
-              .getMethod("handleAiChatRequest", AiRequestEvent.class)
+              .getMethod("handleAiChatRequest", AiChatRequestedEvent.class)
               .isAnnotationPresent(org.springframework.scheduling.annotation.Async.class);
 
       // then - @Async 어노테이션이 존재함
@@ -185,7 +185,7 @@ class AiChatRequestListenerTest {
       boolean hasEventListenerAnnotation =
           listener
               .getClass()
-              .getMethod("handleAiChatRequest", AiRequestEvent.class)
+              .getMethod("handleAiChatRequest", AiChatRequestedEvent.class)
               .isAnnotationPresent(org.springframework.context.event.EventListener.class);
 
       // then - @EventListener 어노테이션이 존재함

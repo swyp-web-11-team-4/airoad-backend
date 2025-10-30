@@ -12,7 +12,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "채팅 메시지 스트리밍 응답")
 public record ChatStreamDto(
     @Schema(description = "메시지 내용 (스트리밍 청크)", example = "안녕하세요! AI 어시스턴트입니다.") String message,
-    @Schema(description = "발신자", example = "AI") String sender,
     @Schema(description = "스트리밍 완료 여부", example = "false") boolean isComplete,
     @Schema(description = "응답 생성 시각", example = "2025-01-15T10:30:00") LocalDateTime timestamp) {
 
@@ -24,6 +23,6 @@ public record ChatStreamDto(
    * @return ChatStreamDto
    */
   public static ChatStreamDto of(String message, boolean isComplete) {
-    return new ChatStreamDto(message, "AI", isComplete, LocalDateTime.now());
+    return new ChatStreamDto(message, isComplete, LocalDateTime.now());
   }
 }

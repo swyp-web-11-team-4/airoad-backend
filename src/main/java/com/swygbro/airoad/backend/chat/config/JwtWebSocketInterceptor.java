@@ -4,9 +4,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
@@ -22,6 +22,7 @@ import com.swygbro.airoad.backend.auth.application.UserDetailsServiceImpl;
 import com.swygbro.airoad.backend.auth.domain.entity.TokenType;
 import com.swygbro.airoad.backend.auth.filter.JwtTokenProvider;
 import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
+import com.swygbro.airoad.backend.common.domain.event.WebSocketErrorEvent;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.common.exception.WebSocketErrorCode;
 
@@ -61,8 +62,11 @@ import lombok.extern.slf4j.Slf4j;
  *
  * <ul>
  *   <li><strong>CONNECT, SUBSCRIBE 에러</strong>: STOMP ERROR 프레임 전송 (연결 차단)
- *   <li><strong>SEND 에러</strong>: 에러 채널 메시지 전송 (연결 유지)
+ *   <li><strong>SEND 에러</strong>: 에러 이벤트 발행 (연결 유지)
  * </ul>
+ *
+ * <p>SEND 에러는 {@link WebSocketErrorEvent}를 발행하며, {@link
+ * com.swygbro.airoad.backend.common.presentation.WebSocketErrorEventListener}가 처리합니다.
  *
  * <pre>
  * // JavaScript 클라이언트 예시:
@@ -81,7 +85,7 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
 
   private final JwtTokenProvider jwtTokenProvider;
   private final UserDetailsServiceImpl userDetailsService;
-  private final SimpMessagingTemplate messagingTemplate;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Override
   public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -264,9 +268,13 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
   }
 
   /**
-   * SEND 에러를 에러 채널로 전송합니다.
+   * SEND 에러 이벤트를 발행합니다.
    *
-   * <p>SEND 시점에는 이미 클라이언트가 에러 채널을 구독한 상태이므로, STOMP ERROR 프레임 대신 에러 채널 메시지로 전송하여 연결을 유지합니다.
+   * <p>SEND 시점에는 이미 클라이언트가 에러 채널을 구독한 상태이므로, STOMP ERROR 프레임 대신 {@link WebSocketErrorEvent}를 발행하여
+   * 연결을 유지합니다.
+   *
+   * <p>발행된 이벤트는 {@link com.swygbro.airoad.backend.common.presentation.WebSocketErrorEventListener}가
+   * 처리하여 클라이언트에게 전송합니다.
    *
    * @param accessor STOMP 헤더 접근자
    * @param e 발생한 BusinessException
@@ -275,7 +283,7 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
     try {
       Authentication authentication = (Authentication) accessor.getUser();
       if (authentication == null) {
-        log.error("[WebSocket] SEND 에러 전송 실패 - Principal이 null입니다.");
+        log.error("[WebSocket] SEND 에러 이벤트 발행 실패 - Principal이 null입니다.");
         return;
       }
 
@@ -292,19 +300,21 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
       ErrorResponse errorResponse =
           ErrorResponse.of(errorCode.getCode(), errorCode.getDefaultMessage(), destination);
 
-      // 에러 채널로 전송
+      // 에러 채널 경로 생성
       String errorChannel =
           chatRoomId != null ? "/sub/errors/" + chatRoomId : "/sub/errors/unknown";
-      messagingTemplate.convertAndSendToUser(userId, errorChannel, errorResponse);
+
+      // 에러 이벤트 발행
+      eventPublisher.publishEvent(new WebSocketErrorEvent(userId, errorChannel, errorResponse));
 
       log.info(
-          "[WebSocket] SEND 에러를 에러 채널로 전송 완료 - userId: {}, channel: {}, code: {}",
+          "[WebSocket] SEND 에러 이벤트 발행 완료 - userId: {}, channel: {}, code: {}",
           userId,
           errorChannel,
           errorCode.getCode());
 
     } catch (Exception ex) {
-      log.error("[WebSocket] 에러 채널 전송 실패: {}", ex.getMessage(), ex);
+      log.error("[WebSocket] 에러 이벤트 발행 실패: {}", ex.getMessage(), ex);
     }
   }
 

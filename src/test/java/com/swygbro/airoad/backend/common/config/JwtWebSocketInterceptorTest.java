@@ -22,6 +22,8 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ActiveProfiles;
 
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+
 import com.swygbro.airoad.backend.auth.application.UserDetailsServiceImpl;
 import com.swygbro.airoad.backend.auth.domain.entity.TokenType;
 import com.swygbro.airoad.backend.auth.filter.JwtTokenProvider;
@@ -45,6 +47,8 @@ class JwtWebSocketInterceptorTest {
   @Mock private JwtTokenProvider jwtTokenProvider;
 
   @Mock private UserDetailsServiceImpl userDetailsService;
+
+  @Mock private SimpMessagingTemplate messagingTemplate;
 
   @InjectMocks private JwtWebSocketInterceptor interceptor;
 
@@ -218,8 +222,8 @@ class JwtWebSocketInterceptorTest {
     }
 
     @Test
-    @DisplayName("허용되지 않은 경로로 메시지 전송 시 STOMP ERROR 프레임을 반환한다")
-    void shouldReturnErrorFrameWhenSendingToForbiddenPath() {
+    @DisplayName("허용되지 않은 경로로 메시지 전송 시 에러 채널로 전송하고 null을 반환한다")
+    void shouldSendToErrorChannelWhenSendingToForbiddenPath() {
       // given
       StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SEND);
       accessor.setDestination("/pub/other/message"); // 허용되지 않은 경로
@@ -230,13 +234,11 @@ class JwtWebSocketInterceptorTest {
       Message<?> result = interceptor.preSend(message, null);
 
       // then
-      assertThat(result).isNotNull();
+      assertThat(result).isNull(); // SEND 에러는 null 반환 (메시지 전달 중단)
 
-      StompHeaderAccessor resultAccessor =
-          MessageHeaderAccessor.getAccessor(result, StompHeaderAccessor.class);
-      assertThat(resultAccessor.getCommand()).isEqualTo(StompCommand.ERROR);
-      assertThat(resultAccessor.getFirstNativeHeader("error-code"))
-          .isEqualTo(WebSocketErrorCode.FORBIDDEN_SEND.getCode());
+      // 에러 채널로 전송 검증
+      verify(messagingTemplate)
+          .convertAndSendToUser(eq(USER_EMAIL), eq("/sub/errors/unknown"), any());
     }
   }
 
@@ -316,40 +318,6 @@ class JwtWebSocketInterceptorTest {
       String payloadString = new String((byte[]) payload, StandardCharsets.UTF_8);
       assertThat(payloadString)
           .isEqualTo(WebSocketErrorCode.FORBIDDEN_SUBSCRIPTION.getDefaultMessage());
-    }
-
-    @Test
-    @DisplayName("FORBIDDEN_SEND 에러 시 올바른 STOMP ERROR 프레임을 생성한다")
-    void shouldCreateProperErrorFrameForForbiddenSend() {
-      // given
-      StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SEND);
-      accessor.setDestination("/pub/forbidden");
-      accessor.setUser(createAuthentication());
-      accessor.setSessionId("test-session-789");
-      Message<?> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
-
-      // when
-      Message<?> result = interceptor.preSend(message, null);
-
-      // then
-      assertThat(result).isNotNull();
-
-      StompHeaderAccessor resultAccessor =
-          MessageHeaderAccessor.getAccessor(result, StompHeaderAccessor.class);
-
-      // ERROR 프레임 검증
-      assertThat(resultAccessor.getCommand()).isEqualTo(StompCommand.ERROR);
-      assertThat(resultAccessor.getMessage())
-          .isEqualTo(WebSocketErrorCode.FORBIDDEN_SEND.getDefaultMessage());
-      assertThat(resultAccessor.getFirstNativeHeader("error-code"))
-          .isEqualTo(WebSocketErrorCode.FORBIDDEN_SEND.getCode());
-      assertThat(resultAccessor.getSessionId()).isEqualTo("test-session-789");
-
-      // 페이로드 검증
-      Object payload = result.getPayload();
-      assertThat(payload).isInstanceOf(byte[].class);
-      String payloadString = new String((byte[]) payload, StandardCharsets.UTF_8);
-      assertThat(payloadString).isEqualTo(WebSocketErrorCode.FORBIDDEN_SEND.getDefaultMessage());
     }
   }
 

@@ -79,10 +79,9 @@ public class TripPlanStreamListener {
 
     // TODO: 실제 일정 생성 시 DailyPlanDto로 교체 예정
     // 현재는 더미 String 데이터
-    if (event.content() instanceof String scheduleContent) {
+    if (event.contentType() == AiResponseContentType.SCHEDULE) {
       log.debug(
-          "일정 응답 내용 (처음 100자): {}",
-          scheduleContent.substring(0, Math.min(100, scheduleContent.length())));
+          "일정 응답 내용 (처음 100자): {}", event.content());
     }
   }
 }

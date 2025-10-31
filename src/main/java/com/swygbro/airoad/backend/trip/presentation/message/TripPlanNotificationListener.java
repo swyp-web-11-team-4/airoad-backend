@@ -1,15 +1,17 @@
 package com.swygbro.airoad.backend.trip.presentation.message;
 
-import com.swygbro.airoad.backend.trip.domain.event.DailyPlanSavedEvent;
-import com.swygbro.airoad.backend.trip.domain.dto.TripPlanProgressMessage;
-import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationCancelledEvent;
-import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationCompletedEvent;
-import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationErrorEvent;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
+
+import com.swygbro.airoad.backend.trip.domain.dto.TripPlanProgressMessage;
+import com.swygbro.airoad.backend.trip.domain.event.DailyPlanSavedEvent;
+import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationCancelledEvent;
+import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationCompletedEvent;
+import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationErrorEvent;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
@@ -30,8 +32,7 @@ public class TripPlanNotificationListener {
     log.info(
         "일정 저장 완료 - tripPlanId: {}, dayNumber: {}",
         event.tripPlanId(),
-        event.dailyPlan().dayNumber()
-    );
+        event.dailyPlan().dayNumber());
 
     TripPlanProgressMessage message =
         TripPlanProgressMessage.builder()
@@ -78,8 +79,7 @@ public class TripPlanNotificationListener {
         "일정 생성 오류 발생 - tripPlanId: {}, errorCode: {}, message: {}",
         event.tripPlanId(),
         event.errorCode().getCode(),
-        event.errorCode().getDefaultMessage()
-    );
+        event.errorCode().getDefaultMessage());
 
     TripPlanProgressMessage message =
         TripPlanProgressMessage.builder()
@@ -117,7 +117,7 @@ public class TripPlanNotificationListener {
    * 특정 사용자의 채팅방으로 메시지를 전송합니다.
    *
    * @param chatRoomId 채팅방 ID
-   * @param message    전송할 메시지
+   * @param message 전송할 메시지
    */
   private void sendToUser(Long chatRoomId, TripPlanProgressMessage message) {
     String destination = "/sub/chatroom/" + chatRoomId + "/trip-progress";

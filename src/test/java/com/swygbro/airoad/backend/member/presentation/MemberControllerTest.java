@@ -72,7 +72,7 @@ class MemberControllerTest {
               .role(MemberRole.MEMBER)
               .build();
 
-      UserPrincipal userPrincipal = UserPrincipal.create(member);
+      UserPrincipal userPrincipal = new UserPrincipal(member);
 
       UsernamePasswordAuthenticationToken authentication =
           new UsernamePasswordAuthenticationToken(

@@ -73,7 +73,7 @@ class JwtAuthenticationFilterTest {
             .role(MemberRole.MEMBER)
             .build();
 
-    userDetails = UserPrincipal.create(testMember);
+    userDetails = new UserPrincipal(testMember);
   }
 
   @Nested

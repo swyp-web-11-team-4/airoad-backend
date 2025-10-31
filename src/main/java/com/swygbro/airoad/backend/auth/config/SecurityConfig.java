@@ -2,8 +2,6 @@ package com.swygbro.airoad.backend.auth.config;
 
 import java.util.Collections;
 
-import jakarta.servlet.http.HttpServletResponse;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +15,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.swygbro.airoad.backend.auth.application.CustomOAuth2UserService;
 import com.swygbro.airoad.backend.auth.application.OAuthLoginSuccessHandler;
 import com.swygbro.airoad.backend.auth.filter.JwtAuthenticationFilter;
 import com.swygbro.airoad.backend.auth.infrastructure.HttpCookieOAuth2AuthorizationRequestRepository;
@@ -33,6 +32,7 @@ public class SecurityConfig {
   @Value("${cors.allowed-origins}")
   private String allowedOrigins;
 
+  private final CustomOAuth2UserService customOAuth2UserService;
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
   private final OAuthLoginSuccessHandler oAuthLoginSuccessHandler;
   private final HttpCookieOAuth2AuthorizationRequestRepository
@@ -85,14 +85,12 @@ public class SecurityConfig {
         .oauth2Login(
             oauth2 ->
                 oauth2
-                    // 쿠키 기반 Authorization Request 저장소 사용
                     .authorizationEndpoint(
                         authorization ->
                             authorization.authorizationRequestRepository(
                                 httpCookieOAuth2AuthorizationRequestRepository))
-                    // OAuth2 로그인 성공 시 JWT 발급
-                    .successHandler(oAuthLoginSuccessHandler))
-        // JWT 인증 필터 추가
+                    .successHandler(oAuthLoginSuccessHandler)
+                    .userInfoEndpoint(config -> config.userService(customOAuth2UserService)))
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();

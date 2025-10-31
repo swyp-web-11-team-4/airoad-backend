@@ -18,7 +18,6 @@ public enum AiErrorCode implements ErrorCode {
 
   JSON_PARSING_FAILED("AI004", HttpStatus.INTERNAL_SERVER_ERROR, "JSON 파싱 중 오류가 발생했습니다");
 
-
   private final String code;
   private final HttpStatus httpStatus;
   private final String defaultMessage;

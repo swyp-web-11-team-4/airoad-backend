@@ -1,6 +1,8 @@
 package com.swygbro.airoad.backend.trip.domain.entity;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.persistence.*;
 
@@ -22,13 +24,45 @@ public class DailyPlan extends BaseEntity {
   @JoinColumn(nullable = false)
   private TripPlan tripPlan;
 
+  /** 예정된 방문 장소 목록 */
+  @OneToMany(mappedBy = "dailyPlan", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<ScheduledPlace> scheduledPlaces = new ArrayList<>();
+
   /** 일정 날짜 */
   @Column(nullable = false)
   private LocalDate date;
 
+  /** 일차 번호 (1일차, 2일차, ...) */
+  @Column(nullable = false)
+  private Integer dayNumber;
+
   @Builder
-  private DailyPlan(TripPlan tripPlan, LocalDate date) {
+  private DailyPlan(TripPlan tripPlan, LocalDate date, Integer dayNumber) {
     this.tripPlan = tripPlan;
     this.date = date;
+    this.dayNumber = dayNumber;
+  }
+
+  /**
+   * 방문 장소를 일정에 추가합니다.
+   *
+   * <p>양방향 관계를 유지하기 위해 ScheduledPlace의 dailyPlan도 설정합니다.
+   *
+   * @param scheduledPlace 추가할 방문 장소
+   */
+  public void addScheduledPlace(ScheduledPlace scheduledPlace) {
+    this.scheduledPlaces.add(scheduledPlace);
+    scheduledPlace.setDailyPlan(this);
+  }
+
+  /**
+   * TripPlan과의 양방향 관계 설정을 위한 메서드입니다.
+   *
+   * <p>애그리게이트 루트(TripPlan)에서만 호출되어야 합니다.
+   *
+   * @param tripPlan 소속될 여행 계획
+   */
+  void setTripPlan(TripPlan tripPlan) {
+    this.tripPlan = tripPlan;
   }
 }

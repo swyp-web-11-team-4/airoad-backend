@@ -66,4 +66,15 @@ public class ScheduledPlace extends BaseEntity {
     this.endTime = endTime;
     this.travelSegment = travelSegment;
   }
+
+  /**
+   * DailyPlan과의 양방향 관계 설정을 위한 메서드입니다.
+   *
+   * <p>DailyPlan.addScheduledPlace()에서만 호출되어야 합니다.
+   *
+   * @param dailyPlan 소속될 일일 계획
+   */
+  void setDailyPlan(DailyPlan dailyPlan) {
+    this.dailyPlan = dailyPlan;
+  }
 }

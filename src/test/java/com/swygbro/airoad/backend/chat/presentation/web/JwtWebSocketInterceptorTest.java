@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.common.config;
+package com.swygbro.airoad.backend.chat.presentation.web;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -27,7 +27,6 @@ import org.springframework.test.context.ActiveProfiles;
 import com.swygbro.airoad.backend.auth.application.UserDetailsServiceImpl;
 import com.swygbro.airoad.backend.auth.domain.entity.TokenType;
 import com.swygbro.airoad.backend.auth.filter.JwtTokenProvider;
-import com.swygbro.airoad.backend.chat.config.JwtWebSocketInterceptor;
 import com.swygbro.airoad.backend.common.domain.event.WebSocketErrorEvent;
 import com.swygbro.airoad.backend.common.exception.WebSocketErrorCode;
 

@@ -222,7 +222,7 @@ public class TripAgent implements AiroadAgent {
     params.put("region", request.region());
     params.put("days", days);
     params.put("startDate", request.startDate());
-    params.put("endDate", request.startDate().plusDays(days));
+    params.put("endDate", request.startDate().plusDays(days - 1));
     params.put("themes", String.join("|", request.themes()));
     params.put("peopleCount", request.peopleCount());
     params.put("transportation", Transportation.PUBLIC_TRANSIT); // 이번 MVP에서는 대중 교통으로 고정

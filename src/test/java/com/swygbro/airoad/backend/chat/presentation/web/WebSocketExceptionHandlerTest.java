@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.common.presentation;
+package com.swygbro.airoad.backend.chat.presentation.web;
 
 import java.security.Principal;
 import java.util.List;
@@ -20,7 +20,6 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ActiveProfiles;
 
-import com.swygbro.airoad.backend.chat.presentation.web.WebSocketExceptionHandler;
 import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.common.exception.CommonErrorCode;

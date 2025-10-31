@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.config;
+package com.swygbro.airoad.backend.common.config;
 
 import java.util.List;
 

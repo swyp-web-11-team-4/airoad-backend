@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.common.presentation;
+package com.swygbro.airoad.backend.chat.presentation.message;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

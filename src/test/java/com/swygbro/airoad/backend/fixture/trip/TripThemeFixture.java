@@ -1,6 +1,6 @@
 package com.swygbro.airoad.backend.fixture.trip;
 
-import com.swygbro.airoad.backend.trip.domain.entity.PlaceTheme;
+import com.swygbro.airoad.backend.content.domain.entity.PlaceTheme;
 import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
 import com.swygbro.airoad.backend.trip.domain.entity.TripTheme;
 

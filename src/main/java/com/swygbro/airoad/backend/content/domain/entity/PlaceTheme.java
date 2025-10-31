@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.trip.domain.entity;
+package com.swygbro.airoad.backend.content.domain.entity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,7 +6,6 @@ import java.util.List;
 import jakarta.persistence.*;
 
 import com.swygbro.airoad.backend.common.domain.entity.BaseEntity;
-import com.swygbro.airoad.backend.content.domain.entity.Place;
 
 import lombok.AccessLevel;
 import lombok.Builder;

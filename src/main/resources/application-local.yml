@@ -38,7 +38,6 @@ spring:
             authorization-grant-type: authorization_code
             redirect-uri: ${OAUTH2_BACKEND_REDIRECT_URI}
             scope:
-              - openid
               - email
               - profile
         provider:
@@ -60,8 +59,12 @@ cors:
 app:
   oauth2:
     redirect-uri: ${OAUTH2_FRONTEND_REDIRECT_URI}
-    register: ${REGISTER_TOKEN_REDIRECT_URI}
     access: ${ACCESS_TOKEN_REDIRECT_URI}
+    cookie:
+      auth-request-name: ${OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME}
+      redirect-uri-name: ${REDIRECT_URI_PARAM_COOKIE_NAME}
+      mode-name: ${MODE_PARAM_COOKIE_NAME}
+      expire-seconds: ${COOKIE_EXPIRE_SECONDS}
 
 springdoc:
   swagger-ui:

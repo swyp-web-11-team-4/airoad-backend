@@ -34,15 +34,11 @@ public class CookieUtils {
   private ObjectMapper createSecureObjectMapper() {
     ObjectMapper mapper = new ObjectMapper();
 
-    // Spring Security Jackson Mixins 등록
-    // OAuth2AuthorizationRequest, OAuth2User 등의 직렬화/역직렬화를 지원
     SecurityJackson2Modules.getModules(this.getClass().getClassLoader())
         .forEach(mapper::registerModule);
 
-    // Java 8 Time API 지원
     mapper.registerModule(new JavaTimeModule());
 
-    // ISO 8601 날짜 형식 사용
     mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
     return mapper;
@@ -64,21 +60,12 @@ public class CookieUtils {
     return Optional.empty();
   }
 
-  /**
-   * 응답에 쿠키를 추가합니다.
-   *
-   * @param response HTTP 응답
-   * @param name 쿠키 이름
-   * @param value 쿠키 값
-   * @param maxAge 쿠키 유효 시간(초)
-   * @throws BusinessException 쿠키 크기가 제한을 초과하는 경우
-   */
   public void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
     Cookie cookie = new Cookie(name, value);
     cookie.setPath("/");
     cookie.setHttpOnly(true);
     cookie.setMaxAge(maxAge);
-    cookie.setSecure(true); // HTTPS에서만 전송
+    cookie.setSecure(false); // HTTPS에서만 전송
     cookie.setAttribute("SameSite", "Lax"); // CSRF 공격 방어
     response.addCookie(cookie);
   }
@@ -93,7 +80,7 @@ public class CookieUtils {
       for (Cookie cookie : cookies) {
         if (cookie.getName().equals(name)) {
           cookie.setValue("");
-          cookie.setPath("/");
+          cookie.setPath(cookie.getPath() != null ? cookie.getPath() : "/");
           cookie.setMaxAge(0);
           cookie.setHttpOnly(true);
           cookie.setSecure(true);

@@ -1,6 +1,7 @@
 package com.swygbro.airoad.backend.trip.domain.event;
 
 import com.swygbro.airoad.backend.common.exception.ErrorCode;
+
 import lombok.Builder;
 
 /**
@@ -10,9 +11,7 @@ import lombok.Builder;
  *
  * @param chatRoomId 채팅방 ID
  * @param tripPlanId 여행 일정 ID (생성되었을 경우)
- * @param errorCode  에러 코드
+ * @param errorCode 에러 코드
  */
 @Builder
-public record TripPlanGenerationErrorEvent(Long chatRoomId, Long tripPlanId, ErrorCode errorCode) {
-
-}
+public record TripPlanGenerationErrorEvent(Long chatRoomId, Long tripPlanId, ErrorCode errorCode) {}

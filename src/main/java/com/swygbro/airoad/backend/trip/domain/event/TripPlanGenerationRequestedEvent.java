@@ -1,6 +1,7 @@
 package com.swygbro.airoad.backend.trip.domain.event;
 
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
+
 import lombok.Builder;
 
 /**
@@ -10,9 +11,8 @@ import lombok.Builder;
  *
  * @param chatRoomId 채팅방 ID
  * @param tripPlanId 여행 계획 ID
- * @param request    여행 일정 생성 요청 정보
+ * @param request 여행 일정 생성 요청 정보
  */
 @Builder
-public record TripPlanGenerationRequestedEvent(Long chatRoomId, Long tripPlanId, TripPlanCreateRequest request) {
-
-}
+public record TripPlanGenerationRequestedEvent(
+    Long chatRoomId, Long tripPlanId, TripPlanCreateRequest request) {}

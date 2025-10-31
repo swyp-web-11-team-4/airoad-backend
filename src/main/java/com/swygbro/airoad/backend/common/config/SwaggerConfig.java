@@ -115,6 +115,84 @@ public class SwaggerConfig {
 
                 **참고**: `/user` prefix는 Spring이 자동으로 현재 사용자에게만 메시지를 전달합니다.
 
+                ### 에러 처리 방식
+
+                WebSocket 연결 단계에 따라 두 가지 에러 처리 방식을 사용합니다:
+
+                #### 1. STOMP ERROR 프레임 (연결 단계 에러)
+                **발생 시점**: CONNECT, SUBSCRIBE 단계
+                - JWT 인증 실패 (CONNECT)
+                - 허용되지 않은 경로 구독 시도 (SUBSCRIBE)
+
+                **특징**:
+                - STOMP 프로토콜 레벨 에러 (프로토콜 위반)
+                - 클라이언트의 `onError` 콜백으로 전달됨
+                - **대부분의 라이브러리에서 자동으로 연결 종료**
+                - 재연결 필요
+
+                **에러 형식**:
+                ```
+                ERROR
+                error-code: WS001
+                session: abc123
+
+                WebSocket 연결 인증에 실패했습니다.
+                ```
+
+                **클라이언트 처리**:
+                ```javascript
+                stompClient.connect(
+                  { Authorization: 'Bearer ' + token },
+                  onConnect,
+                  function onError(error) {
+                    console.error('STOMP ERROR:', error);
+                    // 연결이 끊어짐 - 재연결 필요
+                    handleReconnect();
+                  }
+                );
+                ```
+
+                #### 2. 에러 채널 메시지 (런타임 에러)
+                **발생 시점**: SEND 단계 및 메시지 처리 중
+                - 허용되지 않은 경로로 메시지 전송 시도 (SEND)
+                - AI 서비스 장애
+                - 메시지 저장 실패
+                - 기타 비즈니스 로직 에러
+
+                **특징**:
+                - 일반 MESSAGE 프레임 (애플리케이션 레벨 에러)
+                - 구독한 에러 채널로 전달됨
+                - **연결 유지됨** (복구 가능한 에러)
+                - 재시도, 에러 알림 등 유연한 처리 가능
+
+                **클라이언트 처리**:
+                ```javascript
+                // 에러 채널 구독 (필수!)
+                stompClient.subscribe('/user/sub/errors/123', (message) => {
+                  const error = JSON.parse(message.body);
+
+                  if (error.code === 'WS005') {
+                    // 잘못된 전송 경로 - 올바른 경로로 재전송
+                    showToast('잘못된 경로입니다. 다시 시도해주세요.');
+                  } else if (error.code === 'WS301') {
+                    // AI 서비스 일시 장애 - 재시도 버튼 표시
+                    showRetryButton();
+                  }
+
+                  // 연결은 유지됨 - 계속 사용 가능
+                });
+                ```
+
+                #### 주요 에러 코드
+                | 코드 | 설명 | 처리 방식 |
+                |------|------|----------|
+                | **WS001** | 인증 실패 | STOMP ERROR (연결 끊김) |
+                | **WS004** | 구독 권한 없음 | STOMP ERROR (연결 끊김) |
+                | **WS005** | 전송 권한 없음 | 에러 채널 (연결 유지) |
+                | **WS201** | 메시지 전송 실패 | 에러 채널 (연결 유지) |
+                | **WS301** | AI 서비스 장애 | 에러 채널 (연결 유지) |
+                | **WS999** | 서버 내부 오류 | 에러 채널 (연결 유지) |
+
                 ### 연결 예시 (JavaScript/React)
                 ```javascript
                 // 1. 연결 (JWT 인증 포함)

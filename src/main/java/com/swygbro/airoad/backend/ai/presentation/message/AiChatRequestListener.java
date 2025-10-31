@@ -4,6 +4,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import com.swygbro.airoad.backend.ai.application.DummyAiService;
 import com.swygbro.airoad.backend.ai.domain.event.AiRequestEvent;
 
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class AiChatRequestListener {
 
+  private final DummyAiService dummyAiService;
+
   /**
    * AI 채팅 요청 이벤트를 처리합니다.
    *
@@ -49,9 +52,7 @@ public class AiChatRequestListener {
 
     log.debug("AI 채팅 요청 메시지: {}", event.userMessage());
 
-    // TODO: AI 서비스 호출 및 응답 처리 (다음 이슈에서 구현)
-    // 1. AI 서비스에 메시지 전송
-    // 2. 스트리밍 응답 수신
-    // 3. 각 청크마다 AiStreamChunkReceivedEvent 발행
+    // TODO: 실제 AI 서비스 연동 시 DummyAiService를 실제 구현체로 교체
+    dummyAiService.processAiRequest(event);
   }
 }

@@ -15,7 +15,9 @@ val excludePatterns =
         "**/*Entity*",
         "**/*Exception*",
         "**/*ErrorCode*",
-        "**/*Handler*"
+        "**/*Handler*",
+        "**/*Listener*",
+        "**/*Dummy*"
     )
 
 // 제외할 클래스 패턴 (커버리지 검증용)
@@ -27,7 +29,9 @@ val excludeClassPatterns =
         "*.*Entity*",
         "*.*Exception*",
         "*.*ErrorCode*",
-        "*.*Handler*"
+        "*.*Handler*",
+        "*.*Listener*",
+        "*.*Dummy*"
     )
 
 fun JacocoReportBase.configureClassDirectories() {

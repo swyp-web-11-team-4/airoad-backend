@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.chat.presentation.web;
+package com.swygbro.airoad.backend.chat.presentation.message;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -53,8 +53,8 @@ import lombok.extern.slf4j.Slf4j;
  * <ul>
  *   <li><strong>경로</strong>: {@code /user/sub/errors}
  *   <li><strong>페이로드</strong>: {@link com.swygbro.airoad.backend.common.domain.dto.ErrorResponse}
- *   <li><strong>설명</strong>: WebSocket 메시지 처리 중 발생한 에러를 실시간으로 수신 ({@link
- *       com.swygbro.airoad.backend.chat.presentation.web.WebSocketExceptionHandler} 참조)
+ *   <li><strong>설명</strong>: WebSocket 메시지 처리 중 발생한 에러를 실시간으로 수신 ({@link WebSocketExceptionHandler}
+ *       참조)
  * </ul>
  *
  * <h3>클라이언트 연동 예시</h3>

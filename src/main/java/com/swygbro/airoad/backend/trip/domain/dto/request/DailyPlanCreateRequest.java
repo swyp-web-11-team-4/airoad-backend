@@ -15,4 +15,5 @@ import lombok.Builder;
  * @param places 방문할 장소 목록 (방문 순서대로 정렬)
  */
 @Builder
-public record DailyPlanCreateRequest(Integer dayNumber, LocalDate date, List<ScheduledPlaceCreateRequest> places) {}
+public record DailyPlanCreateRequest(
+    Integer dayNumber, LocalDate date, List<ScheduledPlaceCreateRequest> places) {}

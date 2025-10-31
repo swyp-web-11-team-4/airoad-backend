@@ -11,7 +11,4 @@ public record ScheduledPlaceResponse(
     String startTime,
     String endTime,
     Integer travelTime,
-    String transportation
-) {
-
-}
+    String transportation) {}

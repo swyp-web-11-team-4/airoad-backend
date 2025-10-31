@@ -2,6 +2,7 @@ package com.swygbro.airoad.backend.trip.domain.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.swygbro.airoad.backend.trip.domain.dto.response.DailyPlanResponse;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 

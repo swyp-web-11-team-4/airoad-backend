@@ -1,6 +1,7 @@
 package com.swygbro.airoad.backend.trip.domain.dto.response;
 
 import java.util.List;
+
 import lombok.Builder;
 
 @Builder
@@ -10,7 +11,4 @@ public record DailyPlanResponse(
     String date,
     String title,
     String description,
-    List<ScheduledPlaceResponse> scheduledPlaces
-) {
-
-}
+    List<ScheduledPlaceResponse> scheduledPlaces) {}

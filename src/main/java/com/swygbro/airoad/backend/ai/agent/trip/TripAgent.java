@@ -156,6 +156,14 @@ public class TripAgent implements AiroadAgent {
                 log.debug("파싱 시도: {}", jsonLine);
                 return outputConverter.convert(jsonLine);
               } catch (Exception e) {
+                TripPlanGenerationErrorEvent event =
+                    TripPlanGenerationErrorEvent.builder()
+                        .chatRoomId(request.chatRoomId())
+                        .tripPlanId(request.tripPlanId())
+                        .errorCode(AiErrorCode.JSON_PARSING_FAILED)
+                        .build();
+
+                eventPublisher.publishEvent(event);
                 log.error("JSON 스트림 파싱 오류: {}", e.getMessage());
                 return null;
               }

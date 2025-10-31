@@ -1,9 +1,9 @@
 package com.swygbro.airoad.backend.trip.domain.entity;
 
-import com.swygbro.airoad.backend.content.domain.entity.PlaceTheme;
 import jakarta.persistence.*;
 
 import com.swygbro.airoad.backend.common.domain.entity.BaseEntity;
+import com.swygbro.airoad.backend.content.domain.entity.PlaceTheme;
 
 import lombok.AccessLevel;
 import lombok.Builder;

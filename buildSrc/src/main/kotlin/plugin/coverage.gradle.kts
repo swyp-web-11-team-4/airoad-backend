@@ -7,8 +7,11 @@ val excludePatterns =
     listOf(
         "**/config/**",
         "**/domain/**",
+        "**/dto/**",
         "**/exception/**",
-        "**/chat/presentation/**", // TODO: 명세용 controller만 만든 상황이라 controller 구현 후 제거하겠습니다.
+        "**/agent/**",
+        "**/chat/presentation/web/**", // TODO: 명세용 controller만 만든 상황이라 controller 구현 후 제거하겠습니다.
+        "**/trip/presentation/web/**", // TODO: API 구현 후 삭제 필요
         "**/*Application*",
         "**/*Config*",
         "**/*Dto*",
@@ -16,7 +19,6 @@ val excludePatterns =
         "**/*Exception*",
         "**/*ErrorCode*",
         "**/*Handler*",
-        "**/*Listener*",
         "**/*Dummy*"
     )
 
@@ -29,9 +31,7 @@ val excludeClassPatterns =
         "*.*Entity*",
         "*.*Exception*",
         "*.*ErrorCode*",
-        "*.*Handler*",
-        "*.*Listener*",
-        "*.*Dummy*"
+        "*.*Handler*"
     )
 
 fun JacocoReportBase.configureClassDirectories() {

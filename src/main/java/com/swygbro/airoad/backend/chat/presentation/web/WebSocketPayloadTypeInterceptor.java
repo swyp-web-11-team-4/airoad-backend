@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.chat.config;
+package com.swygbro.airoad.backend.chat.presentation.web;
 
 import org.springframework.lang.NonNull;
 import org.springframework.messaging.Message;

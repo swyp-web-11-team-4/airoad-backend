@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.common.config;
+package com.swygbro.airoad.backend.chat.presentation.message;
 
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;

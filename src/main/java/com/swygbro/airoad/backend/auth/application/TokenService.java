@@ -39,6 +39,8 @@ public class TokenService implements TokenUseCase {
             .findByEmail(email)
             .orElseThrow(() -> new BusinessException(AuthErrorCode.MEMBER_NOT_FOUND));
 
+    deleteRefreshTokenByEmail(email);
+
     RefreshToken refreshToken =
         RefreshToken.builder()
             .token(token)

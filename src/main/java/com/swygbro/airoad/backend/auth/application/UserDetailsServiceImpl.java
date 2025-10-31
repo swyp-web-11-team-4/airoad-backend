@@ -25,6 +25,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             .findByEmail(email)
             .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
 
-    return UserPrincipal.create(member);
+    return new UserPrincipal(member);
   }
 }

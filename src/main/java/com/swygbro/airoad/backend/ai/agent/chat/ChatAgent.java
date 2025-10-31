@@ -8,7 +8,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import com.swygbro.airoad.backend.ai.agent.AiroadAgent;
-import com.swygbro.airoad.backend.ai.domain.dto.AiResponseContentType;
 import com.swygbro.airoad.backend.ai.domain.event.AiMessageGeneratedEvent;
 import com.swygbro.airoad.backend.ai.exception.AiErrorCode;
 import com.swygbro.airoad.backend.chat.domain.event.AiChatRequestedEvent;
@@ -53,13 +52,8 @@ public class ChatAgent implements AiroadAgent {
   }
 
   @Override
-  public String name() {
-    return name;
-  }
-
-  @Override
-  public boolean supports(AiResponseContentType type) {
-    return type.equals(AiResponseContentType.CHAT);
+  public boolean supports(String agentName) {
+    return name.equals(agentName);
   }
 
   @Override
@@ -73,10 +67,7 @@ public class ChatAgent implements AiroadAgent {
           event.tripPlanId(),
           event.username());
 
-      String response = chatClient.prompt()
-          .user(event.userMessage())
-          .call()
-          .content();
+      String response = chatClient.prompt().user(event.userMessage()).call().content();
 
       log.debug("ChatAgent 응답 생성 완료 - response: {}", response);
 

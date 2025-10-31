@@ -23,7 +23,7 @@ public class AiService implements AiUseCase {
     log.debug("{} called with request {}", agentName, request);
 
     agents.stream()
-        .filter(it -> it.name().equals(agentName))
+        .filter(it -> it.supports(agentName))
         .findFirst()
         .orElseThrow(() -> new BusinessException(AiErrorCode.AGENT_NOT_FOUND))
         .execute(request);

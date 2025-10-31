@@ -1,14 +1,14 @@
 package com.swygbro.airoad.backend.ai.agent;
 
-import com.swygbro.airoad.backend.ai.domain.dto.AiResponseContentType;
-
 public interface AiroadAgent {
 
-  /** 에이전트 식별자 */
-  String name();
-
-  /** 각 에이전트의 Intent 매칭 여부 */
-  boolean supports(AiResponseContentType type);
+  /**
+   * 각 에이전트의 식별자 매칭 여부
+   *
+   * @param agentName 에이전트 식별자
+   * @return 지원 여부
+   */
+  boolean supports(String agentName);
 
   /**
    * @param data 요청 데이터

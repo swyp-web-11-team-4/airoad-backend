@@ -1,20 +1,20 @@
 package com.swygbro.airoad.backend.chat.application;
 
-import com.swygbro.airoad.backend.chat.presentation.message.ChatNotificationListener;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.swygbro.airoad.backend.chat.domain.event.AiChatRequestedEvent;
 import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageRequest;
 import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageResponse;
 import com.swygbro.airoad.backend.chat.domain.dto.MessageContentType;
 import com.swygbro.airoad.backend.chat.domain.entity.AiConversation;
 import com.swygbro.airoad.backend.chat.domain.entity.AiMessage;
+import com.swygbro.airoad.backend.chat.domain.event.AiChatRequestedEvent;
 import com.swygbro.airoad.backend.chat.exception.ChatErrorCode;
 import com.swygbro.airoad.backend.chat.infrastructure.repository.AiConversationRepository;
 import com.swygbro.airoad.backend.chat.infrastructure.repository.AiMessageRepository;
+import com.swygbro.airoad.backend.chat.presentation.message.ChatNotificationListener;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 
@@ -31,9 +31,7 @@ import lombok.extern.slf4j.Slf4j;
  * <ol>
  *   <li><strong>AI 요청 이벤트 발행</strong>: AI 처리를 위한 이벤트 발행
  *   <li><strong>AI 응답 수신</strong>: AI 서버로부터 응답을 이벤트로 수신
- *   <li><strong>WebSocket 전송</strong>: {@link
- *       ChatNotificationListener}에서 클라이언트로 실시간
- *       전송
+ *   <li><strong>WebSocket 전송</strong>: {@link ChatNotificationListener}에서 클라이언트로 실시간 전송
  * </ol>
  */
 @Slf4j

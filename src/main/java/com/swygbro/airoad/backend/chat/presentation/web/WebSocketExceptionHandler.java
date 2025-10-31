@@ -40,7 +40,6 @@ import lombok.extern.slf4j.Slf4j;
  *   showErrorNotification(error.message);
  * });
  * }</pre>
- *
  */
 @Slf4j
 @ControllerAdvice

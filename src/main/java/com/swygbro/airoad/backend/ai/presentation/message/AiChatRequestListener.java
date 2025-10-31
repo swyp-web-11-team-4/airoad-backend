@@ -1,11 +1,13 @@
 package com.swygbro.airoad.backend.ai.presentation.message;
 
-import com.swygbro.airoad.backend.ai.application.AiUseCase;
-import com.swygbro.airoad.backend.chat.domain.event.AiChatRequestedEvent;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+
+import com.swygbro.airoad.backend.ai.application.AiUseCase;
+import com.swygbro.airoad.backend.chat.domain.event.AiChatRequestedEvent;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * AI 채팅 요청 이벤트를 수신하는 리스너입니다.
@@ -32,6 +34,7 @@ public class AiChatRequestListener {
         event.tripPlanId(),
         event.username());
 
-    aiUseCase.agentCall("chatAgent", event.userMessage());
+    // ChatAgent에 전체 이벤트 객체 전달 (chatRoomId, tripPlanId, username 포함)
+    aiUseCase.agentCall("chatAgent", event);
   }
 }

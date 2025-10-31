@@ -4,12 +4,11 @@ import com.swygbro.airoad.backend.ai.agent.AiroadAgent;
 import com.swygbro.airoad.backend.ai.agent.trip.dto.request.AiDailyPlanRequest;
 import com.swygbro.airoad.backend.ai.agent.trip.dto.response.AiDailyPlanResponse;
 import com.swygbro.airoad.backend.ai.domain.dto.AiResponseContentType;
+import com.swygbro.airoad.backend.ai.domain.event.DailyPlanGeneratedEvent;
 import com.swygbro.airoad.backend.ai.exception.AiErrorCode;
-import com.swygbro.airoad.backend.common.domain.dto.CommonResponse;
 import com.swygbro.airoad.backend.trip.domain.dto.request.DailyPlanCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.request.ScheduledPlaceCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.entity.Transportation;
-import com.swygbro.airoad.backend.ai.domain.event.DailyPlanGeneratedEvent;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationCompletedEvent;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationErrorEvent;
 import java.util.ArrayList;
@@ -24,7 +23,6 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.converter.BeanOutputConverter;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
@@ -41,6 +39,8 @@ public class TripAgent implements AiroadAgent {
           ## 지침
           - 주어진 여행 정보를 바탕으로 여행 일정 계획을 구성하세요.
           - 여행의 시작지와 도착지는 반드시 공항, 기차역, 버스터미널 등 대중교통을 이용하기 편한 곳으로 해주세요.
+          - 반드시 테마에 일치하는 장소를 조회한 후 응답해야 합니다.
+          - 프롬프트로 주어진 정보 외의 내용은 응답할 수 없습니다.
           
           ## 출력 형식: NDJSON (Newline Delimited JSON)
           **중요**: 반드시 NDJSON 형식으로 응답해야 합니다.
@@ -105,18 +105,19 @@ public class TripAgent implements AiroadAgent {
   private final ApplicationEventPublisher eventPublisher;
 
   public TripAgent(
-      ApplicationEventPublisher eventPublisher, ChatModel chatModel, VectorStore vectorStore) {
+      ApplicationEventPublisher eventPublisher,
+      ChatModel chatModel,
+      VectorStore vectorStore) {
     this.eventPublisher = eventPublisher;
     String jsonSchema = outputConverter.getFormat();
 
     this.chatClient =
         ChatClient.builder(chatModel)
-            .defaultSystem(promptSystemSpec -> promptSystemSpec
-                .text(SYSTEM_PROMPT_TEMPLATE)
-                .params(
-                    Map.of("jsonSchema", jsonSchema)
-                )
-            )
+            .defaultSystem(
+                promptSystemSpec ->
+                    promptSystemSpec
+                        .text(SYSTEM_PROMPT_TEMPLATE)
+                        .params(Map.of("jsonSchema", jsonSchema)))
             .defaultAdvisors(
                 //            TODO: RAG 파이프라인 개선 필요, 개선 후 주석 해제
                 //            QuestionAnswerAdvisor.builder(vectorStore)
@@ -142,20 +143,17 @@ public class TripAgent implements AiroadAgent {
   }
 
   @Override
-  public CommonResponse<String> execute(Object data) {
+  public void execute(Object data) {
     AiDailyPlanRequest request = (AiDailyPlanRequest) data;
 
     val params = convertParams(request);
 
     chatClient
         .prompt()
-        .user(promptUserSpec -> promptUserSpec
-            .text(USER_PROMPT_TEMPLATE)
-            .params(params)
-        )
+        .user(promptUserSpec -> promptUserSpec.text(USER_PROMPT_TEMPLATE).params(params))
         .stream()
         .content()
-        .doOnSubscribe(subscription -> log.info("AI 일정 생성 스트림 구독 시작됨."))
+        .doOnSubscribe(subscription -> log.debug("AI 일정 생성 스트림 구독 시작됨."))
         .transform(this::toJsonChunk)
         .mapNotNull(
             jsonLine -> {
@@ -168,45 +166,46 @@ public class TripAgent implements AiroadAgent {
               }
             })
         .filter(Objects::nonNull)
-        .doOnNext(aiDailyPlanResponse -> {
-              DailyPlanCreateRequest dailyPlanCreateRequest = toDailyPlanDto(
-                  Objects.requireNonNull(aiDailyPlanResponse));
+        .doOnNext(
+            aiDailyPlanResponse -> {
+              DailyPlanCreateRequest dailyPlanCreateRequest =
+                  toDailyPlanDto(Objects.requireNonNull(aiDailyPlanResponse));
 
-              DailyPlanGeneratedEvent event = DailyPlanGeneratedEvent.builder()
-                  .chatRoomId(request.chatRoomId())
-                  .tripPlanId(request.tripPlanId())
-                  .dailyPlan(dailyPlanCreateRequest)
-                  .build();
+              DailyPlanGeneratedEvent event =
+                  DailyPlanGeneratedEvent.builder()
+                      .chatRoomId(request.chatRoomId())
+                      .tripPlanId(request.tripPlanId())
+                      .dailyPlan(dailyPlanCreateRequest)
+                      .build();
 
               eventPublisher.publishEvent(event);
               log.debug("Day {} 일정 생성 완료", dailyPlanCreateRequest.dayNumber());
-            }
-        )
-        .doOnError(error -> {
-              TripPlanGenerationErrorEvent event = TripPlanGenerationErrorEvent.builder()
-                  .chatRoomId(request.chatRoomId())
-                  .tripPlanId(request.tripPlanId())
-                  .errorCode(AiErrorCode.TRIP_PLAN_GENERATION_ERROR)
-                  .build();
+            })
+        .doOnError(
+            error -> {
+              TripPlanGenerationErrorEvent event =
+                  TripPlanGenerationErrorEvent.builder()
+                      .chatRoomId(request.chatRoomId())
+                      .tripPlanId(request.tripPlanId())
+                      .errorCode(AiErrorCode.TRIP_PLAN_GENERATION_ERROR)
+                      .build();
 
               eventPublisher.publishEvent(event);
               log.error("AI 일정 생성 스트림 처리 중 오류 발생", error);
-            }
-        )
-        .doOnComplete(() -> {
-              TripPlanGenerationCompletedEvent event = TripPlanGenerationCompletedEvent.builder()
-                  .chatRoomId(request.chatRoomId())
-                  .tripPlanId(request.tripPlanId())
-                  .message("AI 여행 일정 생성 요청에 성공했습니다")
-                  .build();
+            })
+        .doOnComplete(
+            () -> {
+              TripPlanGenerationCompletedEvent event =
+                  TripPlanGenerationCompletedEvent.builder()
+                      .chatRoomId(request.chatRoomId())
+                      .tripPlanId(request.tripPlanId())
+                      .message("AI 여행 일정 생성 요청에 성공했습니다")
+                      .build();
 
               eventPublisher.publishEvent(event);
               log.debug("AI 일정 생성 스트림 처리 완료.");
-            }
-        )
+            })
         .subscribe();
-
-    return CommonResponse.success(HttpStatus.OK, "AI 여행 일정 생성 요청에 성공했습니다");
   }
 
   /**
@@ -280,18 +279,20 @@ public class TripAgent implements AiroadAgent {
   }
 
   private DailyPlanCreateRequest toDailyPlanDto(AiDailyPlanResponse aiDailyPlanResponse) {
-    List<ScheduledPlaceCreateRequest> scheduledPlaces = aiDailyPlanResponse.places().stream()
-        .map(p -> ScheduledPlaceCreateRequest.builder()
-            .placeId(p.placeId())
-            .visitOrder(p.visitOrder())
-            .category(p.category())
-            .startTime(p.startTime())
-            .endTime(p.endTime())
-            .travelTime(p.travelTime())
-            .transportation(p.transportation())
-            .build()
-        )
-        .toList();
+    List<ScheduledPlaceCreateRequest> scheduledPlaces =
+        aiDailyPlanResponse.places().stream()
+            .map(
+                p ->
+                    ScheduledPlaceCreateRequest.builder()
+                        .placeId(p.placeId())
+                        .visitOrder(p.visitOrder())
+                        .category(p.category())
+                        .startTime(p.startTime())
+                        .endTime(p.endTime())
+                        .travelTime(p.travelTime())
+                        .transportation(p.transportation())
+                        .build())
+            .toList();
 
     return DailyPlanCreateRequest.builder()
         .dayNumber(aiDailyPlanResponse.dayNumber())

@@ -1,7 +1,6 @@
 package com.swygbro.airoad.backend.ai.agent;
 
 import com.swygbro.airoad.backend.ai.domain.dto.AiResponseContentType;
-import com.swygbro.airoad.backend.common.domain.dto.CommonResponse;
 
 public interface AiroadAgent {
 
@@ -13,7 +12,6 @@ public interface AiroadAgent {
 
   /**
    * @param data 요청 데이터
-   * @return LLM 응답 데이터를 반환
    */
-  CommonResponse<String> execute(Object data);
+  void execute(Object data);
 }

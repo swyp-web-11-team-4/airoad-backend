@@ -4,10 +4,4 @@ import lombok.Builder;
 
 @Builder
 public record AiMessageGeneratedEvent(
-    Long chatRoomId,
-    Long tripPlanId,
-    String username,
-    String aiMessage
-) {
-
-}
+    Long chatRoomId, Long tripPlanId, String username, String aiMessage) {}

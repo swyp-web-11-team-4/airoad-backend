@@ -126,13 +126,15 @@ class AiChatRequestListenerTest {
     @DisplayName("여러 사용자의 요청을 독립적으로 처리한다")
     void shouldHandleMultipleUsersIndependently() {
       // given - 첫 번째 사용자의 요청
-      AiChatRequestedEvent event1 = new AiChatRequestedEvent(1L, 100L, "user1@example.com", "첫 번째 사용자 메시지");
+      AiChatRequestedEvent event1 =
+          new AiChatRequestedEvent(1L, 100L, "user1@example.com", "첫 번째 사용자 메시지");
 
       // when & then - 첫 번째 사용자 요청 정상 처리
       assertThatCode(() -> listener.handleAiChatRequest(event1)).doesNotThrowAnyException();
 
       // given - 두 번째 사용자의 요청
-      AiChatRequestedEvent event2 = new AiChatRequestedEvent(2L, 200L, "user2@example.com", "두 번째 사용자 메시지");
+      AiChatRequestedEvent event2 =
+          new AiChatRequestedEvent(2L, 200L, "user2@example.com", "두 번째 사용자 메시지");
 
       // when & then - 두 번째 사용자 요청 정상 처리
       assertThatCode(() -> listener.handleAiChatRequest(event2)).doesNotThrowAnyException();

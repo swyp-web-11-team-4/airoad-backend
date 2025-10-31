@@ -1,12 +1,9 @@
 package com.swygbro.airoad.backend.ai.presentation.message;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
-
-import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
-import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationRequestedEvent;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -16,6 +13,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.context.ActiveProfiles;
+
+import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
+import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationRequestedEvent;
+
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
  * TripPlanGenerationListener의 테스트 클래스입니다.
@@ -27,11 +29,9 @@ import org.springframework.test.context.ActiveProfiles;
 @DisplayName("TripPlanGenerationListener 클래스")
 class TripPlanGenerationListenerTest {
 
-  @Mock
-  private ApplicationEventPublisher eventPublisher;
+  @Mock private ApplicationEventPublisher eventPublisher;
 
-  @InjectMocks
-  private TripPlanGenerationListener listener;
+  @InjectMocks private TripPlanGenerationListener listener;
 
   // 테스트 데이터 상수
   private static final Long TEST_CHAT_ROOM_ID = 1L;
@@ -99,13 +99,14 @@ class TripPlanGenerationListenerTest {
     @DisplayName("다양한 여행 테마를 가진 요청을 처리한다")
     void shouldHandleEventWithVariousThemes() {
       // given - 다양한 테마를 가진 요청 준비
-      TripPlanCreateRequest request = TripPlanCreateRequest.builder()
-          .themes(Arrays.asList("체험/액티비티", "문화/역사", "자연/힐링"))
-          .startDate(LocalDate.of(2024, 5, 10))
-          .duration(3)
-          .region("경주")
-          .peopleCount(4)
-          .build();
+      TripPlanCreateRequest request =
+          TripPlanCreateRequest.builder()
+              .themes(Arrays.asList("체험/액티비티", "문화/역사", "자연/힐링"))
+              .startDate(LocalDate.of(2024, 5, 10))
+              .duration(3)
+              .region("경주")
+              .peopleCount(4)
+              .build();
 
       TripPlanGenerationRequestedEvent event =
           new TripPlanGenerationRequestedEvent(TEST_CHAT_ROOM_ID, TEST_MEMBER_ID, request);
@@ -119,7 +120,8 @@ class TripPlanGenerationListenerTest {
     @DisplayName("장기 여행 계획 요청을 처리한다")
     void shouldHandleLongTermTripRequest() {
       // given - 일주일 이상의 장기 여행 요청 준비
-      TripPlanCreateRequest request = TripPlanCreateRequest.builder()
+      TripPlanCreateRequest request =
+          TripPlanCreateRequest.builder()
               .themes(List.of("복합"))
               .startDate(LocalDate.of(2024, 6, 1))
               .duration(10)
@@ -140,7 +142,8 @@ class TripPlanGenerationListenerTest {
     void shouldHandleShortTermTripRequest() {
       // given - 당일치기 여행 요청 준비
       LocalDate tripDate = LocalDate.of(2024, 4, 15);
-      TripPlanCreateRequest request = TripPlanCreateRequest.builder()
+      TripPlanCreateRequest request =
+          TripPlanCreateRequest.builder()
               .themes(List.of("자연/힐링"))
               .startDate(tripDate)
               .duration(1)
@@ -170,7 +173,8 @@ class TripPlanGenerationListenerTest {
           .doesNotThrowAnyException();
 
       // given - PUBLIC_TRANSPORT 교통수단을 가진 요청 준비
-      TripPlanCreateRequest publicTransportRequest = TripPlanCreateRequest.builder()
+      TripPlanCreateRequest publicTransportRequest =
+          TripPlanCreateRequest.builder()
               .themes(List.of("쇼핑"))
               .startDate(LocalDate.of(2024, 3, 20))
               .duration(3)

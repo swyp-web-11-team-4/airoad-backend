@@ -17,7 +17,8 @@ public class ScheduledPlaceFixture {
         .place(PlaceFixture.create())
         .visitOrder(1)
         .category(ScheduledCategory.MORNING)
-        .plannedTime(LocalTime.of(9, 0))
+        .startTime(LocalTime.of(9, 0))
+        .endTime(LocalTime.of(11, 0))
         .travelSegment(TravelSegmentFixture.create())
         .build();
   }
@@ -28,7 +29,8 @@ public class ScheduledPlaceFixture {
         .place(PlaceFixture.create())
         .visitOrder(1)
         .category(ScheduledCategory.MORNING)
-        .plannedTime(LocalTime.of(9, 0))
+        .startTime(LocalTime.of(9, 0))
+        .endTime(LocalTime.of(11, 0))
         .travelSegment(TravelSegmentFixture.createWalking())
         .build();
   }
@@ -39,7 +41,8 @@ public class ScheduledPlaceFixture {
         .place(PlaceFixture.createRestaurant())
         .visitOrder(2)
         .category(ScheduledCategory.LUNCH)
-        .plannedTime(LocalTime.of(12, 0))
+        .startTime(LocalTime.of(12, 0))
+        .endTime(LocalTime.of(13, 0))
         .travelSegment(TravelSegmentFixture.create())
         .build();
   }
@@ -50,7 +53,8 @@ public class ScheduledPlaceFixture {
         .place(PlaceFixture.createMustVisit())
         .visitOrder(3)
         .category(ScheduledCategory.AFTERNOON)
-        .plannedTime(LocalTime.of(14, 0))
+        .startTime(LocalTime.of(14, 0))
+        .endTime(LocalTime.of(16, 0))
         .travelSegment(TravelSegmentFixture.createByCar())
         .build();
   }
@@ -61,7 +65,8 @@ public class ScheduledPlaceFixture {
         .place(PlaceFixture.createRestaurant())
         .visitOrder(4)
         .category(ScheduledCategory.DINNER)
-        .plannedTime(LocalTime.of(18, 30))
+        .startTime(LocalTime.of(18, 30))
+        .endTime(LocalTime.of(20, 0))
         .travelSegment(TravelSegmentFixture.create())
         .build();
   }
@@ -72,7 +77,8 @@ public class ScheduledPlaceFixture {
         .place(PlaceFixture.create())
         .visitOrder(1)
         .category(ScheduledCategory.MORNING)
-        .plannedTime(LocalTime.of(9, 0))
+        .startTime(LocalTime.of(9, 0))
+        .endTime(LocalTime.of(11, 0))
         .travelSegment(TravelSegmentFixture.create())
         .build();
   }
@@ -83,7 +89,8 @@ public class ScheduledPlaceFixture {
         .place(place)
         .visitOrder(1)
         .category(ScheduledCategory.MORNING)
-        .plannedTime(LocalTime.of(9, 0))
+        .startTime(LocalTime.of(9, 0))
+        .endTime(LocalTime.of(11, 0))
         .travelSegment(TravelSegmentFixture.create())
         .build();
   }
@@ -94,7 +101,8 @@ public class ScheduledPlaceFixture {
         .place(PlaceFixture.create())
         .visitOrder(1)
         .category(ScheduledCategory.MORNING)
-        .plannedTime(LocalTime.of(9, 0))
+        .startTime(LocalTime.of(9, 0))
+        .endTime(LocalTime.of(11, 0))
         .travelSegment(TravelSegmentFixture.create());
   }
 }

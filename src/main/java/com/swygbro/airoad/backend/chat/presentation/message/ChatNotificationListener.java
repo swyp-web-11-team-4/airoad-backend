@@ -1,14 +1,16 @@
 package com.swygbro.airoad.backend.chat.presentation.message;
 
+import org.springframework.context.event.EventListener;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Component;
+
 import com.swygbro.airoad.backend.ai.domain.event.AiMessageGeneratedEvent;
 import com.swygbro.airoad.backend.chat.domain.dto.ChatStreamDto;
 import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
 import com.swygbro.airoad.backend.common.exception.WebSocketErrorCode;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
@@ -94,5 +96,4 @@ public class ChatNotificationListener {
       log.error("[WebSocket] 에러 메시지 전송 실패 - error: {}", e.getMessage(), e);
     }
   }
-
 }

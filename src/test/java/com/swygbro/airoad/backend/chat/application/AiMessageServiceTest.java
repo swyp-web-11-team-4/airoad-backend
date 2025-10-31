@@ -15,12 +15,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.test.context.ActiveProfiles;
 
-import com.swygbro.airoad.backend.chat.domain.event.AiChatRequestedEvent;
 import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageRequest;
 import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageResponse;
 import com.swygbro.airoad.backend.chat.domain.dto.MessageContentType;
 import com.swygbro.airoad.backend.chat.domain.entity.AiConversation;
 import com.swygbro.airoad.backend.chat.domain.entity.AiMessage;
+import com.swygbro.airoad.backend.chat.domain.event.AiChatRequestedEvent;
 import com.swygbro.airoad.backend.chat.exception.ChatErrorCode;
 import com.swygbro.airoad.backend.chat.fixture.AiConversationFixture;
 import com.swygbro.airoad.backend.chat.fixture.AiMessageFixture;

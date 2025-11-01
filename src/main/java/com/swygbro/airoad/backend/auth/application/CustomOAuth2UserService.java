@@ -33,7 +33,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     return processOAuth2User(userRequest, oAuth2User);
   }
 
-  private OAuth2User processOAuth2User(OAuth2UserRequest userRequest, OAuth2User oAuth2User) {
+  OAuth2User processOAuth2User(OAuth2UserRequest userRequest, OAuth2User oAuth2User) {
     String registrationId = userRequest.getClientRegistration().getRegistrationId().toUpperCase();
 
     OAuth2UserInfo oAuth2UserInfo = extractOAuth2UserInfo(registrationId, oAuth2User);

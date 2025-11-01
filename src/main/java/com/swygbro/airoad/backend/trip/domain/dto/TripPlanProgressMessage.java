@@ -1,6 +1,7 @@
 package com.swygbro.airoad.backend.trip.domain.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.swygbro.airoad.backend.trip.domain.dto.response.DailyPlanResponse;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
@@ -22,7 +23,7 @@ import lombok.Builder;
 public record TripPlanProgressMessage(
     @Schema(description = "메시지 타입", example = "DAILY_PLAN_GENERATED") MessageType type,
     @Schema(description = "여행 일정 ID", example = "1") Long tripPlanId,
-    @Schema(description = "일차별 일정 데이터") DailyPlanDto dailyPlan,
+    @Schema(description = "일차별 일정 데이터") DailyPlanResponse dailyPlan,
     @Schema(description = "상태 메시지", example = "1일차 일정이 생성되었습니다.") String message,
     @Schema(description = "오류 코드", example = "TRIP101") String errorCode) {
 

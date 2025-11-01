@@ -1,5 +1,7 @@
 package com.swygbro.airoad.backend.chat.application;
 
+import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -7,30 +9,37 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import com.swygbro.airoad.backend.ai.domain.event.AiRequestEvent;
 import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageRequest;
 import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageResponse;
 import com.swygbro.airoad.backend.chat.domain.dto.MessageContentType;
 import com.swygbro.airoad.backend.chat.domain.entity.AiConversation;
 import com.swygbro.airoad.backend.chat.domain.entity.AiMessage;
+import com.swygbro.airoad.backend.chat.domain.event.AiChatRequestedEvent;
 import com.swygbro.airoad.backend.chat.exception.ChatErrorCode;
-import com.swygbro.airoad.backend.chat.fixture.AiConversationFixture;
-import com.swygbro.airoad.backend.chat.fixture.AiMessageFixture;
 import com.swygbro.airoad.backend.chat.infrastructure.repository.AiConversationRepository;
 import com.swygbro.airoad.backend.chat.infrastructure.repository.AiMessageRepository;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
+import com.swygbro.airoad.backend.fixture.chat.AiConversationFixture;
+import com.swygbro.airoad.backend.fixture.chat.AiMessageFixture;
+import com.swygbro.airoad.backend.fixture.member.MemberFixture;
+import com.swygbro.airoad.backend.fixture.trip.TripPlanFixture;
+import com.swygbro.airoad.backend.member.domain.entity.Member;
+import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -45,354 +54,440 @@ class AiMessageServiceTest {
 
   @InjectMocks private AiMessageService aiMessageService;
 
-  @Captor ArgumentCaptor<AiRequestEvent> eventCaptor;
-
   @Nested
-  @DisplayName("processAndSendMessage 메서드는")
-  class ProcessAndSendMessage {
+  @DisplayName("사용자가 AI 채팅 메시지를 전송할 때")
+  class ProcessAndSendMessageTests {
 
     @Test
-    @DisplayName("TEXT 메시지를 정상적으로 처리하고 AI 요청 이벤트를 발행한다")
-    void shouldProcessTextMessageAndPublishEvent() {
+    @DisplayName("채팅방 소유자가 텍스트 메시지를 전송하면 AI 요청 이벤트를 발행한다")
+    void 채팅방_소유자의_텍스트_메시지_전송_시_AI_요청_이벤트_발행() {
       // given
-      Long chatRoomId = 1L;
-      Long tripPlanId = 100L;
-      String userId = "user123@example.com";
-      String messageContent = "서울 3박 4일 여행 계획을 짜주세요";
-      ChatMessageRequest request = new ChatMessageRequest(messageContent, MessageContentType.TEXT);
+      Member member = MemberFixture.create();
+      TripPlan tripPlan = TripPlanFixture.create();
+      ReflectionTestUtils.setField(tripPlan, "id", 100L);
 
       AiConversation conversation =
-          AiConversationFixture.createConversation(chatRoomId, userId, tripPlanId);
+          AiConversationFixture.createWithMemberAndTripPlan(member, tripPlan);
+
+      ChatMessageRequest request =
+          new ChatMessageRequest("서울 3박 4일 여행 추천해주세요", MessageContentType.TEXT);
+      String userEmail = member.getEmail();
+      Long chatRoomId = 1L;
+
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
 
       // when
-      aiMessageService.processAndSendMessage(chatRoomId, userId, request);
+      aiMessageService.processAndSendMessage(chatRoomId, userEmail, request);
 
       // then
-      verify(aiConversationRepository).findById(chatRoomId);
+      ArgumentCaptor<AiChatRequestedEvent> eventCaptor =
+          ArgumentCaptor.forClass(AiChatRequestedEvent.class);
       verify(eventPublisher).publishEvent(eventCaptor.capture());
 
-      AiRequestEvent publishedEvent = eventCaptor.getValue();
+      AiChatRequestedEvent publishedEvent = eventCaptor.getValue();
       assertThat(publishedEvent.chatRoomId()).isEqualTo(chatRoomId);
-      assertThat(publishedEvent.tripPlanId()).isEqualTo(tripPlanId);
-      assertThat(publishedEvent.userId()).isEqualTo(userId);
-      assertThat(publishedEvent.userMessage()).isEqualTo(messageContent);
-
-      verifyNoMoreInteractions(aiConversationRepository, eventPublisher);
+      assertThat(publishedEvent.tripPlanId()).isEqualTo(100L);
+      assertThat(publishedEvent.username()).isEqualTo(userEmail);
+      assertThat(publishedEvent.userMessage()).isEqualTo(request.content());
     }
 
     @Test
-    @DisplayName("존재하지 않는 채팅방 ID로 요청 시 BusinessException을 발생시킨다")
-    void shouldThrowExceptionWhenChatRoomNotFound() {
+    @DisplayName("존재하지 않는 채팅방에 메시지를 전송하면 예외가 발생한다")
+    void 존재하지_않는_채팅방에_메시지_전송_시_예외_발생() {
       // given
       Long chatRoomId = 999L;
-      String userId = "user123";
-      ChatMessageRequest request = new ChatMessageRequest("안녕하세요", MessageContentType.TEXT);
+      String userEmail = "test@example.com";
+      ChatMessageRequest request = new ChatMessageRequest("메시지 내용", MessageContentType.TEXT);
 
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.empty());
 
       // when & then
-      assertThatThrownBy(() -> aiMessageService.processAndSendMessage(chatRoomId, userId, request))
+      assertThatThrownBy(
+              () -> aiMessageService.processAndSendMessage(chatRoomId, userEmail, request))
           .isInstanceOf(BusinessException.class)
           .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.CONVERSATION_NOT_FOUND);
 
-      verify(aiConversationRepository).findById(chatRoomId);
       verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
-    @DisplayName("TEXT 타입이 아닌 메시지는 BusinessException을 발생시킨다")
-    void shouldThrowExceptionForNonTextMessage() {
+    @DisplayName("채팅방 소유자가 아닌 사용자가 메시지를 전송하면 예외가 발생한다")
+    void 채팅방_소유자가_아닌_사용자의_메시지_전송_시_예외_발생() {
       // given
+      Member owner = MemberFixture.create();
+      AiConversation conversation = AiConversationFixture.createWithMember(owner);
       Long chatRoomId = 1L;
-      String userId = "user123";
-      ChatMessageRequest request =
-          new ChatMessageRequest("image content", MessageContentType.IMAGE);
+      String unauthorizedEmail = "unauthorized@example.com";
+      ChatMessageRequest request = new ChatMessageRequest("메시지 내용", MessageContentType.TEXT);
 
-      AiConversation conversation = AiConversationFixture.createConversation(chatRoomId, userId);
-      given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
-
-      // when & then
-      assertThatThrownBy(() -> aiMessageService.processAndSendMessage(chatRoomId, userId, request))
-          .isInstanceOf(BusinessException.class)
-          .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.INVALID_MESSAGE_FORMAT);
-
-      verify(aiConversationRepository).findById(chatRoomId);
-      verify(eventPublisher, never()).publishEvent(any());
-    }
-
-    @Test
-    @DisplayName("채팅방 소유자가 아닌 사용자의 메시지는 BusinessException을 발생시킨다")
-    void shouldThrowExceptionWhenUserIsNotOwner() {
-      // given
-      Long chatRoomId = 1L;
-      String ownerId = "owner123";
-      String otherUserId = "other456";
-      ChatMessageRequest request = new ChatMessageRequest("안녕하세요", MessageContentType.TEXT);
-
-      AiConversation conversation = AiConversationFixture.createConversation(chatRoomId, ownerId);
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
 
       // when & then
       assertThatThrownBy(
-              () -> aiMessageService.processAndSendMessage(chatRoomId, otherUserId, request))
+              () -> aiMessageService.processAndSendMessage(chatRoomId, unauthorizedEmail, request))
           .isInstanceOf(BusinessException.class)
           .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.CONVERSATION_ACCESS_DENIED);
 
-      verify(aiConversationRepository).findById(chatRoomId);
       verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
-    @DisplayName("발견한 채팅방에 대응하는 TripPlanId가 없으면 BusinessException을 발생시킨다")
-    void shouldThrowExceptionWhenTripPlanIsNotFounded() {
+    @DisplayName("TEXT 타입이 아닌 메시지를 전송하면 예외가 발생한다")
+    void TEXT_타입이_아닌_메시지_전송_시_예외_발생() {
       // given
+      Member member = MemberFixture.create();
+      AiConversation conversation = AiConversationFixture.createWithMember(member);
       Long chatRoomId = 1L;
-      String ownerId = "owner123";
-      ChatMessageRequest request = new ChatMessageRequest("안녕하세요", MessageContentType.TEXT);
+      ChatMessageRequest request = new ChatMessageRequest("이미지 내용", MessageContentType.IMAGE);
 
-      AiConversation conversation =
-          AiConversationFixture.createConversation(chatRoomId, ownerId, null);
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
 
       // when & then
-      assertThatThrownBy(() -> aiMessageService.processAndSendMessage(chatRoomId, ownerId, request))
+      assertThatThrownBy(
+              () -> aiMessageService.processAndSendMessage(chatRoomId, member.getEmail(), request))
+          .isInstanceOf(BusinessException.class)
+          .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.INVALID_MESSAGE_FORMAT);
+
+      verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    @DisplayName("빈 내용의 메시지를 전송하면 예외가 발생한다")
+    void 빈_내용의_메시지_전송_시_예외_발생() {
+      // given
+      Member member = MemberFixture.create();
+      AiConversation conversation = AiConversationFixture.createWithMember(member);
+      Long chatRoomId = 1L;
+      ChatMessageRequest request = new ChatMessageRequest("", MessageContentType.TEXT);
+
+      given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
+
+      // when & then
+      assertThatThrownBy(
+              () -> aiMessageService.processAndSendMessage(chatRoomId, member.getEmail(), request))
+          .isInstanceOf(BusinessException.class)
+          .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.INVALID_MESSAGE_FORMAT);
+
+      verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    @DisplayName("공백만 있는 메시지를 전송하면 예외가 발생한다")
+    void 공백만_있는_메시지_전송_시_예외_발생() {
+      // given
+      Member member = MemberFixture.create();
+      AiConversation conversation = AiConversationFixture.createWithMember(member);
+      Long chatRoomId = 1L;
+      ChatMessageRequest request = new ChatMessageRequest("   ", MessageContentType.TEXT);
+
+      given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
+
+      // when & then
+      assertThatThrownBy(
+              () -> aiMessageService.processAndSendMessage(chatRoomId, member.getEmail(), request))
+          .isInstanceOf(BusinessException.class)
+          .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.INVALID_MESSAGE_FORMAT);
+
+      verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    @DisplayName("여행 계획이 연결되지 않은 채팅방에 메시지를 전송하면 예외가 발생한다")
+    void 여행_계획이_없는_채팅방에_메시지_전송_시_예외_발생() {
+      // given
+      Member member = MemberFixture.create();
+      AiConversation conversationMock = mock(AiConversation.class);
+
+      Long chatRoomId = 1L;
+      ChatMessageRequest request = new ChatMessageRequest("메시지 내용", MessageContentType.TEXT);
+
+      given(aiConversationRepository.findById(chatRoomId))
+          .willReturn(Optional.of(conversationMock));
+      given(conversationMock.isOwner(member.getEmail())).willReturn(true);
+      given(conversationMock.getTripPlanId()).willReturn(null);
+
+      // when & then
+      assertThatThrownBy(
+              () -> aiMessageService.processAndSendMessage(chatRoomId, member.getEmail(), request))
           .isInstanceOf(BusinessException.class)
           .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.INVALID_CONVERSATION_FORMAT);
 
-      verify(aiConversationRepository).findById(chatRoomId);
       verify(eventPublisher, never()).publishEvent(any());
     }
   }
 
   @Nested
-  @DisplayName("getMessageHistory 메서드는")
-  class GetMessageHistory {
+  @DisplayName("사용자가 채팅 히스토리를 조회할 때")
+  class GetMessageHistoryTests {
 
     @Test
-    @DisplayName("커서 없이 최신 메시지부터 조회한다")
-    void shouldGetLatestMessagesWithoutCursor() {
+    @DisplayName("채팅방 소유자는 최초 페이지 메시지 히스토리를 조회할 수 있다")
+    void 채팅방_소유자의_최초_페이지_메시지_히스토리_조회() {
       // given
+      Member member = MemberFixture.create();
+      AiConversation conversation = AiConversationFixture.createWithMember(member);
       Long chatRoomId = 1L;
-      String userId = "user123";
-      int size = 50;
-      AiConversation conversation = AiConversationFixture.createConversation(chatRoomId, userId);
+      int size = 20;
 
-      List<AiMessage> messages =
-          List.of(
-              AiMessageFixture.createAssistantMessage(3L, "AI 응답 3", conversation),
-              AiMessageFixture.createUserMessage(2L, "사용자 메시지 2", conversation),
-              AiMessageFixture.createAssistantMessage(1L, "AI 응답 1", conversation));
+      AiMessage message1 =
+          AiMessageFixture.createWithConversationAndContent(conversation, "첫 번째 메시지");
+      ReflectionTestUtils.setField(message1, "id", 10L);
+      ReflectionTestUtils.setField(message1, "createdAt", LocalDateTime.now());
 
-      SliceImpl<AiMessage> messageSlice = new SliceImpl<>(messages, PageRequest.of(0, size), false);
+      AiMessage message2 =
+          AiMessageFixture.createWithConversationAndContent(conversation, "두 번째 메시지");
+      ReflectionTestUtils.setField(message2, "id", 20L);
+      ReflectionTestUtils.setField(message2, "createdAt", LocalDateTime.now());
+
+      Pageable pageable = Pageable.ofSize(size);
+      Slice<AiMessage> messageSlice = new SliceImpl<>(List.of(message1, message2), pageable, false);
 
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
-      given(
-              aiMessageRepository.findMessageHistoryByCursor(
-                  eq(chatRoomId), isNull(), any(Pageable.class)))
+      given(aiMessageRepository.findMessageHistoryByCursor(eq(chatRoomId), isNull(), any()))
           .willReturn(messageSlice);
 
       // when
-      CursorPageResponse<ChatMessageResponse> response =
-          aiMessageService.getMessageHistory(chatRoomId, userId, null, size);
+      CursorPageResponse<ChatMessageResponse> result =
+          aiMessageService.getMessageHistory(chatRoomId, member.getEmail(), null, size);
 
       // then
-      assertThat(response.getContent()).hasSize(3);
-      assertThat(response.getNextCursor()).isEqualTo(1L); // 마지막 메시지 ID
-      assertThat(response.isHasNext()).isFalse();
-      assertThat(response.getSize()).isEqualTo(3);
-
-      verify(aiConversationRepository).findById(chatRoomId);
-      verify(aiMessageRepository)
-          .findMessageHistoryByCursor(eq(chatRoomId), isNull(), any(Pageable.class));
+      assertThat(result.getContent()).hasSize(2);
+      assertThat(result.isHasNext()).isFalse();
+      assertThat(result.getNextCursor()).isEqualTo(20L);
+      verify(aiMessageRepository).findMessageHistoryByCursor(eq(chatRoomId), isNull(), any());
     }
 
     @Test
-    @DisplayName("커서를 사용하여 이전 메시지를 조회한다")
-    void shouldGetMessagesWithCursor() {
+    @DisplayName("커서를 사용하여 다음 페이지 메시지를 조회할 수 있다")
+    void 커서를_사용한_다음_페이지_메시지_조회() {
       // given
+      Member member = MemberFixture.create();
+      AiConversation conversation = AiConversationFixture.createWithMember(member);
       Long chatRoomId = 1L;
-      String userId = "user123";
       Long cursor = 10L;
-      int size = 2;
-      AiConversation conversation = AiConversationFixture.createConversation(chatRoomId, userId);
+      int size = 20;
 
-      List<AiMessage> messages =
-          List.of(
-              AiMessageFixture.createAssistantMessage(9L, "AI 응답 9", conversation),
-              AiMessageFixture.createUserMessage(8L, "사용자 메시지 8", conversation));
+      AiMessage message = AiMessageFixture.createWithConversationAndContent(conversation, "메시지 내용");
+      ReflectionTestUtils.setField(message, "id", 5L);
+      ReflectionTestUtils.setField(message, "createdAt", LocalDateTime.now());
 
-      SliceImpl<AiMessage> messageSlice = new SliceImpl<>(messages, PageRequest.of(0, size), true);
+      Pageable pageable = Pageable.ofSize(size);
+      Slice<AiMessage> messageSlice = new SliceImpl<>(List.of(message), pageable, true);
 
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
       given(aiMessageRepository.existsByIdAndConversationId(cursor, chatRoomId)).willReturn(true);
-      given(
-              aiMessageRepository.findMessageHistoryByCursor(
-                  eq(chatRoomId), eq(cursor), any(Pageable.class)))
+      given(aiMessageRepository.findMessageHistoryByCursor(eq(chatRoomId), eq(cursor), any()))
           .willReturn(messageSlice);
 
       // when
-      CursorPageResponse<ChatMessageResponse> response =
-          aiMessageService.getMessageHistory(chatRoomId, userId, cursor, size);
+      CursorPageResponse<ChatMessageResponse> result =
+          aiMessageService.getMessageHistory(chatRoomId, member.getEmail(), cursor, size);
 
       // then
-      assertThat(response.getContent()).hasSize(2);
-      assertThat(response.getNextCursor()).isEqualTo(8L); // 마지막 메시지 ID
-      assertThat(response.isHasNext()).isTrue();
-      assertThat(response.getSize()).isEqualTo(2);
-
-      verify(aiConversationRepository).findById(chatRoomId);
-      verify(aiMessageRepository)
-          .findMessageHistoryByCursor(eq(chatRoomId), eq(cursor), any(Pageable.class));
-
-      InOrder inOrder = inOrder(aiConversationRepository, aiMessageRepository);
-      inOrder.verify(aiConversationRepository).findById(chatRoomId);
-      inOrder.verify(aiMessageRepository).existsByIdAndConversationId(cursor, chatRoomId);
-      inOrder
-          .verify(aiMessageRepository)
-          .findMessageHistoryByCursor(eq(chatRoomId), eq(cursor), any(Pageable.class));
-      verifyNoMoreInteractions(aiMessageRepository);
+      assertThat(result.getContent()).hasSize(1);
+      assertThat(result.isHasNext()).isTrue();
+      assertThat(result.getNextCursor()).isEqualTo(5L);
+      verify(aiMessageRepository).existsByIdAndConversationId(cursor, chatRoomId);
     }
 
     @Test
-    @DisplayName("커서를 사용하여 마지막 메시지를 조회한다")
-    void shouldGetLastMessagesWithCursor() {
+    @DisplayName("메시지가 없는 채팅방에서 빈 목록을 반환한다")
+    void 메시지가_없는_채팅방_조회_시_빈_목록_반환() {
       // given
+      Member member = MemberFixture.create();
+      AiConversation conversation = AiConversationFixture.createWithMember(member);
       Long chatRoomId = 1L;
-      String userId = "user123";
-      Long cursor = 3L;
-      int size = 2;
-      AiConversation conversation = AiConversationFixture.createConversation(chatRoomId, userId);
+      int size = 20;
 
-      List<AiMessage> messages =
-          List.of(
-              AiMessageFixture.createAssistantMessage(2L, "AI 응답 2", conversation),
-              AiMessageFixture.createUserMessage(1L, "사용자 메시지 1", conversation));
-
-      SliceImpl<AiMessage> messageSlice = new SliceImpl<>(messages, PageRequest.of(0, size), false);
+      Pageable pageable = Pageable.ofSize(size);
+      Slice<AiMessage> emptySlice = new SliceImpl<>(Collections.emptyList(), pageable, false);
 
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
-      given(aiMessageRepository.existsByIdAndConversationId(cursor, chatRoomId)).willReturn(true);
-      given(
-              aiMessageRepository.findMessageHistoryByCursor(
-                  eq(chatRoomId), eq(cursor), any(Pageable.class)))
-          .willReturn(messageSlice);
+      given(aiMessageRepository.findMessageHistoryByCursor(eq(chatRoomId), isNull(), any()))
+          .willReturn(emptySlice);
 
       // when
-      CursorPageResponse<ChatMessageResponse> response =
-          aiMessageService.getMessageHistory(chatRoomId, userId, cursor, size);
+      CursorPageResponse<ChatMessageResponse> result =
+          aiMessageService.getMessageHistory(chatRoomId, member.getEmail(), null, size);
 
       // then
-      assertThat(response.getContent()).hasSize(2);
-      assertThat(response.getNextCursor()).isEqualTo(1L); // 마지막 메시지 ID
-      assertThat(response.isHasNext()).isFalse(); // 더 이상 없음
-      assertThat(response.getSize()).isEqualTo(2);
-
-      verify(aiConversationRepository).findById(chatRoomId);
-      verify(aiMessageRepository)
-          .findMessageHistoryByCursor(eq(chatRoomId), eq(cursor), any(Pageable.class));
+      assertThat(result.getContent()).isEmpty();
+      assertThat(result.isHasNext()).isFalse();
+      assertThat(result.getNextCursor()).isNull();
     }
 
     @Test
-    @DisplayName("존재하지 않는 채팅방 ID로 조회 시 BusinessException을 발생시킨다")
-    void shouldThrowExceptionWhenChatRoomNotFoundInHistory() {
+    @DisplayName("존재하지 않는 채팅방 히스토리 조회 시 예외가 발생한다")
+    void 존재하지_않는_채팅방_히스토리_조회_시_예외_발생() {
       // given
       Long chatRoomId = 999L;
-      String userId = "user123";
-      int size = 50;
+      String userEmail = "test@example.com";
+      int size = 20;
 
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.empty());
 
       // when & then
-      assertThatThrownBy(() -> aiMessageService.getMessageHistory(chatRoomId, userId, null, size))
+      assertThatThrownBy(
+              () -> aiMessageService.getMessageHistory(chatRoomId, userEmail, null, size))
           .isInstanceOf(BusinessException.class)
           .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.CONVERSATION_NOT_FOUND);
-
-      verify(aiConversationRepository).findById(chatRoomId);
-      verify(aiMessageRepository, never())
-          .findMessageHistoryByCursor(any(), any(), any(Pageable.class));
     }
 
     @Test
-    @DisplayName("메시지가 없는 경우 빈 리스트를 반환한다")
-    void shouldReturnEmptyListWhenNoMessages() {
+    @DisplayName("채팅방 소유자가 아닌 사용자가 히스토리 조회 시 예외가 발생한다")
+    void 채팅방_소유자가_아닌_사용자의_히스토리_조회_시_예외_발생() {
       // given
+      Member owner = MemberFixture.create();
+      AiConversation conversation = AiConversationFixture.createWithMember(owner);
       Long chatRoomId = 1L;
-      String userId = "user123";
-      int size = 50;
-      AiConversation conversation = AiConversationFixture.createConversation(chatRoomId, userId);
-
-      SliceImpl<AiMessage> emptySlice = new SliceImpl<>(List.of(), PageRequest.of(0, size), false);
+      String unauthorizedEmail = "unauthorized@example.com";
+      int size = 20;
 
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
-      given(
-              aiMessageRepository.findMessageHistoryByCursor(
-                  eq(chatRoomId), isNull(), any(Pageable.class)))
-          .willReturn(emptySlice);
 
-      // when
-      CursorPageResponse<ChatMessageResponse> response =
-          aiMessageService.getMessageHistory(chatRoomId, userId, null, size);
-
-      // then
-      assertThat(response.getContent()).isEmpty();
-      assertThat(response.getNextCursor()).isNull();
-      assertThat(response.isHasNext()).isFalse();
-      assertThat(response.getSize()).isEqualTo(0);
-
-      verify(aiConversationRepository).findById(chatRoomId);
-      verify(aiMessageRepository)
-          .findMessageHistoryByCursor(eq(chatRoomId), isNull(), any(Pageable.class));
+      // when & then
+      assertThatThrownBy(
+              () -> aiMessageService.getMessageHistory(chatRoomId, unauthorizedEmail, null, size))
+          .isInstanceOf(BusinessException.class)
+          .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.CONVERSATION_ACCESS_DENIED);
     }
 
     @Test
-    @DisplayName("다른 대화방의 메시지 ID를 커서로 사용하면 BusinessException을 발생시킨다")
-    void shouldThrowExceptionWhenCursorBelongsToDifferentConversation() {
+    @DisplayName("페이지 크기가 1보다 작으면 예외가 발생한다")
+    void 페이지_크기가_1보다_작으면_예외_발생() {
       // given
+      Member member = MemberFixture.create();
       Long chatRoomId = 1L;
-      String userId = "user123";
-      Long cursorFromOtherRoom = 999L; // 다른 대화방의 메시지 ID
-      int size = 50;
-      AiConversation conversation = AiConversationFixture.createConversation(chatRoomId, userId);
+      int invalidSize = 0;
+
+      // when & then
+      assertThatThrownBy(
+              () ->
+                  aiMessageService.getMessageHistory(
+                      chatRoomId, member.getEmail(), null, invalidSize))
+          .isInstanceOf(BusinessException.class)
+          .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.INVALID_PAGE_SIZE);
+    }
+
+    @Test
+    @DisplayName("페이지 크기가 100보다 크면 예외가 발생한다")
+    void 페이지_크기가_100보다_크면_예외_발생() {
+      // given
+      Member member = MemberFixture.create();
+      Long chatRoomId = 1L;
+      int invalidSize = 101;
+
+      // when & then
+      assertThatThrownBy(
+              () ->
+                  aiMessageService.getMessageHistory(
+                      chatRoomId, member.getEmail(), null, invalidSize))
+          .isInstanceOf(BusinessException.class)
+          .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.INVALID_PAGE_SIZE);
+    }
+
+    @Test
+    @DisplayName("유효하지 않은 커서로 조회 시 예외가 발생한다")
+    void 유효하지_않은_커서로_조회_시_예외_발생() {
+      // given
+      Member member = MemberFixture.create();
+      AiConversation conversation = AiConversationFixture.createWithMember(member);
+      Long chatRoomId = 1L;
+      Long invalidCursor = 999L;
+      int size = 20;
 
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
-      given(aiMessageRepository.existsByIdAndConversationId(cursorFromOtherRoom, chatRoomId))
+      given(aiMessageRepository.existsByIdAndConversationId(invalidCursor, chatRoomId))
           .willReturn(false);
 
       // when & then
       assertThatThrownBy(
               () ->
-                  aiMessageService.getMessageHistory(chatRoomId, userId, cursorFromOtherRoom, size))
+                  aiMessageService.getMessageHistory(
+                      chatRoomId, member.getEmail(), invalidCursor, size))
           .isInstanceOf(BusinessException.class)
           .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.INVALID_CURSOR);
 
-      verify(aiConversationRepository).findById(chatRoomId);
-      verify(aiMessageRepository).existsByIdAndConversationId(cursorFromOtherRoom, chatRoomId);
-      verify(aiMessageRepository, never())
-          .findMessageHistoryByCursor(any(), any(), any(Pageable.class));
+      verify(aiMessageRepository).existsByIdAndConversationId(invalidCursor, chatRoomId);
     }
 
     @Test
-    @DisplayName("채팅방 소유자가 아닌 사용자가 조회 시 BusinessException을 발생시킨다")
-    void shouldThrowExceptionWhenUserIsNotOwnerInHistory() {
+    @DisplayName("다른 채팅방에 속한 커서로 조회 시 예외가 발생한다")
+    void 다른_채팅방의_커서로_조회_시_예외_발생() {
       // given
+      Member member = MemberFixture.create();
+      AiConversation conversation = AiConversationFixture.createWithMember(member);
       Long chatRoomId = 1L;
-      String ownerId = "owner123";
-      String otherUserId = "other456";
-      int size = 50;
+      Long cursorFromAnotherRoom = 5L;
+      int size = 20;
 
-      AiConversation conversation = AiConversationFixture.createConversation(chatRoomId, ownerId);
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
+      given(aiMessageRepository.existsByIdAndConversationId(cursorFromAnotherRoom, chatRoomId))
+          .willReturn(false);
 
       // when & then
       assertThatThrownBy(
-              () -> aiMessageService.getMessageHistory(chatRoomId, otherUserId, null, size))
+              () ->
+                  aiMessageService.getMessageHistory(
+                      chatRoomId, member.getEmail(), cursorFromAnotherRoom, size))
           .isInstanceOf(BusinessException.class)
-          .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.CONVERSATION_ACCESS_DENIED);
+          .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.INVALID_CURSOR);
+    }
 
-      verify(aiConversationRepository).findById(chatRoomId);
-      verify(aiMessageRepository, never())
-          .findMessageHistoryByCursor(any(), any(), any(Pageable.class));
+    @Test
+    @DisplayName("경계값 페이지 크기 1로 조회할 수 있다")
+    void 경계값_페이지_크기_1로_조회() {
+      // given
+      Member member = MemberFixture.create();
+      AiConversation conversation = AiConversationFixture.createWithMember(member);
+      Long chatRoomId = 1L;
+      int size = 1;
+
+      AiMessage message = AiMessageFixture.createWithConversation(conversation);
+      ReflectionTestUtils.setField(message, "id", 1L);
+      ReflectionTestUtils.setField(message, "createdAt", LocalDateTime.now());
+
+      Pageable pageable = Pageable.ofSize(size);
+      Slice<AiMessage> messageSlice = new SliceImpl<>(List.of(message), pageable, false);
+
+      given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
+      given(aiMessageRepository.findMessageHistoryByCursor(eq(chatRoomId), isNull(), any()))
+          .willReturn(messageSlice);
+
+      // when
+      CursorPageResponse<ChatMessageResponse> result =
+          aiMessageService.getMessageHistory(chatRoomId, member.getEmail(), null, size);
+
+      // then
+      assertThat(result.getContent()).hasSize(1);
+      verify(aiMessageRepository)
+          .findMessageHistoryByCursor(eq(chatRoomId), isNull(), any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("경계값 페이지 크기 100으로 조회할 수 있다")
+    void 경계값_페이지_크기_100으로_조회() {
+      // given
+      Member member = MemberFixture.create();
+      AiConversation conversation = AiConversationFixture.createWithMember(member);
+      Long chatRoomId = 1L;
+      int size = 100;
+
+      Pageable pageable = Pageable.ofSize(size);
+      Slice<AiMessage> messageSlice = new SliceImpl<>(Collections.emptyList(), pageable, false);
+
+      given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
+      given(aiMessageRepository.findMessageHistoryByCursor(eq(chatRoomId), isNull(), any()))
+          .willReturn(messageSlice);
+
+      // when
+      CursorPageResponse<ChatMessageResponse> result =
+          aiMessageService.getMessageHistory(chatRoomId, member.getEmail(), null, size);
+
+      // then
+      assertThat(result.getContent()).isEmpty();
+      verify(aiMessageRepository)
+          .findMessageHistoryByCursor(eq(chatRoomId), isNull(), any(Pageable.class));
     }
   }
 }

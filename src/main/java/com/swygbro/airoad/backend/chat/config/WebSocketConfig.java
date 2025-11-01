@@ -11,6 +11,9 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration;
 
+import com.swygbro.airoad.backend.chat.presentation.web.JwtWebSocketInterceptor;
+import com.swygbro.airoad.backend.chat.presentation.web.WebSocketPayloadTypeInterceptor;
+
 import lombok.RequiredArgsConstructor;
 
 @Configuration

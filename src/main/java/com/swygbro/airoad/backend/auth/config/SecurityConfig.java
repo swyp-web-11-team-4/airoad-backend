@@ -39,7 +39,7 @@ public class SecurityConfig {
       httpCookieOAuth2AuthorizationRequestRepository;
 
   @Bean
-  @Profile({"local", "dev"})
+  @Profile({"local", "dev", "test"})
   public SecurityFilterChain localDevFilterChain(HttpSecurity http) throws Exception {
     http.cors(AbstractHttpConfigurer::disable)
         .csrf(AbstractHttpConfigurer::disable)
@@ -58,7 +58,11 @@ public class SecurityConfig {
                     .hasRole(MemberRole.MEMBER.getRole())
                     .anyRequest()
                     .permitAll())
-        .oauth2Login(oauth2 -> oauth2.successHandler(oAuthLoginSuccessHandler))
+        .oauth2Login(
+            oauth2 ->
+                oauth2
+                    .successHandler(oAuthLoginSuccessHandler)
+                    .userInfoEndpoint(config -> config.userService(customOAuth2UserService)))
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();

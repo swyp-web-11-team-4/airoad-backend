@@ -1,10 +1,21 @@
 package com.swygbro.airoad.backend.trip.domain.entity;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.*;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 
 import com.swygbro.airoad.backend.common.domain.embeddable.Location;
 import com.swygbro.airoad.backend.common.domain.entity.BaseEntity;
@@ -24,6 +35,10 @@ public class TripPlan extends BaseEntity {
   /** 여행 테마 목록 */
   @OneToMany(mappedBy = "tripPlan", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<TripTheme> tripThemes = new ArrayList<>();
+
+  /** 일차별 여행 일정 목록 */
+  @OneToMany(mappedBy = "tripPlan", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<DailyPlan> dailyPlans = new ArrayList<>();
 
   /** 여행 계획을 생성한 사용자 */
   @ManyToOne(fetch = FetchType.LAZY)
@@ -77,6 +92,9 @@ public class TripPlan extends BaseEntity {
   @AttributeOverride(name = "address", column = @Column(name = "end_address"))
   private Location endLocation;
 
+  /** 타이틀 이미지 */
+  @Column private String imageUrl;
+
   @Builder
   private TripPlan(
       Member member,
@@ -101,5 +119,45 @@ public class TripPlan extends BaseEntity {
     this.peopleCount = peopleCount;
     this.startLocation = startLocation;
     this.endLocation = endLocation;
+  }
+
+  /**
+   * 여행 계획의 타이틀 이미지 url을 업데이트합니다.
+   *
+   * @param imageUrl 이미지 url
+   */
+  public void updateImageUrl(String imageUrl) {
+    this.imageUrl = imageUrl;
+  }
+
+  /**
+   * 일차별 여행 일정을 추가합니다.
+   *
+   * <p>애그리게이트 루트를 통한 일관성 보장을 위해 DailyPlan 추가 시 이 메서드를 사용해야 합니다. 모든 일차가 생성되면 자동으로 여행 계획을 완료 상태로
+   * 변경합니다.
+   *
+   * @param dailyPlan 추가할 일차별 일정
+   */
+  public void addDailyPlan(DailyPlan dailyPlan) {
+    this.dailyPlans.add(dailyPlan);
+    dailyPlan.setTripPlan(this);
+
+    // 모든 일차 생성 완료 시 여행 계획 완료 처리
+    if (isAllDaysCompleted()) {
+      this.isCompleted = true;
+    }
+  }
+
+  /**
+   * 모든 일차의 일정이 생성되었는지 확인합니다.
+   *
+   * @return 모든 일차 생성 완료 여부
+   */
+  private boolean isAllDaysCompleted() {
+    if (this.startDate == null || this.endDate == null) {
+      return false;
+    }
+    long expectedDays = ChronoUnit.DAYS.between(startDate, endDate) + 1;
+    return dailyPlans.size() >= expectedDays;
   }
 }

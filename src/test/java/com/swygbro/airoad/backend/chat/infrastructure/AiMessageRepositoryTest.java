@@ -1,9 +1,9 @@
 package com.swygbro.airoad.backend.chat.infrastructure;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.messages.MessageType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -22,13 +21,15 @@ import com.swygbro.airoad.backend.chat.domain.entity.AiConversation;
 import com.swygbro.airoad.backend.chat.domain.entity.AiMessage;
 import com.swygbro.airoad.backend.chat.infrastructure.repository.AiConversationRepository;
 import com.swygbro.airoad.backend.chat.infrastructure.repository.AiMessageRepository;
+import com.swygbro.airoad.backend.fixture.chat.AiConversationFixture;
+import com.swygbro.airoad.backend.fixture.member.MemberFixture;
+import com.swygbro.airoad.backend.fixture.trip.TripPlanFixture;
 import com.swygbro.airoad.backend.member.domain.entity.Member;
-import com.swygbro.airoad.backend.member.domain.entity.MemberRole;
-import com.swygbro.airoad.backend.member.domain.entity.ProviderType;
-import com.swygbro.airoad.backend.trip.domain.entity.Transportation;
+import com.swygbro.airoad.backend.member.infrastructure.MemberRepository;
 import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
+import com.swygbro.airoad.backend.trip.infrastructure.TripPlanRepository;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * AiMessageRepository 테스트
@@ -44,20 +45,34 @@ class AiMessageRepositoryTest {
 
   @Autowired private AiConversationRepository aiConversationRepository;
 
-  @Autowired private TestEntityManager entityManager;
+  @Autowired private MemberRepository memberRepository;
+
+  @Autowired private TripPlanRepository tripPlanRepository;
 
   private AiConversation testConversation;
   private AiConversation anotherConversation;
 
   @BeforeEach
   void setUp() {
-    // given: 테스트용 Member 및 TripPlan 생성
-    Member testMember = createAndSaveMember("test@example.com", "테스트유저");
-    TripPlan testTripPlan = createAndSaveTripPlan(testMember, "서울 여행");
+    // given: Fixture를 사용하여 테스트 데이터 생성 및 저장
+    Member testMember = memberRepository.save(MemberFixture.create());
+    TripPlan testTripPlan = tripPlanRepository.save(TripPlanFixture.createWithMember(testMember));
 
     // given: 테스트용 대화 세션 생성 및 저장
-    testConversation = createAndSaveConversation(testMember, testTripPlan);
-    anotherConversation = createAndSaveConversation(testMember, testTripPlan);
+    testConversation =
+        aiConversationRepository.save(
+            AiConversationFixture.createWithMemberAndTripPlan(testMember, testTripPlan));
+    anotherConversation =
+        aiConversationRepository.save(
+            AiConversationFixture.createWithMemberAndTripPlan(testMember, testTripPlan));
+  }
+
+  @AfterEach
+  void tearDown() {
+    aiMessageRepository.deleteAllInBatch();
+    aiConversationRepository.deleteAllInBatch();
+    tripPlanRepository.deleteAllInBatch();
+    memberRepository.deleteAllInBatch();
   }
 
   @Nested
@@ -168,8 +183,12 @@ class AiMessageRepositoryTest {
     @Test
     @DisplayName("메시지가 없는 경우 빈 Slice를 반환한다")
     void shouldReturnEmptySliceWhenNoMessages() {
-      // given: 메시지가 없는 대화 세션
-      AiConversation emptyConversation = createAndSaveConversation();
+      // given: 메시지가 없는 대화 세션 (Fixture 사용)
+      Member newMember = memberRepository.save(MemberFixture.createWithEmail("new@example.com"));
+      TripPlan newTripPlan = tripPlanRepository.save(TripPlanFixture.createWithMember(newMember));
+      AiConversation emptyConversation =
+          aiConversationRepository.save(
+              AiConversationFixture.createWithMemberAndTripPlan(newMember, newTripPlan));
       Pageable pageable = PageRequest.of(0, 10);
 
       // when: 메시지 조회 실행
@@ -240,71 +259,6 @@ class AiMessageRepositoryTest {
   }
 
   // ======================== Private Helper Methods ========================
-
-  /**
-   * 테스트용 Member 생성 및 저장
-   *
-   * @param email 이메일
-   * @param name 이름
-   * @return 저장된 Member 객체
-   */
-  private Member createAndSaveMember(String email, String name) {
-    Member member =
-        Member.builder()
-            .email(email)
-            .name(name)
-            .imageUrl("https://example.com/image.png")
-            .provider(ProviderType.GOOGLE)
-            .role(MemberRole.MEMBER)
-            .build();
-    return entityManager.persistAndFlush(member);
-  }
-
-  /**
-   * 테스트용 TripPlan 생성 및 저장
-   *
-   * @param member 소유자
-   * @param title 여행 제목
-   * @return 저장된 TripPlan 객체
-   */
-  private TripPlan createAndSaveTripPlan(Member member, String title) {
-    TripPlan tripPlan =
-        TripPlan.builder()
-            .member(member)
-            .title(title)
-            .startDate(LocalDate.now())
-            .endDate(LocalDate.now().plusDays(3))
-            .isCompleted(false)
-            .region("서울")
-            .transportation(Transportation.PUBLIC_TRANSIT)
-            .peopleCount(2)
-            .build();
-    return entityManager.persistAndFlush(tripPlan);
-  }
-
-  /**
-   * 테스트용 대화 세션 생성 및 저장 (Member와 TripPlan 포함)
-   *
-   * @param member 대화 참여자
-   * @param tripPlan 연관된 여행 계획
-   * @return 저장된 AiConversation 객체
-   */
-  private AiConversation createAndSaveConversation(Member member, TripPlan tripPlan) {
-    AiConversation conversation =
-        AiConversation.builder().member(member).tripPlan(tripPlan).build();
-    return aiConversationRepository.save(conversation);
-  }
-
-  /**
-   * 테스트용 대화 세션 생성 및 저장 (새 Member와 TripPlan 생성)
-   *
-   * @return 저장된 AiConversation 객체
-   */
-  private AiConversation createAndSaveConversation() {
-    Member member = createAndSaveMember("another@example.com", "다른유저");
-    TripPlan tripPlan = createAndSaveTripPlan(member, "제주 여행");
-    return createAndSaveConversation(member, tripPlan);
-  }
 
   /**
    * 테스트용 메시지 생성 및 저장

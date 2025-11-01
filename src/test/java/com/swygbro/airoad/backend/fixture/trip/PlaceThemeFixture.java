@@ -4,8 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.swygbro.airoad.backend.content.domain.entity.Place;
+import com.swygbro.airoad.backend.content.domain.entity.PlaceTheme;
 import com.swygbro.airoad.backend.fixture.content.PlaceFixture;
-import com.swygbro.airoad.backend.trip.domain.entity.PlaceTheme;
 
 public class PlaceThemeFixture {
 

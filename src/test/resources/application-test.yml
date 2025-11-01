@@ -56,3 +56,8 @@ app:
     redirect-uri: http://localhost:3000/oauth/callback
     register: http://localhost:3000/register
     access: http://localhost:3000/access
+    cookie:
+      auth-request-name: oauth2_auth_request
+      redirect-uri-name: redirect_uri
+      mode-name: mode
+      expire-seconds: 180

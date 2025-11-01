@@ -38,10 +38,9 @@ public class JwtTokenProvider {
   @Value("${jwt.refresh-token-expiration}")
   private long refreshTokenExpiration;
 
-  public String generateAccessToken(String email, String role) {
+  public String generateAccessToken(String email) {
     return Jwts.builder()
         .claim("email", email)
-        .claim("role", role)
         .issuedAt(new Date())
         .expiration(createExpiryDate(accessTokenExpiration))
         .signWith(createKey(accessTokenSecret))

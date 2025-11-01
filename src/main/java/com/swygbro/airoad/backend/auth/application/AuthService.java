@@ -23,12 +23,9 @@ public class AuthService implements AuthUseCase {
     String email =
         jwtTokenProvider.getClaimFromToken(
             refreshToken, "email", String.class, TokenType.REFRESH_TOKEN);
-    String role =
-        jwtTokenProvider.getClaimFromToken(
-            refreshToken, "role", String.class, TokenType.REFRESH_TOKEN);
 
     tokenService.deleteRefreshTokenByEmail(email);
-    String newAccessToken = jwtTokenProvider.generateAccessToken(email, role);
+    String newAccessToken = jwtTokenProvider.generateAccessToken(email);
     String newRefreshToken = jwtTokenProvider.generateRefreshToken(email);
 
     tokenService.createRefreshToken(newRefreshToken, email);

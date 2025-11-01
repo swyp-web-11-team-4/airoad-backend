@@ -8,7 +8,9 @@ import lombok.RequiredArgsConstructor;
 public enum TokenType {
   ACCESS_TOKEN("access-token"),
 
-  REFRESH_TOKEN("refresh-token");
+  REFRESH_TOKEN("refresh-token"),
+
+  BEARER("Bearer");
 
   private final String value;
 }

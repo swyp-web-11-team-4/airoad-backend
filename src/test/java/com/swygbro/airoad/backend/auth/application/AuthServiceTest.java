@@ -57,11 +57,7 @@ class AuthServiceTest {
               jwtTokenProvider.getClaimFromToken(
                   eq(refreshToken), eq("email"), eq(String.class), eq(TokenType.REFRESH_TOKEN)))
           .willReturn(email);
-      given(
-              jwtTokenProvider.getClaimFromToken(
-                  eq(refreshToken), eq("role"), eq(String.class), eq(TokenType.REFRESH_TOKEN)))
-          .willReturn(role);
-      given(jwtTokenProvider.generateAccessToken(email, role)).willReturn(newAccessToken);
+      given(jwtTokenProvider.generateAccessToken(email)).willReturn(newAccessToken);
       given(jwtTokenProvider.generateRefreshToken(email)).willReturn(newRefreshToken);
 
       // when
@@ -76,11 +72,8 @@ class AuthServiceTest {
       verify(jwtTokenProvider)
           .getClaimFromToken(
               eq(refreshToken), eq("email"), eq(String.class), eq(TokenType.REFRESH_TOKEN));
-      verify(jwtTokenProvider)
-          .getClaimFromToken(
-              eq(refreshToken), eq("role"), eq(String.class), eq(TokenType.REFRESH_TOKEN));
       verify(tokenService).deleteRefreshTokenByEmail(email);
-      verify(jwtTokenProvider).generateAccessToken(email, role);
+      verify(jwtTokenProvider).generateAccessToken(email);
       verify(jwtTokenProvider).generateRefreshToken(email);
       verify(tokenService).createRefreshToken(newRefreshToken, email);
     }
@@ -96,12 +89,7 @@ class AuthServiceTest {
               jwtTokenProvider.getClaimFromToken(
                   anyString(), eq("email"), eq(String.class), eq(TokenType.REFRESH_TOKEN)))
           .willReturn(email);
-      given(
-              jwtTokenProvider.getClaimFromToken(
-                  anyString(), eq("role"), eq(String.class), eq(TokenType.REFRESH_TOKEN)))
-          .willReturn(role);
-      given(jwtTokenProvider.generateAccessToken(anyString(), anyString()))
-          .willReturn(newAccessToken);
+      given(jwtTokenProvider.generateAccessToken(anyString())).willReturn(newAccessToken);
       given(jwtTokenProvider.generateRefreshToken(anyString())).willReturn(newRefreshToken);
 
       // when
@@ -150,7 +138,7 @@ class AuthServiceTest {
 
       // then
       verify(tokenService).deleteRefreshTokenByEmail(email);
-      verify(jwtTokenProvider, Mockito.never()).generateAccessToken(anyString(), anyString());
+      verify(jwtTokenProvider, Mockito.never()).generateAccessToken(anyString());
       verify(jwtTokenProvider, Mockito.never()).generateRefreshToken(anyString());
       verify(tokenService, Mockito.never()).createRefreshToken(anyString(), anyString());
     }

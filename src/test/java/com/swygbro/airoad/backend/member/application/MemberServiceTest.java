@@ -63,11 +63,11 @@ class MemberServiceTest {
 
       // then
       assertThat(response).isNotNull();
-      assertThat(response.getEmail()).isEqualTo(email);
-      assertThat(response.getName()).isEqualTo("Test User");
-      assertThat(response.getImageUrl()).isEqualTo("https://example.com/image.jpg");
-      assertThat(response.getProvider()).isEqualTo("google");
-      assertThat(response.getRole()).isEqualTo("MEMBER");
+      assertThat(response.email()).isEqualTo(email);
+      assertThat(response.name()).isEqualTo("Test User");
+      assertThat(response.imageUrl()).isEqualTo("https://example.com/image.jpg");
+      assertThat(response.provider()).isEqualTo("google");
+      assertThat(response.role()).isEqualTo("MEMBER");
       verify(memberRepository).findByEmail(email);
     }
 

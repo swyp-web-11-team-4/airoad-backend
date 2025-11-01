@@ -64,14 +64,13 @@ class JwtTokenProviderTest {
   class GenerateAccessToken {
 
     @Test
-    @DisplayName("이메일과 권한을 포함한 액세스 토큰을 생성한다")
-    void shouldGenerateAccessTokenWithEmailAndRole() {
+    @DisplayName("이메일을 포함한 액세스 토큰을 생성한다")
+    void shouldGenerateAccessTokenWithEmail() {
       // given
       String email = "test@example.com";
-      String role = "MEMBER";
 
       // when
-      String token = jwtTokenProvider.generateAccessToken(email, role);
+      String token = jwtTokenProvider.generateAccessToken(email);
 
       // then
       assertThat(token).isNotNull();
@@ -80,11 +79,8 @@ class JwtTokenProviderTest {
       // 토큰에서 클레임 추출하여 검증
       String extractedEmail =
           jwtTokenProvider.getClaimFromToken(token, "email", String.class, TokenType.ACCESS_TOKEN);
-      String extractedRole =
-          jwtTokenProvider.getClaimFromToken(token, "role", String.class, TokenType.ACCESS_TOKEN);
 
       assertThat(extractedEmail).isEqualTo(email);
-      assertThat(extractedRole).isEqualTo(role);
     }
   }
 
@@ -125,8 +121,7 @@ class JwtTokenProviderTest {
     void shouldExtractClaimFromValidAccessToken() {
       // given
       String email = "test@example.com";
-      String role = "MEMBER";
-      String token = jwtTokenProvider.generateAccessToken(email, role);
+      String token = jwtTokenProvider.generateAccessToken(email);
 
       // when
       String extractedEmail =
@@ -159,7 +154,6 @@ class JwtTokenProviderTest {
       String expiredToken =
           Jwts.builder()
               .claim("email", "test@example.com")
-              .claim("role", "MEMBER")
               .issuedAt(new Date(System.currentTimeMillis() - 10000))
               .expiration(new Date(System.currentTimeMillis() - 5000)) // 이미 만료됨
               .signWith(key)
@@ -197,8 +191,7 @@ class JwtTokenProviderTest {
     void shouldValidateValidAccessToken() {
       // given
       String email = "test@example.com";
-      String role = "MEMBER";
-      String token = jwtTokenProvider.generateAccessToken(email, role);
+      String token = jwtTokenProvider.generateAccessToken(email);
 
       // when & then
       jwtTokenProvider.validateAccessToken(token); // 예외가 발생하지 않아야 함
@@ -212,7 +205,6 @@ class JwtTokenProviderTest {
       String expiredToken =
           Jwts.builder()
               .claim("email", "test@example.com")
-              .claim("role", "MEMBER")
               .issuedAt(new Date(System.currentTimeMillis() - 10000))
               .expiration(new Date(System.currentTimeMillis() - 5000))
               .signWith(key)

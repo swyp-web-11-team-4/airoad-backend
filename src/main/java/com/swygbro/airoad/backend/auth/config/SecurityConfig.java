@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.auth.cofing;
+package com.swygbro.airoad.backend.auth.config;
 
 import java.util.Collections;
 
@@ -15,8 +15,10 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.swygbro.airoad.backend.auth.application.CustomOAuth2UserService;
 import com.swygbro.airoad.backend.auth.application.OAuthLoginSuccessHandler;
 import com.swygbro.airoad.backend.auth.filter.JwtAuthenticationFilter;
+import com.swygbro.airoad.backend.auth.infrastructure.HttpCookieOAuth2AuthorizationRequestRepository;
 import com.swygbro.airoad.backend.member.domain.entity.MemberRole;
 
 import lombok.RequiredArgsConstructor;
@@ -30,8 +32,11 @@ public class SecurityConfig {
   @Value("${cors.allowed-origins}")
   private String allowedOrigins;
 
+  private final CustomOAuth2UserService customOAuth2UserService;
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
   private final OAuthLoginSuccessHandler oAuthLoginSuccessHandler;
+  private final HttpCookieOAuth2AuthorizationRequestRepository
+      httpCookieOAuth2AuthorizationRequestRepository;
 
   @Bean
   @Profile({"local", "dev"})
@@ -77,7 +82,15 @@ public class SecurityConfig {
                     .hasRole(MemberRole.MEMBER.getRole())
                     .anyRequest()
                     .authenticated())
-        .oauth2Login(oauth2 -> oauth2.successHandler(oAuthLoginSuccessHandler))
+        .oauth2Login(
+            oauth2 ->
+                oauth2
+                    .authorizationEndpoint(
+                        authorization ->
+                            authorization.authorizationRequestRepository(
+                                httpCookieOAuth2AuthorizationRequestRepository))
+                    .successHandler(oAuthLoginSuccessHandler)
+                    .userInfoEndpoint(config -> config.userService(customOAuth2UserService)))
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();

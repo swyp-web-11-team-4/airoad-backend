@@ -34,6 +34,7 @@ public class TripPlanGenerationListener {
         AiDailyPlanRequest.builder()
             .chatRoomId(event.chatRoomId())
             .tripPlanId(event.tripPlanId())
+            .username(event.username())
             .themes(event.request().themes())
             .startDate(event.request().startDate())
             .duration(event.request().duration())

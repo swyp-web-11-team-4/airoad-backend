@@ -149,9 +149,9 @@ public class AiConversationController {
       @Parameter(description = "커서 (이 메시지 ID 이전의 메시지를 조회, 없으면 최신 메시지부터)")
           @RequestParam(required = false)
           Long cursor) {
-    String userId = userPrincipal.getUsername();
+    String username = userPrincipal.getUsername();
     CursorPageResponse<ChatMessageResponse> messageHistory =
-        aiMessageService.getMessageHistory(chatRoomId, userId, cursor, size);
+        aiMessageService.getMessageHistory(chatRoomId, username, cursor, size);
     return ResponseEntity.ok(CommonResponse.success(HttpStatus.OK, messageHistory));
   }
 }

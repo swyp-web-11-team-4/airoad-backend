@@ -96,7 +96,7 @@ class AiConversationControllerTest {
       // given
       Long chatRoomId = 1L;
       int size = 50;
-      String userId = "user1234";
+      String username = "user1234";
 
       List<ChatMessageResponse> messages =
           List.of(
@@ -117,7 +117,7 @@ class AiConversationControllerTest {
 
       CursorPageResponse<ChatMessageResponse> response = CursorPageResponse.of(messages, 3L, true);
 
-      given(aiMessageService.getMessageHistory(chatRoomId, userId, null, size))
+      given(aiMessageService.getMessageHistory(chatRoomId, username, null, size))
           .willReturn(response);
 
       // when & then
@@ -141,7 +141,7 @@ class AiConversationControllerTest {
           .andExpect(jsonPath("$.data.hasNext").value(true))
           .andExpect(jsonPath("$.data.size").value(2));
 
-      verify(aiMessageService).getMessageHistory(chatRoomId, userId, null, size);
+      verify(aiMessageService).getMessageHistory(chatRoomId, username, null, size);
     }
 
     @Test
@@ -150,7 +150,7 @@ class AiConversationControllerTest {
       // given
       Long chatRoomId = 1L;
       Long cursor = 5L;
-      String userId = "user1234";
+      String username = "user1234";
       int size = 50;
 
       List<ChatMessageResponse> messages =
@@ -173,7 +173,7 @@ class AiConversationControllerTest {
       CursorPageResponse<ChatMessageResponse> response =
           CursorPageResponse.of(messages, null, false);
 
-      given(aiMessageService.getMessageHistory(chatRoomId, userId, cursor, size))
+      given(aiMessageService.getMessageHistory(chatRoomId, username, cursor, size))
           .willReturn(response);
 
       // when & then
@@ -191,7 +191,7 @@ class AiConversationControllerTest {
           .andExpect(jsonPath("$.data.content[1].id").value(3))
           .andExpect(jsonPath("$.data.hasNext").value(false));
 
-      verify(aiMessageService).getMessageHistory(chatRoomId, userId, cursor, size);
+      verify(aiMessageService).getMessageHistory(chatRoomId, username, cursor, size);
     }
 
     @Test
@@ -200,7 +200,7 @@ class AiConversationControllerTest {
       // given
       Long chatRoomId = 1L;
       int defaultSize = 50;
-      String userId = "user1234";
+      String username = "user1234";
 
       List<ChatMessageResponse> messages =
           List.of(
@@ -214,7 +214,7 @@ class AiConversationControllerTest {
 
       CursorPageResponse<ChatMessageResponse> response = CursorPageResponse.last(messages);
 
-      given(aiMessageService.getMessageHistory(chatRoomId, userId, null, defaultSize))
+      given(aiMessageService.getMessageHistory(chatRoomId, username, null, defaultSize))
           .willReturn(response);
 
       // when & then
@@ -228,7 +228,7 @@ class AiConversationControllerTest {
           .andExpect(jsonPath("$.data.content.length()").value(1));
 
       // size 파라미터를 전달하지 않았으므로 기본값 50으로 호출되었는지 검증
-      verify(aiMessageService).getMessageHistory(chatRoomId, userId, null, defaultSize);
+      verify(aiMessageService).getMessageHistory(chatRoomId, username, null, defaultSize);
     }
 
     @Test
@@ -237,11 +237,11 @@ class AiConversationControllerTest {
       // given
       Long chatRoomId = 1L;
       int size = 50;
-      String userId = "user1234";
+      String username = "user1234";
 
       CursorPageResponse<ChatMessageResponse> response = CursorPageResponse.last(List.of());
 
-      given(aiMessageService.getMessageHistory(chatRoomId, userId, null, size))
+      given(aiMessageService.getMessageHistory(chatRoomId, username, null, size))
           .willReturn(response);
 
       // when & then
@@ -258,7 +258,7 @@ class AiConversationControllerTest {
           .andExpect(jsonPath("$.data.hasNext").value(false))
           .andExpect(jsonPath("$.data.size").value(0));
 
-      verify(aiMessageService).getMessageHistory(chatRoomId, userId, null, size);
+      verify(aiMessageService).getMessageHistory(chatRoomId, username, null, size);
     }
 
     @Test
@@ -267,7 +267,7 @@ class AiConversationControllerTest {
       // given
       Long chatRoomId = 1L;
       int customSize = 10;
-      String userId = "user1234";
+      String username = "user1234";
 
       List<ChatMessageResponse> messages =
           List.of(
@@ -281,7 +281,7 @@ class AiConversationControllerTest {
 
       CursorPageResponse<ChatMessageResponse> response = CursorPageResponse.of(messages, 2L, true);
 
-      given(aiMessageService.getMessageHistory(chatRoomId, userId, null, customSize))
+      given(aiMessageService.getMessageHistory(chatRoomId, username, null, customSize))
           .willReturn(response);
 
       // when & then
@@ -295,7 +295,7 @@ class AiConversationControllerTest {
           .andExpect(jsonPath("$.success").value(true))
           .andExpect(jsonPath("$.data.size").value(1));
 
-      verify(aiMessageService).getMessageHistory(chatRoomId, userId, null, customSize);
+      verify(aiMessageService).getMessageHistory(chatRoomId, username, null, customSize);
     }
   }
 }

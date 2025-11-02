@@ -1,3 +1,10 @@
+# [0.10.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.9.0...v0.10.0) (2025-11-01)
+
+
+### Features
+
+* Spring AI와 WebFlux를 이용한 AI 일정 생성 기능 구현 ([#39](https://github.com/swyp-web-11-team-4/airoad-backend/issues/39)) ([95ac4b6](https://github.com/swyp-web-11-team-4/airoad-backend/commit/95ac4b6f6eeaa2c5b90b4ce1296f2601d9e8c7ad))
+
 # [0.9.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.8.0...v0.9.0) (2025-10-30)
 
 

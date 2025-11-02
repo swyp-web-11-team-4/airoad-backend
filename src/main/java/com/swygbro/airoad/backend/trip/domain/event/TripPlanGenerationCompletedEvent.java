@@ -9,7 +9,9 @@ import lombok.Builder;
  *
  * @param chatRoomId 채팅방 ID
  * @param tripPlanId 여행 일정 ID
+ * @param username 사용자 이름 (이메일)
  * @param message 완료 메시지
  */
 @Builder
-public record TripPlanGenerationCompletedEvent(Long chatRoomId, Long tripPlanId, String message) {}
+public record TripPlanGenerationCompletedEvent(
+    Long chatRoomId, Long tripPlanId, String username, String message) {}

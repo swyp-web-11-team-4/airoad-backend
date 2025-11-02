@@ -11,7 +11,9 @@ import lombok.Builder;
  *
  * @param chatRoomId 채팅방 ID
  * @param tripPlanId 여행 일정 ID (생성되었을 경우)
+ * @param username 사용자 이름 (이메일)
  * @param errorCode 에러 코드
  */
 @Builder
-public record TripPlanGenerationErrorEvent(Long chatRoomId, Long tripPlanId, ErrorCode errorCode) {}
+public record TripPlanGenerationErrorEvent(
+    Long chatRoomId, Long tripPlanId, String username, ErrorCode errorCode) {}

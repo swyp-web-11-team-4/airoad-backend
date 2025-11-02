@@ -42,10 +42,13 @@ class TripPlanPersistenceListenerTest {
               .places(Collections.emptyList())
               .build();
 
+      String username = "testUser";
+
       DailyPlanGeneratedEvent event =
           DailyPlanGeneratedEvent.builder()
               .chatRoomId(1L)
               .tripPlanId(100L)
+              .username(username)
               .dailyPlan(dailyPlan)
               .build();
 
@@ -53,7 +56,7 @@ class TripPlanPersistenceListenerTest {
       tripPlanPersistenceListener.handleDailyPlanGenerated(event);
 
       // then
-      verify(dailyPlanUseCase).saveDailyPlan(eq(1L), eq(100L), eq(dailyPlan));
+      verify(dailyPlanUseCase).saveDailyPlan(eq(1L), eq(100L), eq(username), eq(dailyPlan));
     }
 
     @Test
@@ -67,6 +70,8 @@ class TripPlanPersistenceListenerTest {
               .places(Collections.emptyList())
               .build();
 
+      String username = "testUser";
+
       DailyPlanCreateRequest day2 =
           DailyPlanCreateRequest.builder()
               .dayNumber(2)
@@ -75,18 +80,28 @@ class TripPlanPersistenceListenerTest {
               .build();
 
       DailyPlanGeneratedEvent event1 =
-          DailyPlanGeneratedEvent.builder().chatRoomId(1L).tripPlanId(100L).dailyPlan(day1).build();
+          DailyPlanGeneratedEvent.builder()
+              .chatRoomId(1L)
+              .tripPlanId(100L)
+              .username(username)
+              .dailyPlan(day1)
+              .build();
 
       DailyPlanGeneratedEvent event2 =
-          DailyPlanGeneratedEvent.builder().chatRoomId(1L).tripPlanId(100L).dailyPlan(day2).build();
+          DailyPlanGeneratedEvent.builder()
+              .chatRoomId(1L)
+              .tripPlanId(100L)
+              .username(username)
+              .dailyPlan(day2)
+              .build();
 
       // when
       tripPlanPersistenceListener.handleDailyPlanGenerated(event1);
       tripPlanPersistenceListener.handleDailyPlanGenerated(event2);
 
       // then
-      verify(dailyPlanUseCase, times(1)).saveDailyPlan(eq(1L), eq(100L), eq(day1));
-      verify(dailyPlanUseCase, times(1)).saveDailyPlan(eq(1L), eq(100L), eq(day2));
+      verify(dailyPlanUseCase, times(1)).saveDailyPlan(eq(1L), eq(100L), eq(username), eq(day1));
+      verify(dailyPlanUseCase, times(1)).saveDailyPlan(eq(1L), eq(100L), eq(username), eq(day2));
     }
   }
 }

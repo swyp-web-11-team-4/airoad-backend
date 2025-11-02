@@ -39,10 +39,6 @@ public class Place extends BaseEntity {
   @Column(nullable = false)
   private Boolean isMustVisit = false;
 
-  /** 추천 우선순위 점수 (1~5) */
-  @Column(nullable = false)
-  private Integer placeScore = 1;
-
   @Builder
   private Place(
       Location location,
@@ -50,14 +46,12 @@ public class Place extends BaseEntity {
       String imageUrl,
       String operatingHours,
       String holidayInfo,
-      Boolean isMustVisit,
-      Integer placeScore) {
+      Boolean isMustVisit) {
     this.location = location;
     this.description = description;
     this.imageUrl = imageUrl;
     this.operatingHours = operatingHours;
     this.holidayInfo = holidayInfo;
     this.isMustVisit = isMustVisit;
-    this.placeScore = placeScore;
   }
 }

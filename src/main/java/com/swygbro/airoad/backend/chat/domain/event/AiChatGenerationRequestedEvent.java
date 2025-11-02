@@ -7,9 +7,9 @@ import lombok.Builder;
  *
  * @param chatRoomId 채팅방 ID (AiConversation.id)
  * @param tripPlanId 여행 계획 ID (TripPlan.id)
- * @param username 사용자 ID (이메일)
- * @param userMessage AI가 생성한 메시지
+ * @param username 유저 이름, 이메일 (User.username)
+ * @param userMessage 유저가 요청한 메시지
  */
 @Builder
-public record AiChatRequestedEvent(
+public record AiChatRequest(
     Long chatRoomId, Long tripPlanId, String username, String userMessage) {}

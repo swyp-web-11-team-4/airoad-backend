@@ -4,7 +4,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import com.swygbro.airoad.backend.ai.application.AiUseCase;
-import com.swygbro.airoad.backend.chat.domain.event.AiChatRequestedEvent;
+import com.swygbro.airoad.backend.chat.domain.event.AiChatRequest;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,14 +27,18 @@ public class AiChatRequestListener {
    * @param event AI 채팅 요청 이벤트
    */
   @EventListener
-  public void handleAiChatRequest(AiChatRequestedEvent event) {
+  public void handleAiChatRequest(AiChatRequest event) {
     log.info(
-        "AI 채팅 요청 이벤트 수신 - chatRoomId: {}, tripPlanId: {}, username: {}",
-        event.chatRoomId(),
-        event.tripPlanId(),
-        event.username());
+        "AI 채팅 요청 이벤트 수신 - chatRoomId: {}, tripPlanId: {}", event.chatRoomId(), event.tripPlanId());
 
-    // ChatAgent에 전체 이벤트 객체 전달 (chatRoomId, tripPlanId, username 포함)
-    aiUseCase.agentCall("chatAgent", event);
+    com.swygbro.airoad.backend.ai.agent.chat.dto.request.AiChatRequest request =
+        com.swygbro.airoad.backend.ai.agent.chat.dto.request.AiChatRequest.builder()
+            .chatRoomId(event.chatRoomId())
+            .tripPlanId(event.tripPlanId())
+            .username(event.username())
+            .userPrompt(event.userMessage())
+            .build();
+
+    aiUseCase.agentCall("chatAgent", request);
   }
 }

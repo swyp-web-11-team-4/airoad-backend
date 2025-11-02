@@ -15,11 +15,7 @@ public class PlaceFixture {
    * @return 기본 Place 객체
    */
   public static Place create() {
-    return Place.builder()
-        .location(LocationFixture.create())
-        .isMustVisit(false)
-        .placeScore(3)
-        .build();
+    return Place.builder().location(LocationFixture.create()).isMustVisit(false).build();
   }
 
   /**
@@ -35,7 +31,6 @@ public class PlaceFixture {
         .operatingHours("09:00-22:00")
         .holidayInfo("연중무휴")
         .isMustVisit(true)
-        .placeScore(5)
         .build();
   }
 
@@ -52,7 +47,6 @@ public class PlaceFixture {
         .operatingHours(null)
         .holidayInfo(null)
         .isMustVisit(false)
-        .placeScore(1)
         .build();
   }
 
@@ -69,7 +63,6 @@ public class PlaceFixture {
         .operatingHours("24시간")
         .holidayInfo("연중무휴")
         .isMustVisit(true)
-        .placeScore(4)
         .build();
   }
 
@@ -86,7 +79,6 @@ public class PlaceFixture {
         .operatingHours("24시간")
         .holidayInfo("연중무휴")
         .isMustVisit(false)
-        .placeScore(3)
         .build();
   }
 
@@ -103,7 +95,6 @@ public class PlaceFixture {
         .operatingHours("24시간")
         .holidayInfo("연중무휴")
         .isMustVisit(true)
-        .placeScore(5)
         .build();
   }
 
@@ -125,7 +116,6 @@ public class PlaceFixture {
         .operatingHours("11:00-22:00")
         .holidayInfo("매주 일요일 휴무")
         .isMustVisit(false)
-        .placeScore(4)
         .build();
   }
 
@@ -142,7 +132,6 @@ public class PlaceFixture {
         .operatingHours("24시간")
         .holidayInfo("연중무휴")
         .isMustVisit(false)
-        .placeScore(4)
         .build();
   }
 
@@ -152,7 +141,7 @@ public class PlaceFixture {
    * @return Place.PlaceBuilder
    */
   public static Place.PlaceBuilder builder() {
-    return Place.builder().location(LocationFixture.create()).isMustVisit(false).placeScore(3);
+    return Place.builder().location(LocationFixture.create()).isMustVisit(false);
   }
 
   /**

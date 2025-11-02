@@ -56,7 +56,6 @@ class PlaceDocumentConverterTest {
       assertThat(metadata).containsEntry("latitude", 37.5547);
       assertThat(metadata).containsEntry("longitude", 126.9716);
       assertThat(metadata).containsEntry("isMustVisit", true);
-      assertThat(metadata).containsEntry("placeScore", 5);
       assertThat(metadata).containsKey("contentHash");
       assertThat(metadata).containsKey("embeddedAt");
       assertThat(metadata).containsEntry("placeUpdatedAt", "2025-01-10T12:00");
@@ -139,7 +138,6 @@ class PlaceDocumentConverterTest {
               "latitude",
               "longitude",
               "isMustVisit",
-              "placeScore",
               "contentHash",
               "embeddedAt",
               "placeUpdatedAt");
@@ -252,7 +250,6 @@ class PlaceDocumentConverterTest {
       Map<String, Object> metadata = document.getMetadata();
       assertThat(metadata).containsEntry("placeId", 6L);
       assertThat(metadata).containsEntry("isMustVisit", false);
-      assertThat(metadata).containsEntry("placeScore", 1);
       assertThat(metadata).containsKey("contentHash");
     }
   }

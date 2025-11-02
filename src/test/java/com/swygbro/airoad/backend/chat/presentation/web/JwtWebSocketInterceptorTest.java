@@ -242,7 +242,7 @@ class JwtWebSocketInterceptorTest {
       verify(eventPublisher).publishEvent(eventCaptor.capture());
 
       WebSocketErrorEvent event = eventCaptor.getValue();
-      assertThat(event.userId()).isEqualTo(USER_EMAIL);
+      assertThat(event.username()).isEqualTo(USER_EMAIL);
       assertThat(event.errorChannel()).isEqualTo("/sub/errors/unknown");
       assertThat(event.errorResponse()).isNotNull();
       assertThat(event.errorResponse().code())

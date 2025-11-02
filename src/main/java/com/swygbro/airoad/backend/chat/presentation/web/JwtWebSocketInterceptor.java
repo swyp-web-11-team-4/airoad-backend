@@ -287,7 +287,7 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
       }
 
       UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-      String userId = userDetails.getUsername();
+      String username = userDetails.getUsername();
 
       // destination에서 chatRoomId 추출
       String destination = accessor.getDestination();
@@ -304,11 +304,11 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
           chatRoomId != null ? "/sub/errors/" + chatRoomId : "/sub/errors/unknown";
 
       // 에러 이벤트 발행
-      eventPublisher.publishEvent(new WebSocketErrorEvent(userId, errorChannel, errorResponse));
+      eventPublisher.publishEvent(new WebSocketErrorEvent(username, errorChannel, errorResponse));
 
       log.info(
           "[WebSocket] SEND 에러 이벤트 발행 완료 - username: {}, channel: {}, code: {}",
-          userId,
+          username,
           errorChannel,
           errorCode.getCode());
 

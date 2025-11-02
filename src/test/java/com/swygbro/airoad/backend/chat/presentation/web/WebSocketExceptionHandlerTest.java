@@ -145,7 +145,7 @@ class WebSocketExceptionHandlerTest {
       BusinessException exception = new BusinessException(CommonErrorCode.INVALID_INPUT);
       given(headerAccessor.getDestination()).willReturn("/pub/chat/123/message");
 
-      ArgumentCaptor<String> userIdCaptor = ArgumentCaptor.forClass(String.class);
+      ArgumentCaptor<String> usernameCaptor = ArgumentCaptor.forClass(String.class);
       ArgumentCaptor<String> destinationCaptor = ArgumentCaptor.forClass(String.class);
       ArgumentCaptor<ErrorResponse> errorResponseCaptor =
           ArgumentCaptor.forClass(ErrorResponse.class);
@@ -159,9 +159,9 @@ class WebSocketExceptionHandlerTest {
       // then
       verify(messagingTemplate)
           .convertAndSendToUser(
-              userIdCaptor.capture(), destinationCaptor.capture(), errorResponseCaptor.capture());
+              usernameCaptor.capture(), destinationCaptor.capture(), errorResponseCaptor.capture());
 
-      assertThat(userIdCaptor.getValue()).isEqualTo(USER_EMAIL);
+      assertThat(usernameCaptor.getValue()).isEqualTo(USER_EMAIL);
       assertThat(destinationCaptor.getValue()).isEqualTo("/sub/errors/123");
 
       ErrorResponse errorResponse = errorResponseCaptor.getValue();
@@ -200,16 +200,16 @@ class WebSocketExceptionHandlerTest {
       BusinessException exception = new BusinessException(CommonErrorCode.INVALID_INPUT);
       given(headerAccessor.getDestination()).willReturn("/pub/chat/123/message");
 
-      ArgumentCaptor<String> userIdCaptor = ArgumentCaptor.forClass(String.class);
+      ArgumentCaptor<String> usernameCaptor = ArgumentCaptor.forClass(String.class);
 
       // when
       exceptionHandler.handleBusinessException(exception, null, headerAccessor);
 
       // then
       verify(messagingTemplate)
-          .convertAndSendToUser(userIdCaptor.capture(), anyString(), any(ErrorResponse.class));
+          .convertAndSendToUser(usernameCaptor.capture(), anyString(), any(ErrorResponse.class));
 
-      assertThat(userIdCaptor.getValue()).isEqualTo("unknown");
+      assertThat(usernameCaptor.getValue()).isEqualTo("unknown");
     }
   }
 
@@ -224,7 +224,7 @@ class WebSocketExceptionHandlerTest {
       Exception exception = new RuntimeException("Unexpected error");
       given(headerAccessor.getDestination()).willReturn("/pub/chat/456/message");
 
-      ArgumentCaptor<String> userIdCaptor = ArgumentCaptor.forClass(String.class);
+      ArgumentCaptor<String> usernameCaptor = ArgumentCaptor.forClass(String.class);
       ArgumentCaptor<String> destinationCaptor = ArgumentCaptor.forClass(String.class);
       ArgumentCaptor<ErrorResponse> errorResponseCaptor =
           ArgumentCaptor.forClass(ErrorResponse.class);
@@ -238,9 +238,9 @@ class WebSocketExceptionHandlerTest {
       // then
       verify(messagingTemplate)
           .convertAndSendToUser(
-              userIdCaptor.capture(), destinationCaptor.capture(), errorResponseCaptor.capture());
+              usernameCaptor.capture(), destinationCaptor.capture(), errorResponseCaptor.capture());
 
-      assertThat(userIdCaptor.getValue()).isEqualTo(USER_EMAIL);
+      assertThat(usernameCaptor.getValue()).isEqualTo(USER_EMAIL);
       assertThat(destinationCaptor.getValue()).isEqualTo("/sub/errors/456");
 
       ErrorResponse errorResponse = errorResponseCaptor.getValue();

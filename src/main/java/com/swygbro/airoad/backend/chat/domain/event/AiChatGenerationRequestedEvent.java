@@ -11,5 +11,5 @@ import lombok.Builder;
  * @param userMessage 유저가 요청한 메시지
  */
 @Builder
-public record AiChatRequest(
+public record AiChatGenerationRequestedEvent(
     Long chatRoomId, Long tripPlanId, String username, String userMessage) {}

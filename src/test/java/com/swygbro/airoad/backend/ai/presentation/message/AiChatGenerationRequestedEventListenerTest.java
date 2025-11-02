@@ -10,8 +10,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
 
+import com.swygbro.airoad.backend.ai.agent.chat.dto.request.AiChatRequest;
 import com.swygbro.airoad.backend.ai.application.AiUseCase;
-import com.swygbro.airoad.backend.chat.domain.event.AiChatRequest;
+import com.swygbro.airoad.backend.chat.domain.event.AiChatGenerationRequestedEvent;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -20,15 +21,15 @@ import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
-class AiChatRequestListenerTest {
+class AiChatGenerationRequestedEventListenerTest {
 
   @Mock private AiUseCase aiUseCase;
 
-  @InjectMocks private AiChatRequestListener aiChatRequestListener;
+  @InjectMocks private AiChatGenerationListener aiChatGenerationListener;
 
   @Nested
   @DisplayName("AI 채팅 요청 이벤트를 수신할 때")
-  class HandleAiChatRequestTests {
+  class HandleAiChatGenerationRequestedEventTests {
 
     @Test
     @DisplayName("이벤트를 chatAgent에게 그대로 전달한다")
@@ -39,8 +40,8 @@ class AiChatRequestListenerTest {
       String username = "test@example.com";
       String userMessage = "여행 일정을 수정해주세요.";
 
-      AiChatRequest event =
-          AiChatRequest.builder()
+      AiChatGenerationRequestedEvent event =
+          AiChatGenerationRequestedEvent.builder()
               .chatRoomId(chatRoomId)
               .tripPlanId(tripPlanId)
               .username(username)
@@ -48,29 +49,25 @@ class AiChatRequestListenerTest {
               .build();
 
       // when
-      aiChatRequestListener.handleAiChatRequest(event);
+      aiChatGenerationListener.handleAiChatRequest(event);
 
       // then
-      ArgumentCaptor<AiChatRequest>
-          requestCaptor =
-              ArgumentCaptor.forClass(
-                  AiChatRequest.class);
+      ArgumentCaptor<AiChatRequest> requestCaptor = ArgumentCaptor.forClass(AiChatRequest.class);
       verify(aiUseCase).agentCall(eq("chatAgent"), requestCaptor.capture());
 
-      AiChatRequest capturedRequest =
-          requestCaptor.getValue();
+      AiChatRequest capturedRequest = requestCaptor.getValue();
       assertThat(capturedRequest.chatRoomId()).isEqualTo(chatRoomId);
       assertThat(capturedRequest.tripPlanId()).isEqualTo(tripPlanId);
       assertThat(capturedRequest.username()).isEqualTo(username);
-      assertThat(capturedRequest.userMessage()).isEqualTo(userMessage);
+      assertThat(capturedRequest.userPrompt()).isEqualTo(userMessage);
     }
 
     @Test
     @DisplayName("정확히 chatAgent를 호출한다")
     void 정확히_chatAgent를_호출() {
       // given
-      AiChatRequest event =
-          AiChatRequest.builder()
+      AiChatGenerationRequestedEvent event =
+          AiChatGenerationRequestedEvent.builder()
               .chatRoomId(2L)
               .tripPlanId(200L)
               .username("user@example.com")
@@ -78,13 +75,10 @@ class AiChatRequestListenerTest {
               .build();
 
       // when
-      aiChatRequestListener.handleAiChatRequest(event);
+      aiChatGenerationListener.handleAiChatRequest(event);
 
       // then
-      verify(aiUseCase, times(1))
-          .agentCall(
-              eq("chatAgent"),
-              any(com.swygbro.airoad.backend.ai.agent.chat.dto.request.AiChatRequest.class));
+      verify(aiUseCase, times(1)).agentCall(eq("chatAgent"), any(AiChatRequest.class));
     }
   }
 }

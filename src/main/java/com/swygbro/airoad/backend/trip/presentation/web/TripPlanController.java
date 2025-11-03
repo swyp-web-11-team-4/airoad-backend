@@ -1,17 +1,27 @@
 package com.swygbro.airoad.backend.trip.presentation.web;
 
+import java.util.Map;
+
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.swygbro.airoad.backend.auth.domain.info.UserPrincipal;
 import com.swygbro.airoad.backend.common.domain.dto.CommonResponse;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
+import com.swygbro.airoad.backend.trip.application.TripUseCase;
+import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.response.TripPlanResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,6 +41,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Validated
 public class TripPlanController {
+
+  private final TripUseCase tripUseCase;
 
   @Operation(
       summary = "사용자의 여행 일정 목록 조회",
@@ -216,5 +228,146 @@ public class TripPlanController {
           String sort) {
 
     return ResponseEntity.ok().build();
+  }
+
+  @Operation(
+      summary = "여행 일정 생성 요청",
+      description =
+          """
+          AI 기반 여행 일정 생성을 요청합니다.
+          사용자가 입력한 여행 조건(지역, 날짜, 기간, 테마, 인원)을 바탕으로 AI가 여행 일정을 생성합니다.
+          """,
+      security = @SecurityRequirement(name = "bearerAuth"))
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "202",
+        description = "여행 일정 생성 요청 접수됨 (비동기 처리)",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = CommonResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                    {
+                      "success": true,
+                      "status": 202,
+                      "data": {
+                        "message": "여행 일정 생성이 시작되었습니다."
+                      }
+                    }
+                    """))),
+    @ApiResponse(
+        responseCode = "400",
+        description = "잘못된 요청",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples = {
+                  @ExampleObject(
+                      name = "필수 필드 누락",
+                      value =
+                          """
+                    {
+                      "success": false,
+                      "status": 400,
+                      "data": {
+                        "timestamp": "2025-10-30T10:00:00",
+                        "code": "COMMON002",
+                        "message": "잘못된 요청입니다.",
+                        "path": "/api/v1/trips/generate",
+                        "errors": [
+                          {
+                            "field": "region",
+                            "rejectedValue": null,
+                            "message": "여행 지역은 필수입니다."
+                          }
+                        ]
+                      }
+                    }
+                    """),
+                  @ExampleObject(
+                      name = "유효하지 않은 값",
+                      value =
+                          """
+                    {
+                      "success": false,
+                      "status": 400,
+                      "data": {
+                        "timestamp": "2025-10-30T10:00:00",
+                        "code": "COMMON002",
+                        "message": "잘못된 요청입니다.",
+                        "path": "/api/v1/trips/generate",
+                        "errors": [
+                          {
+                            "field": "duration",
+                            "rejectedValue": 0,
+                            "message": "여행 기간은 최소 1일 이상이어야 합니다."
+                          }
+                        ]
+                      }
+                    }
+                    """)
+                })),
+    @ApiResponse(
+        responseCode = "401",
+        description = "인증되지 않은 사용자",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                {
+                  "success": false,
+                  "status": 401,
+                  "data": {
+                    "timestamp": "2025-10-30T10:00:00",
+                    "code": "AUTH001",
+                    "message": "인증이 필요합니다.",
+                    "path": "/api/v1/trips/generate",
+                    "errors": null
+                  }
+                }
+                """))),
+    @ApiResponse(
+        responseCode = "404",
+        description = "회원을 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                {
+                  "success": false,
+                  "status": 404,
+                  "data": {
+                    "timestamp": "2025-10-30T10:00:00",
+                    "code": "MEMBER001",
+                    "message": "회원을 찾을 수 없습니다.",
+                    "path": "/api/v1/trips/generate",
+                    "errors": null
+                  }
+                }
+                """)))
+  })
+  @PostMapping("/generate")
+  public ResponseEntity<CommonResponse<Object>> generateTripPlan(
+      @AuthenticationPrincipal UserPrincipal userPrincipal,
+      @Parameter(description = "채팅방 ID", example = "1", required = true) @RequestParam
+          Long chatRoomId,
+      @Valid @RequestBody TripPlanCreateRequest request) {
+
+    String username = userPrincipal.getUsername();
+    tripUseCase.requestTripPlanGeneration(username, request, chatRoomId);
+
+    return ResponseEntity.status(HttpStatus.ACCEPTED)
+        .body(
+            CommonResponse.success(
+                HttpStatus.ACCEPTED.value(), Map.of("message", "여행 일정 생성이 시작되었습니다.")));
   }
 }

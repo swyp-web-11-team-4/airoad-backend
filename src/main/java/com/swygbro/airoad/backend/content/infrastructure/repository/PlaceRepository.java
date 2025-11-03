@@ -1,6 +1,8 @@
 package com.swygbro.airoad.backend.content.infrastructure.repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,4 +31,19 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
    * @return 기준 시각 이후 수정된 Place Stream
    */
   Stream<Place> streamByUpdatedAtAfter(LocalDateTime dateTime);
+
+  /**
+   * TourAPI 장소 ID로 Place 조회
+   *
+   * @param apiPlaceId TourAPI 장소 ID
+   * @return Place Optional
+   */
+  Optional<Place> findByApiPlaceId(Long apiPlaceId);
+
+  /**
+   * description이 null인 Place 목록 조회 (Phase 2에서 overview 업데이트용)
+   *
+   * @return description이 null인 Place 목록
+   */
+  List<Place> findByDescriptionIsNull();
 }

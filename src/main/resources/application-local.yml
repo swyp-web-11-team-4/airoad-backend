@@ -74,3 +74,10 @@ springdoc:
 
 swagger:
   url: http://localhost:8080
+
+tour-api:
+  service-key: ${TOUR_API_SERVICE_KEY}
+
+logging:
+  level:
+    com.swygbro.airoad.backend.tourdata: DEBUG

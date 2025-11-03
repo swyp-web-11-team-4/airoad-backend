@@ -236,6 +236,43 @@ public class TripPlanController {
           """
           AI 기반 여행 일정 생성을 요청합니다.
           사용자가 입력한 여행 조건(지역, 날짜, 기간, 테마, 인원)을 바탕으로 AI가 여행 일정을 생성합니다.
+
+          ## 비동기 처리 방식
+          이 API는 202 Accepted를 즉시 반환하고, 실제 일정 생성은 백그라운드에서 비동기로 처리됩니다.
+
+          ## WebSocket 실시간 알림
+          일정 생성 진행 상황을 실시간으로 받으려면 다음 WebSocket 채널을 구독하세요:
+
+          ### 1. 일정 생성 진행 상황 채널
+          - **경로**: `/user/sub/schedule/{tripPlanId}`
+          - **용도**: 일차별 일정이 생성될 때마다 실시간 알림
+          - **메시지 타입**: `DAILY_PLAN_GENERATED`
+          - **구독 시점**: 여행 일정 생성 후 tripPlanId를 받은 직후
+
+          ### 2. 채팅 채널
+          - **경로**: `/user/sub/chat/{chatRoomId}`
+          - **용도**: 전체 일정 생성 완료/취소 알림
+          - **메시지 타입**: `COMPLETED`, `CANCELLED`
+
+          ### 3. 에러 채널
+          - **경로**: `/user/sub/errors/{chatRoomId}`
+          - **용도**: 일정 생성 중 발생한 오류 알림
+          - **메시지 타입**: `ERROR`
+
+          ## 메시지 구조 예시
+          ```json
+          {
+            "type": "DAILY_PLAN_GENERATED",
+            "tripPlanId": 123,
+            "dailyPlan": { "dayNumber": 1, "activities": [...] },
+            "message": "1일차 일정이 생성되었습니다."
+          }
+          ```
+
+          ## 주의사항
+          - tripPlanId는 TripPlan 엔티티 생성 후 이벤트를 통해 전달됩니다
+          - WebSocket 연결이 필수는 아니지만, 실시간 진행 상황을 받으려면 구독이 필요합니다
+          - 일정 생성은 수 초에서 수십 초가 소요될 수 있습니다
           """,
       security = @SecurityRequirement(name = "bearerAuth"))
   @ApiResponses({

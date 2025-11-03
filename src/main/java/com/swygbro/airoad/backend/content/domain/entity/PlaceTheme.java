@@ -1,8 +1,5 @@
 package com.swygbro.airoad.backend.content.domain.entity;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import jakarta.persistence.*;
 
 import com.swygbro.airoad.backend.common.domain.entity.BaseEntity;
@@ -19,18 +16,19 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PlaceTheme extends BaseEntity {
 
-  /** 테마와 연관된 대표 장소 목록 */
-  @OneToMany(fetch = FetchType.LAZY)
+  /** 테마와 연관된 장소 */
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(nullable = false)
-  private List<Place> places = new ArrayList<>();
+  private Place place;
 
   /** 여행 테마명 (힐링, 맛집, 액티비티 등) */
-  @Column(unique = true, nullable = false, length = 50)
-  private String themeName;
+  @Column(nullable = false, length = 50)
+  @Enumerated(EnumType.STRING)
+  private PlaceThemeType placeThemeType;
 
   @Builder
-  private PlaceTheme(List<Place> places, String themeName) {
-    this.places = places;
-    this.themeName = themeName;
+  private PlaceTheme(Place place, PlaceThemeType placeThemeType) {
+    this.place = place;
+    this.placeThemeType = placeThemeType;
   }
 }

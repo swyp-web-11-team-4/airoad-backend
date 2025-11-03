@@ -35,17 +35,20 @@ public class WebSocketErrorEventListener {
   public void handleWebSocketError(WebSocketErrorEvent event) {
     try {
       messagingTemplate.convertAndSendToUser(
-          event.userId(), event.errorChannel(), event.errorResponse());
+          event.username(), event.errorChannel(), event.errorResponse());
 
       log.info(
           "[WebSocket] 에러 이벤트 처리 완료 - username: {}, channel: {}, code: {}",
-          event.userId(),
+          event.username(),
           event.errorChannel(),
           event.errorResponse().code());
 
     } catch (Exception e) {
       log.error(
-          "[WebSocket] 에러 이벤트 처리 실패 - username: {}, error: {}", event.userId(), e.getMessage(), e);
+          "[WebSocket] 에러 이벤트 처리 실패 - username: {}, error: {}",
+          event.username(),
+          e.getMessage(),
+          e);
     }
   }
 }

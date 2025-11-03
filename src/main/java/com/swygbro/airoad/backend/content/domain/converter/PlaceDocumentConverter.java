@@ -29,7 +29,6 @@ public class PlaceDocumentConverter {
   private static final String METADATA_LATITUDE = "latitude";
   private static final String METADATA_LONGITUDE = "longitude";
   private static final String METADATA_IS_MUST_VISIT = "isMustVisit";
-  private static final String METADATA_PLACE_SCORE = "placeScore";
   private static final String METADATA_CONTENT_HASH = "contentHash";
   private static final String METADATA_EMBEDDED_AT = "embeddedAt";
   private static final String METADATA_PLACE_UPDATED_AT = "placeUpdatedAt";
@@ -97,8 +96,6 @@ public class PlaceDocumentConverter {
         place.getLocation().getPoint().getX(),
         METADATA_IS_MUST_VISIT,
         place.getIsMustVisit(),
-        METADATA_PLACE_SCORE,
-        place.getPlaceScore(),
         METADATA_CONTENT_HASH,
         contentHash,
         METADATA_EMBEDDED_AT,

@@ -48,10 +48,13 @@ class TripPlanNotificationListenerTest {
               .scheduledPlaces(Collections.emptyList())
               .build();
 
+      String username = "testUser";
+
       DailyPlanSavedEvent event =
           DailyPlanSavedEvent.builder()
               .chatRoomId(1L)
               .tripPlanId(100L)
+              .username(username)
               .dailyPlan(dailyPlan)
               .build();
 
@@ -80,10 +83,13 @@ class TripPlanNotificationListenerTest {
     @DisplayName("WebSocket으로 완료 메시지를 전송한다")
     void WebSocket으로_완료_메시지_전송() {
       // given
+      String username = "testUser";
+
       TripPlanGenerationCompletedEvent event =
           TripPlanGenerationCompletedEvent.builder()
               .chatRoomId(1L)
               .tripPlanId(100L)
+              .username(username)
               .message("여행 일정 생성이 완료되었습니다")
               .build();
 
@@ -111,10 +117,13 @@ class TripPlanNotificationListenerTest {
     @DisplayName("WebSocket으로 에러 메시지를 전송한다")
     void WebSocket으로_에러_메시지_전송() {
       // given
+      String username = "testUser";
+
       TripPlanGenerationErrorEvent event =
           TripPlanGenerationErrorEvent.builder()
               .chatRoomId(1L)
               .tripPlanId(100L)
+              .username(username)
               .errorCode(AiErrorCode.TRIP_PLAN_GENERATION_ERROR)
               .build();
 
@@ -142,10 +151,13 @@ class TripPlanNotificationListenerTest {
     @DisplayName("WebSocket으로 취소 메시지를 전송한다")
     void WebSocket으로_취소_메시지_전송() {
       // given
+      String username = "testUser";
+
       TripPlanGenerationCancelledEvent event =
           TripPlanGenerationCancelledEvent.builder()
               .chatRoomId(1L)
               .tripPlanId(100L)
+              .username(username)
               .reason("사용자 요청")
               .build();
 

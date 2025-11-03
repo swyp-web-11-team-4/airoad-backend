@@ -10,7 +10,7 @@ import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageResponse;
 import com.swygbro.airoad.backend.chat.domain.dto.MessageContentType;
 import com.swygbro.airoad.backend.chat.domain.entity.AiConversation;
 import com.swygbro.airoad.backend.chat.domain.entity.AiMessage;
-import com.swygbro.airoad.backend.chat.domain.event.AiChatRequestedEvent;
+import com.swygbro.airoad.backend.chat.domain.event.AiChatGenerationRequestedEvent;
 import com.swygbro.airoad.backend.chat.exception.ChatErrorCode;
 import com.swygbro.airoad.backend.chat.infrastructure.repository.AiConversationRepository;
 import com.swygbro.airoad.backend.chat.infrastructure.repository.AiMessageRepository;
@@ -45,7 +45,7 @@ public class AiMessageService implements AiMessageUseCase {
 
   @Override
   @Transactional
-  public void processAndSendMessage(Long chatRoomId, String userId, ChatMessageRequest request) {
+  public void processAndSendMessage(Long chatRoomId, String username, ChatMessageRequest request) {
     log.info("[Message] 메시지 수신 - chatRoomId: {}", chatRoomId);
 
     // 1. 대화 세션 조회
@@ -55,7 +55,7 @@ public class AiMessageService implements AiMessageUseCase {
             .orElseThrow(() -> new BusinessException(ChatErrorCode.CONVERSATION_NOT_FOUND));
 
     // 2. 권한 검증 - 해당 사용자가 채팅방 소유자인지 확인
-    if (!aiConversation.isOwner(userId)) {
+    if (!aiConversation.isOwner(username)) {
       log.debug("[Message] 채팅방 접근 권한 없음 - chatRoomId: {}", chatRoomId);
       throw new BusinessException(ChatErrorCode.CONVERSATION_ACCESS_DENIED);
     }
@@ -76,10 +76,10 @@ public class AiMessageService implements AiMessageUseCase {
       log.warn("[Message] 여행 계획 id 없음");
       throw new BusinessException(ChatErrorCode.INVALID_CONVERSATION_FORMAT);
     }
-    AiChatRequestedEvent AiChatRequestedEvent =
-        new AiChatRequestedEvent(chatRoomId, tripPlanId, userId, request.content());
+    AiChatGenerationRequestedEvent AiChatGenerationRequestedEvent =
+        new AiChatGenerationRequestedEvent(chatRoomId, tripPlanId, username, request.content());
 
-    eventPublisher.publishEvent(AiChatRequestedEvent);
+    eventPublisher.publishEvent(AiChatGenerationRequestedEvent);
 
     log.debug("[Message] AI 요청 이벤트 발행 완료 - chatRoomId: {}, tripPlanId: {}", chatRoomId, tripPlanId);
   }
@@ -87,7 +87,7 @@ public class AiMessageService implements AiMessageUseCase {
   @Override
   @Transactional(readOnly = true)
   public CursorPageResponse<ChatMessageResponse> getMessageHistory(
-      Long chatRoomId, String userId, Long cursor, int size) {
+      Long chatRoomId, String username, Long cursor, int size) {
     log.info(
         "[MessageHistory] 메시지 히스토리 조회 요청 - chatRoomId: {}, cursor: {}, size: {}",
         chatRoomId,
@@ -105,7 +105,7 @@ public class AiMessageService implements AiMessageUseCase {
             .findById(chatRoomId)
             .orElseThrow(() -> new BusinessException(ChatErrorCode.CONVERSATION_NOT_FOUND));
 
-    if (!aiConversation.isOwner(userId)) {
+    if (!aiConversation.isOwner(username)) {
       log.warn("[MessageHistory] 채팅방 접근 권한 없음 - chatRoomId: {}", chatRoomId);
       throw new BusinessException(ChatErrorCode.CONVERSATION_ACCESS_DENIED);
     }

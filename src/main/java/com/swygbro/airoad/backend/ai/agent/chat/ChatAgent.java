@@ -8,9 +8,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import com.swygbro.airoad.backend.ai.agent.AiroadAgent;
+import com.swygbro.airoad.backend.ai.agent.chat.dto.request.AiChatRequest;
 import com.swygbro.airoad.backend.ai.domain.event.AiMessageGeneratedEvent;
 import com.swygbro.airoad.backend.ai.exception.AiErrorCode;
-import com.swygbro.airoad.backend.chat.domain.event.AiChatRequestedEvent;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -31,11 +31,7 @@ public class ChatAgent implements AiroadAgent {
   private static final String SYSTEM_PROMPT_TEMPLATE =
       """
           당신은 AI 여행 일정 추천 서비스의 챗봇 Airoad 입니다.
-          유저의 요청을 분석하여 적절한 Tool을 호출하세요.
-
-          사용 가능한 기능:
-          - 일정 요약 (전체 또는 특정 일차)
-          - 일정 수정 (향후 추가 예정)
+          유저의 요청에 친절하게 응답하세요.
           """;
 
   private final ChatClient chatClient;
@@ -58,30 +54,29 @@ public class ChatAgent implements AiroadAgent {
 
   @Override
   public void execute(Object data) {
-    AiChatRequestedEvent event = (AiChatRequestedEvent) data;
+    AiChatRequest request = (AiChatRequest) data;
 
     try {
       log.debug(
-          "ChatAgent 실행 - chatRoomId: {}, tripPlanId: {}, username: {}",
-          event.chatRoomId(),
-          event.tripPlanId(),
-          event.username());
+          "ChatAgent 실행 - chatRoomId: {}, tripPlanId: {}",
+          request.chatRoomId(),
+          request.tripPlanId());
 
-      String response = chatClient.prompt().user(event.userMessage()).call().content();
+      String response = chatClient.prompt().user(request.userPrompt()).call().content();
 
       log.debug("ChatAgent 응답 생성 완료 - response: {}", response);
 
       AiMessageGeneratedEvent generatedEvent =
           AiMessageGeneratedEvent.builder()
-              .chatRoomId(event.chatRoomId())
-              .tripPlanId(event.tripPlanId())
-              .username(event.username())
+              .chatRoomId(request.chatRoomId())
+              .tripPlanId(request.tripPlanId())
+              .username(request.username())
               .aiMessage(response)
               .build();
 
       eventPublisher.publishEvent(generatedEvent);
 
-      log.info("ChatAgent 실행 완료 - chatRoomId: {}", event.chatRoomId());
+      log.info("ChatAgent 실행 완료 - chatRoomId: {}", request.chatRoomId());
 
     } catch (Exception e) {
       throw new BusinessException(

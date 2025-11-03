@@ -25,7 +25,7 @@ import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageResponse;
 import com.swygbro.airoad.backend.chat.domain.dto.MessageContentType;
 import com.swygbro.airoad.backend.chat.domain.entity.AiConversation;
 import com.swygbro.airoad.backend.chat.domain.entity.AiMessage;
-import com.swygbro.airoad.backend.chat.domain.event.AiChatRequestedEvent;
+import com.swygbro.airoad.backend.chat.domain.event.AiChatGenerationRequestedEvent;
 import com.swygbro.airoad.backend.chat.exception.ChatErrorCode;
 import com.swygbro.airoad.backend.chat.infrastructure.repository.AiConversationRepository;
 import com.swygbro.airoad.backend.chat.infrastructure.repository.AiMessageRepository;
@@ -80,11 +80,11 @@ class AiMessageServiceTest {
       aiMessageService.processAndSendMessage(chatRoomId, userEmail, request);
 
       // then
-      ArgumentCaptor<AiChatRequestedEvent> eventCaptor =
-          ArgumentCaptor.forClass(AiChatRequestedEvent.class);
+      ArgumentCaptor<AiChatGenerationRequestedEvent> eventCaptor =
+          ArgumentCaptor.forClass(AiChatGenerationRequestedEvent.class);
       verify(eventPublisher).publishEvent(eventCaptor.capture());
 
-      AiChatRequestedEvent publishedEvent = eventCaptor.getValue();
+      AiChatGenerationRequestedEvent publishedEvent = eventCaptor.getValue();
       assertThat(publishedEvent.chatRoomId()).isEqualTo(chatRoomId);
       assertThat(publishedEvent.tripPlanId()).isEqualTo(100L);
       assertThat(publishedEvent.username()).isEqualTo(userEmail);

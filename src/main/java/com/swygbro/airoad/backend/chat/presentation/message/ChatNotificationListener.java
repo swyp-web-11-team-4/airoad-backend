@@ -75,10 +75,10 @@ public class ChatNotificationListener {
    *
    * <p>/user/sub/errors/{chatRoomId} 채널로 에러를 전송하여 클라이언트가 스트리밍 중단을 인지할 수 있도록 합니다.
    *
-   * @param userId 사용자 ID
+   * @param username 사용자 이름, 이메일
    * @param chatRoomId 채팅방 ID (null이면 "unknown" 사용)
    */
-  private void sendErrorToClient(String userId, Long chatRoomId) {
+  private void sendErrorToClient(String username, Long chatRoomId) {
     try {
       ErrorResponse errorResponse =
           ErrorResponse.of(
@@ -88,7 +88,7 @@ public class ChatNotificationListener {
 
       // chatRoomId가 있으면 해당 채팅방의 에러 채널로 전송
       String destination = chatRoomId != null ? "/sub/errors/" + chatRoomId : "/sub/errors/unknown";
-      messagingTemplate.convertAndSendToUser(userId, destination, errorResponse);
+      messagingTemplate.convertAndSendToUser(username, destination, errorResponse);
 
       log.info("[WebSocket] 에러 메시지 전송 완료, destination: {}", destination);
     } catch (Exception e) {

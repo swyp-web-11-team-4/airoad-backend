@@ -30,9 +30,14 @@ import com.swygbro.airoad.backend.trip.domain.event.DailyPlanSavedEvent;
 import com.swygbro.airoad.backend.trip.exception.TripErrorCode;
 import com.swygbro.airoad.backend.trip.infrastructure.TripPlanRepository;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.never;
+import static org.mockito.BDDMockito.times;
+import static org.mockito.BDDMockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
@@ -56,6 +61,7 @@ class DailyPlanServiceTest {
       // given
       Long chatRoomId = 1L;
       Long tripPlanId = 1L;
+      String username = "testUser";
       TripPlan tripPlan = TripPlanFixture.create();
       Place place = PlaceFixture.withId(1L, PlaceFixture.create());
 
@@ -82,7 +88,7 @@ class DailyPlanServiceTest {
       given(tripPlanRepository.save(any(TripPlan.class))).willReturn(tripPlan);
 
       // when
-      dailyPlanService.saveDailyPlan(chatRoomId, tripPlanId, request);
+      dailyPlanService.saveDailyPlan(chatRoomId, tripPlanId, username, request);
 
       // then
       verify(tripPlanRepository).findById(tripPlanId);
@@ -96,6 +102,7 @@ class DailyPlanServiceTest {
       DailyPlanSavedEvent capturedEvent = eventCaptor.getValue();
       assertThat(capturedEvent.chatRoomId()).isEqualTo(chatRoomId);
       assertThat(capturedEvent.tripPlanId()).isEqualTo(tripPlanId);
+      assertThat(capturedEvent.username()).isEqualTo(username);
       assertThat(capturedEvent.dailyPlan()).isNotNull();
       assertThat(capturedEvent.dailyPlan().dayNumber()).isEqualTo(1);
     }
@@ -106,6 +113,7 @@ class DailyPlanServiceTest {
       // given
       Long chatRoomId = 1L;
       Long tripPlanId = 999L;
+      String username = "testUser";
       DailyPlanCreateRequest request =
           DailyPlanCreateRequest.builder()
               .dayNumber(1)
@@ -116,7 +124,8 @@ class DailyPlanServiceTest {
       given(tripPlanRepository.findById(tripPlanId)).willReturn(Optional.empty());
 
       // when & then
-      assertThatThrownBy(() -> dailyPlanService.saveDailyPlan(chatRoomId, tripPlanId, request))
+      assertThatThrownBy(
+              () -> dailyPlanService.saveDailyPlan(chatRoomId, tripPlanId, username, request))
           .isInstanceOf(BusinessException.class)
           .hasFieldOrPropertyWithValue("errorCode", TripErrorCode.TRIP_PLAN_NOT_FOUND);
 
@@ -132,6 +141,7 @@ class DailyPlanServiceTest {
       // given
       Long chatRoomId = 1L;
       Long tripPlanId = 1L;
+      String username = "testUser";
       TripPlan tripPlan = TripPlanFixture.create();
 
       ScheduledPlaceCreateRequest scheduledPlaceRequest =
@@ -156,7 +166,8 @@ class DailyPlanServiceTest {
       given(placeRepository.findById(999L)).willReturn(Optional.empty());
 
       // when & then
-      assertThatThrownBy(() -> dailyPlanService.saveDailyPlan(chatRoomId, tripPlanId, request))
+      assertThatThrownBy(
+              () -> dailyPlanService.saveDailyPlan(chatRoomId, tripPlanId, username, request))
           .isInstanceOf(BusinessException.class)
           .hasFieldOrPropertyWithValue("errorCode", TripErrorCode.PLACE_NOT_FOUND);
 
@@ -172,6 +183,7 @@ class DailyPlanServiceTest {
       // given
       Long chatRoomId = 1L;
       Long tripPlanId = 1L;
+      String username = "testUser";
       TripPlan tripPlan = TripPlanFixture.create();
       Place place1 = PlaceFixture.withId(1L, PlaceFixture.create());
       Place place2 = PlaceFixture.withId(2L, PlaceFixture.createGangnam());
@@ -211,7 +223,7 @@ class DailyPlanServiceTest {
       given(tripPlanRepository.save(any(TripPlan.class))).willReturn(tripPlan);
 
       // when
-      dailyPlanService.saveDailyPlan(chatRoomId, tripPlanId, request);
+      dailyPlanService.saveDailyPlan(chatRoomId, tripPlanId, username, request);
 
       // then
       verify(placeRepository).findById(1L);
@@ -226,6 +238,7 @@ class DailyPlanServiceTest {
       // given
       Long chatRoomId = 1L;
       Long tripPlanId = 1L;
+      String username = "testUser";
       TripPlan tripPlan = TripPlanFixture.create();
 
       DailyPlanCreateRequest request =
@@ -239,7 +252,7 @@ class DailyPlanServiceTest {
       given(tripPlanRepository.save(any(TripPlan.class))).willReturn(tripPlan);
 
       // when
-      dailyPlanService.saveDailyPlan(chatRoomId, tripPlanId, request);
+      dailyPlanService.saveDailyPlan(chatRoomId, tripPlanId, username, request);
 
       // then
       verify(tripPlanRepository).findById(tripPlanId);
@@ -254,6 +267,7 @@ class DailyPlanServiceTest {
       // given
       Long chatRoomId = 1L;
       Long tripPlanId = 1L;
+      String username = "testUser";
       TripPlan tripPlan = TripPlanFixture.create();
       Place place1 = PlaceFixture.withId(1L, PlaceFixture.create());
       Place place2 = PlaceFixture.withId(2L, PlaceFixture.createRestaurant());
@@ -306,7 +320,7 @@ class DailyPlanServiceTest {
       given(tripPlanRepository.save(any(TripPlan.class))).willReturn(tripPlan);
 
       // when
-      dailyPlanService.saveDailyPlan(chatRoomId, tripPlanId, request);
+      dailyPlanService.saveDailyPlan(chatRoomId, tripPlanId, username, request);
 
       // then
       verify(placeRepository, times(3)).findById(anyLong());

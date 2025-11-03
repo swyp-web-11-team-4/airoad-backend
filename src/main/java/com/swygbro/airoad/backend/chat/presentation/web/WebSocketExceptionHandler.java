@@ -65,7 +65,7 @@ public class WebSocketExceptionHandler {
   @MessageExceptionHandler(BusinessException.class)
   public void handleBusinessException(
       BusinessException e, Principal principal, SimpMessageHeaderAccessor headerAccessor) {
-    String userId = getUserId(principal);
+    String username = getUsername(principal);
     Long chatRoomId = extractChatRoomId(headerAccessor);
 
     log.warn(
@@ -77,7 +77,7 @@ public class WebSocketExceptionHandler {
     ErrorResponse errorResponse =
         ErrorResponse.of(e.getErrorCode().getCode(), e.getMessage(), "/websocket");
 
-    sendErrorToUser(userId, chatRoomId, errorResponse);
+    sendErrorToUser(username, chatRoomId, errorResponse);
   }
 
   /**
@@ -92,7 +92,7 @@ public class WebSocketExceptionHandler {
   @MessageExceptionHandler(Exception.class)
   public void handleException(
       Exception e, Principal principal, SimpMessageHeaderAccessor headerAccessor) {
-    String userId = getUserId(principal);
+    String username = getUsername(principal);
     Long chatRoomId = extractChatRoomId(headerAccessor);
 
     log.error("[WebSocket] 예외 발생 - chatRoomId: {}", chatRoomId, e);
@@ -103,7 +103,7 @@ public class WebSocketExceptionHandler {
             WebSocketErrorCode.INTERNAL_ERROR.getDefaultMessage(),
             "/websocket");
 
-    sendErrorToUser(userId, chatRoomId, errorResponse);
+    sendErrorToUser(username, chatRoomId, errorResponse);
   }
 
   /**
@@ -157,15 +157,15 @@ public class WebSocketExceptionHandler {
   /**
    * 사용자에게 에러 메시지 전송
    *
-   * @param userId 사용자 ID
+   * @param username 사용자 이름, 이메일
    * @param chatRoomId 채팅방 ID (null이면 기본 에러 채널 사용)
    * @param errorResponse 에러 응답 객체
    */
-  private void sendErrorToUser(String userId, Long chatRoomId, ErrorResponse errorResponse) {
+  private void sendErrorToUser(String username, Long chatRoomId, ErrorResponse errorResponse) {
     // chatRoomId가 있으면 해당 채팅방의 에러 채널로 전송
     String destination = chatRoomId != null ? "/sub/errors/" + chatRoomId : "/sub/errors/unknown";
 
-    messagingTemplate.convertAndSendToUser(userId, destination, errorResponse);
+    messagingTemplate.convertAndSendToUser(username, destination, errorResponse);
 
     log.debug(
         "[WebSocket] 에러 메시지 전송 - destination: {}, code: {}", destination, errorResponse.code());
@@ -177,7 +177,7 @@ public class WebSocketExceptionHandler {
    * @param principal 인증된 사용자 정보
    * @return 사용자 ID (principal이 null이면 "unknown")
    */
-  private String getUserId(Principal principal) {
+  private String getUsername(Principal principal) {
     if (principal == null) {
       return "unknown";
     }

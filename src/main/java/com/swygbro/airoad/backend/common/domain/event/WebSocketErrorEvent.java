@@ -10,9 +10,9 @@ import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
  * <p>이벤트 기반 아키텍처를 통해 {@code JwtWebSocketInterceptor}와 {@code SimpMessagingTemplate} 간의 순환 참조를
  * 해결합니다.
  *
- * @param userId 사용자 ID (이메일)
+ * @param username 사용자 이름 (이메일)
  * @param errorChannel 에러 채널 경로 (예: /sub/errors/123)
  * @param errorResponse 에러 응답 DTO
  */
 public record WebSocketErrorEvent(
-    String userId, String errorChannel, ErrorResponse errorResponse) {}
+    String username, String errorChannel, ErrorResponse errorResponse) {}

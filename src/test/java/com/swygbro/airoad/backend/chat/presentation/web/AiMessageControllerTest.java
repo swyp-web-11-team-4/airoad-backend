@@ -44,14 +44,14 @@ class AiMessageControllerTest {
     void shouldProcessMessageWithValidRequestAndAuthenticatedUser() {
       // given
       Long chatRoomId = 1L;
-      String userId = "test@example.com";
+      String username = "test@example.com";
       ChatMessageRequest request =
           new ChatMessageRequest("서울 3박 4일 여행 계획을 짜주세요", MessageContentType.TEXT);
 
       // StompHeaderAccessor 생성 및 인증 정보 설정
       UserDetails userDetails =
           User.builder()
-              .username(userId)
+              .username(username)
               .password("password")
               .authorities(Collections.emptyList())
               .build();
@@ -62,13 +62,13 @@ class AiMessageControllerTest {
       StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(message);
       headerAccessor.setUser(authentication);
 
-      willDoNothing().given(aiMessageService).processAndSendMessage(chatRoomId, userId, request);
+      willDoNothing().given(aiMessageService).processAndSendMessage(chatRoomId, username, request);
 
       // when
       aiMessageController.sendMessage(chatRoomId, message, headerAccessor);
 
       // then
-      verify(aiMessageService).processAndSendMessage(chatRoomId, userId, request);
+      verify(aiMessageService).processAndSendMessage(chatRoomId, username, request);
     }
 
     @Test

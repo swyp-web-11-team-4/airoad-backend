@@ -19,11 +19,13 @@ public class TripPlanPersistenceListener {
   @EventListener
   public void handleDailyPlanGenerated(DailyPlanGeneratedEvent event) {
     log.debug(
-        "AI {}일차 일정 생성 완료 - chatRoomId: {}, tripPlanId: {}",
+        "AI {}일차 일정 생성 완료 - chatRoomId: {}, tripPlanId: {}, username: {}",
         event.dailyPlan().dayNumber(),
         event.chatRoomId(),
-        event.tripPlanId());
+        event.tripPlanId(),
+        event.username());
 
-    dailyPlanUseCase.saveDailyPlan(event.chatRoomId(), event.tripPlanId(), event.dailyPlan());
+    dailyPlanUseCase.saveDailyPlan(
+        event.chatRoomId(), event.tripPlanId(), event.username(), event.dailyPlan());
   }
 }

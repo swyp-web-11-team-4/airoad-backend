@@ -35,7 +35,8 @@ public class DailyPlanService implements DailyPlanUseCase {
 
   @Override
   @Transactional
-  public void saveDailyPlan(Long chatRoomId, Long tripPlanId, DailyPlanCreateRequest request) {
+  public void saveDailyPlan(
+      Long chatRoomId, Long tripPlanId, String username, DailyPlanCreateRequest request) {
     TripPlan tripPlan =
         tripPlanRepository
             .findById(tripPlanId)
@@ -65,6 +66,7 @@ public class DailyPlanService implements DailyPlanUseCase {
         DailyPlanSavedEvent.builder()
             .chatRoomId(chatRoomId)
             .tripPlanId(tripPlanId)
+            .username(username)
             .dailyPlan(response)
             .build();
 

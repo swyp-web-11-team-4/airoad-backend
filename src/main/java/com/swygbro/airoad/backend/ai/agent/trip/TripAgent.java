@@ -160,6 +160,7 @@ public class TripAgent implements AiroadAgent {
                     TripPlanGenerationErrorEvent.builder()
                         .chatRoomId(request.chatRoomId())
                         .tripPlanId(request.tripPlanId())
+                        .username(request.username())
                         .errorCode(AiErrorCode.JSON_PARSING_FAILED)
                         .build();
 
@@ -178,6 +179,7 @@ public class TripAgent implements AiroadAgent {
                   DailyPlanGeneratedEvent.builder()
                       .chatRoomId(request.chatRoomId())
                       .tripPlanId(request.tripPlanId())
+                      .username(request.username())
                       .dailyPlan(dailyPlanCreateRequest)
                       .build();
 
@@ -190,6 +192,7 @@ public class TripAgent implements AiroadAgent {
                   TripPlanGenerationErrorEvent.builder()
                       .chatRoomId(request.chatRoomId())
                       .tripPlanId(request.tripPlanId())
+                      .username(request.username())
                       .errorCode(AiErrorCode.TRIP_PLAN_GENERATION_ERROR)
                       .build();
 
@@ -202,6 +205,7 @@ public class TripAgent implements AiroadAgent {
                   TripPlanGenerationCompletedEvent.builder()
                       .chatRoomId(request.chatRoomId())
                       .tripPlanId(request.tripPlanId())
+                      .username(request.username())
                       .message("AI 여행 일정 생성 요청에 성공했습니다")
                       .build();
 

@@ -219,8 +219,7 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
     // 구독 경로 검증
     // /user prefix 있든 없든 모두 허용 (Spring이 내부적으로 변환)
     // 허용 패턴: /sub/{채널타입}/{ID} 또는 /user/sub/{채널타입}/{ID}
-    if (destination != null
-        && !destination.matches("^(/user)?/sub/(chat|schedule|errors)/\\d+$")) {
+    if (destination != null && !destination.matches("^(/user)?/sub/(chat|schedule|errors)/\\d+$")) {
       log.error("[WebSocket] 허용되지 않은 구독 경로, destination: {}", destination);
       throw new BusinessException(WebSocketErrorCode.FORBIDDEN_SUBSCRIPTION);
     }

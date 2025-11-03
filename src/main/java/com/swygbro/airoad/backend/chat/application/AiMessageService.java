@@ -76,10 +76,10 @@ public class AiMessageService implements AiMessageUseCase {
       log.warn("[Message] 여행 계획 id 없음");
       throw new BusinessException(ChatErrorCode.INVALID_CONVERSATION_FORMAT);
     }
-    AiChatGenerationRequestedEvent AiChatGenerationRequestedEvent =
+    AiChatGenerationRequestedEvent aiChatGenerationRequestedEvent =
         new AiChatGenerationRequestedEvent(chatRoomId, tripPlanId, username, request.content());
 
-    eventPublisher.publishEvent(AiChatGenerationRequestedEvent);
+    eventPublisher.publishEvent(aiChatGenerationRequestedEvent);
 
     log.debug("[Message] AI 요청 이벤트 발행 완료 - chatRoomId: {}, tripPlanId: {}", chatRoomId, tripPlanId);
   }

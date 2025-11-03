@@ -11,6 +11,7 @@ import com.swygbro.airoad.backend.member.domain.entity.Member;
 import com.swygbro.airoad.backend.member.exception.MemberErrorCode;
 import com.swygbro.airoad.backend.member.infrastructure.MemberRepository;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
+import com.swygbro.airoad.backend.trip.domain.entity.Transportation;
 import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationRequestedEvent;
 import com.swygbro.airoad.backend.trip.infrastructure.TripPlanRepository;
@@ -58,6 +59,7 @@ public class TripService implements TripUseCase {
             .endDate(endDate)
             .isCompleted(false)
             .region(request.region())
+            .transportation(Transportation.NONE)
             .peopleCount(request.peopleCount())
             .build();
 

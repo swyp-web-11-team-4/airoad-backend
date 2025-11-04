@@ -5,7 +5,6 @@ import java.util.Collections;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -16,9 +15,9 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.swygbro.airoad.backend.auth.application.CustomOAuth2UserService;
-import com.swygbro.airoad.backend.auth.application.OAuthLoginSuccessHandler;
 import com.swygbro.airoad.backend.auth.filter.JwtAuthenticationFilter;
-import com.swygbro.airoad.backend.auth.infrastructure.HttpCookieOAuth2AuthorizationRequestRepository;
+import com.swygbro.airoad.backend.auth.presentation.web.OAuth2AuthenticationFailureHandler;
+import com.swygbro.airoad.backend.auth.presentation.web.OAuth2AuthenticationSuccessHandler;
 import com.swygbro.airoad.backend.member.domain.entity.MemberRole;
 
 import lombok.RequiredArgsConstructor;
@@ -34,42 +33,10 @@ public class SecurityConfig {
 
   private final CustomOAuth2UserService customOAuth2UserService;
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
-  private final OAuthLoginSuccessHandler oAuthLoginSuccessHandler;
-  private final HttpCookieOAuth2AuthorizationRequestRepository
-      httpCookieOAuth2AuthorizationRequestRepository;
+  private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+  private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
 
   @Bean
-  @Profile({"local", "dev", "test"})
-  public SecurityFilterChain localDevFilterChain(HttpSecurity http) throws Exception {
-    http.cors(AbstractHttpConfigurer::disable)
-        .csrf(AbstractHttpConfigurer::disable)
-        .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .authorizeHttpRequests(
-            auth ->
-                auth.requestMatchers("/ws-stomp/**")
-                    .permitAll()
-                    .requestMatchers("/actuator/**")
-                    .permitAll()
-                    .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")
-                    .permitAll()
-                    .requestMatchers("/api/v1/auth/**")
-                    .permitAll()
-                    .requestMatchers("/api/v1/**")
-                    .hasRole(MemberRole.MEMBER.getRole())
-                    .anyRequest()
-                    .permitAll())
-        .oauth2Login(
-            oauth2 ->
-                oauth2
-                    .successHandler(oAuthLoginSuccessHandler)
-                    .userInfoEndpoint(config -> config.userService(customOAuth2UserService)))
-        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
-    return http.build();
-  }
-
-  @Bean
-  @Profile("prod")
   public SecurityFilterChain prodFilterChain(HttpSecurity http) throws Exception {
     http.cors(c -> c.configurationSource(corsConfigurationSource()))
         .csrf(AbstractHttpConfigurer::disable)
@@ -80,6 +47,10 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/actuator/**")
                     .permitAll()
+                    .requestMatchers("/swagger-ui/**", "/v3/api-docs/**")
+                    .permitAll()
+                    .requestMatchers("/oauth2/**", "/login/oauth2/**")
+                    .permitAll()
                     .requestMatchers("/api/v1/auth/**")
                     .permitAll()
                     .requestMatchers("/api/v1/**")
@@ -89,11 +60,8 @@ public class SecurityConfig {
         .oauth2Login(
             oauth2 ->
                 oauth2
-                    .authorizationEndpoint(
-                        authorization ->
-                            authorization.authorizationRequestRepository(
-                                httpCookieOAuth2AuthorizationRequestRepository))
-                    .successHandler(oAuthLoginSuccessHandler)
+                    .successHandler(oAuth2AuthenticationSuccessHandler)
+                    .failureHandler(oAuth2AuthenticationFailureHandler)
                     .userInfoEndpoint(config -> config.userService(customOAuth2UserService)))
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

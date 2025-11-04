@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.auth.domain.info;
+package com.swygbro.airoad.backend.auth.domain.dto;
 
 import java.util.Collection;
 import java.util.Collections;

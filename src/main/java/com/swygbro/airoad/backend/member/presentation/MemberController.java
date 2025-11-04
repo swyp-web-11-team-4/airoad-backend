@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.swygbro.airoad.backend.auth.domain.info.UserPrincipal;
+import com.swygbro.airoad.backend.auth.domain.dto.UserPrincipal;
 import com.swygbro.airoad.backend.common.domain.dto.CommonResponse;
 import com.swygbro.airoad.backend.member.application.MemberUseCase;
 import com.swygbro.airoad.backend.member.domain.dto.MemberResponse;

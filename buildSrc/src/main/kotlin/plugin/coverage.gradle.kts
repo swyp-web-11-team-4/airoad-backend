@@ -19,7 +19,6 @@ val excludePatterns =
         "**/*Exception*",
         "**/*ErrorCode*",
         "**/*Handler*",
-        "**/*Dummy*"
     )
 
 // 제외할 클래스 패턴 (커버리지 검증용)
@@ -31,7 +30,8 @@ val excludeClassPatterns =
         "*.*Entity*",
         "*.*Exception*",
         "*.*ErrorCode*",
-        "*.*Handler*"
+        "*.*Handler*",
+        "*.CustomOAuth2UserService", // OAuth2 통합은 E2E 테스트로 검증
     )
 
 fun JacocoReportBase.configureClassDirectories() {

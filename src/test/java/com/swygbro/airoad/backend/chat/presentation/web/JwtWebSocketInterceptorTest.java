@@ -24,9 +24,8 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ActiveProfiles;
 
+import com.swygbro.airoad.backend.auth.application.JwtTokenProvider;
 import com.swygbro.airoad.backend.auth.application.UserDetailsServiceImpl;
-import com.swygbro.airoad.backend.auth.domain.entity.TokenType;
-import com.swygbro.airoad.backend.auth.filter.JwtTokenProvider;
 import com.swygbro.airoad.backend.common.domain.event.WebSocketErrorEvent;
 import com.swygbro.airoad.backend.common.exception.WebSocketErrorCode;
 
@@ -77,11 +76,8 @@ class JwtWebSocketInterceptorTest {
       accessor.setLeaveMutable(true); // accessor가 mutable하게 유지되도록 설정
       Message<?> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
 
-      willDoNothing().given(jwtTokenProvider).validateAccessToken(VALID_TOKEN);
-      given(
-              jwtTokenProvider.getClaimFromToken(
-                  VALID_TOKEN, "email", String.class, TokenType.ACCESS_TOKEN))
-          .willReturn(USER_EMAIL);
+      given(jwtTokenProvider.validateToken(VALID_TOKEN)).willReturn(true);
+      given(jwtTokenProvider.getEmailFromToken(VALID_TOKEN)).willReturn(USER_EMAIL);
       given(userDetailsService.loadUserByUsername(USER_EMAIL)).willReturn(userDetails);
 
       // when
@@ -97,9 +93,8 @@ class JwtWebSocketInterceptorTest {
       assertThat(authentication).isNotNull();
       assertThat(authentication.getPrincipal()).isEqualTo(userDetails);
 
-      verify(jwtTokenProvider).validateAccessToken(VALID_TOKEN);
-      verify(jwtTokenProvider)
-          .getClaimFromToken(VALID_TOKEN, "email", String.class, TokenType.ACCESS_TOKEN);
+      verify(jwtTokenProvider).validateToken(VALID_TOKEN);
+      verify(jwtTokenProvider).getEmailFromToken(VALID_TOKEN);
       verify(userDetailsService).loadUserByUsername(USER_EMAIL);
     }
 
@@ -124,7 +119,7 @@ class JwtWebSocketInterceptorTest {
       assertThat(resultAccessor.getFirstNativeHeader("error-code"))
           .isEqualTo(WebSocketErrorCode.UNAUTHORIZED_CONNECTION.getCode());
 
-      verify(jwtTokenProvider, never()).validateAccessToken(any());
+      verify(jwtTokenProvider, never()).validateToken(any());
     }
 
     @Test
@@ -137,7 +132,7 @@ class JwtWebSocketInterceptorTest {
 
       willThrow(new io.jsonwebtoken.ExpiredJwtException(null, null, "Token expired"))
           .given(jwtTokenProvider)
-          .validateAccessToken(INVALID_TOKEN);
+          .validateToken(INVALID_TOKEN);
 
       // when
       Message<?> result = interceptor.preSend(message, null);
@@ -151,7 +146,7 @@ class JwtWebSocketInterceptorTest {
       assertThat(resultAccessor.getFirstNativeHeader("error-code"))
           .isEqualTo(WebSocketErrorCode.UNAUTHORIZED_CONNECTION.getCode());
 
-      verify(jwtTokenProvider).validateAccessToken(INVALID_TOKEN);
+      verify(jwtTokenProvider).validateToken(INVALID_TOKEN);
       verify(userDetailsService, never()).loadUserByUsername(any());
     }
   }

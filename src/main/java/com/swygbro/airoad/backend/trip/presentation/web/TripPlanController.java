@@ -249,10 +249,9 @@ public class TripPlanController {
           - **메시지 타입**: AI 스트리밍 응답, `COMPLETED`, `CANCELLED`
           - **설명**: AI가 일정을 생성하면서 실시간으로 채팅 메시지를 스트리밍합니다
 
-          ### 2. 일정 저장 알림 채널
+          ### 2. 일정 전송 채널
           - **경로**: `/user/sub/schedule/{tripPlanId}`
-          - **용도**: 일차별 일정(DailyPlan) 저장 완료 알림 및 데이터 전달
-          - **메시지 타입**: `DAILY_PLAN_GENERATED`
+          - **용도**: 일차별 일정(DailyPlan) 저장 완료 및 데이터 전달
           - **설명**: AI가 생성한 일정을 파싱하여 DailyPlan 엔티티로 저장하면, 저장된 일일 일정 데이터를 이 채널로 전송합니다
           - **데이터**: 저장된 DailyPlan 객체 (dayNumber, activities, places 등 포함)
 

@@ -19,9 +19,7 @@ import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * 인증되지 않은 사용자가 보호된 리소스에 접근할 때 호출되는 핸들러
- */
+/** 인증되지 않은 사용자가 보호된 리소스에 접근할 때 호출되는 핸들러 */
 @Slf4j
 @Component
 @RequiredArgsConstructor

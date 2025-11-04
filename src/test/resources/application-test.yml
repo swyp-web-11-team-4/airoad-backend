@@ -38,26 +38,17 @@ spring:
             token-uri: https://oauth2.googleapis.com/token
             user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
             user-name-attribute: sub
+        redirect:
+          base-url: http://localhost:5173
+          callback-path: /redirect
+    jwt:
+      secret-key: test-tokens-token-secret-key-for-testing-purposes-only
+      access-token-validity: 1000 # 10초
+      refresh-token-validity: 300000 # 5분
+
   autoconfigure:
     exclude:
       - org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreAutoConfiguration
 
-jwt:
-  access-token-secret: test-access-token-secret-key-for-testing-purposes-only
-  refresh-token-secret: test-refresh-token-secret-key-for-testing-purposes-only
-  access-token-expiration: 3600000 # 1 hour in milliseconds
-  refresh-token-expiration: 86400000 # 1 day in milliseconds
-
 cors:
   allowed-origins: http://localhost:3000
-
-app:
-  oauth2:
-    redirect-uri: http://localhost:3000/oauth/callback
-    register: http://localhost:3000/register
-    access: http://localhost:3000/access
-    cookie:
-      auth-request-name: oauth2_auth_request
-      redirect-uri-name: redirect_uri
-      mode-name: mode
-      expire-seconds: 180

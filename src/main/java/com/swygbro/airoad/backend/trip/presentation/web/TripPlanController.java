@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.swygbro.airoad.backend.auth.domain.info.UserPrincipal;
+import com.swygbro.airoad.backend.auth.domain.dto.UserPrincipal;
 import com.swygbro.airoad.backend.common.domain.dto.CommonResponse;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
 import com.swygbro.airoad.backend.trip.application.TripUseCase;
@@ -243,16 +243,18 @@ public class TripPlanController {
           ## WebSocket 실시간 알림
           일정 생성 진행 상황을 실시간으로 받으려면 다음 WebSocket 채널을 구독하세요:
 
-          ### 1. 일정 생성 진행 상황 채널
-          - **경로**: `/user/sub/schedule/{tripPlanId}`
-          - **용도**: 일차별 일정이 생성될 때마다 실시간 알림
-          - **메시지 타입**: `DAILY_PLAN_GENERATED`
-          - **구독 시점**: 여행 일정 생성 후 tripPlanId를 받은 직후
-
-          ### 2. 채팅 채널
+          ### 1. 채팅 채널
           - **경로**: `/user/sub/chat/{chatRoomId}`
-          - **용도**: 전체 일정 생성 완료/취소 알림
-          - **메시지 타입**: `COMPLETED`, `CANCELLED`
+          - **용도**: 일정 생성 진행 상황 및 완료/취소 알림
+          - **메시지 타입**: AI 스트리밍 응답, `COMPLETED`, `CANCELLED`
+          - **설명**: AI가 일정을 생성하면서 실시간으로 채팅 메시지를 스트리밍합니다
+
+          ### 2. 일정 저장 알림 채널
+          - **경로**: `/user/sub/schedule/{tripPlanId}`
+          - **용도**: 일차별 일정(DailyPlan) 저장 완료 알림 및 데이터 전달
+          - **메시지 타입**: `DAILY_PLAN_GENERATED`
+          - **설명**: AI가 생성한 일정을 파싱하여 DailyPlan 엔티티로 저장하면, 저장된 일일 일정 데이터를 이 채널로 전송합니다
+          - **데이터**: 저장된 DailyPlan 객체 (dayNumber, activities, places 등 포함)
 
           ### 3. 에러 채널
           - **경로**: `/user/sub/errors/{chatRoomId}`

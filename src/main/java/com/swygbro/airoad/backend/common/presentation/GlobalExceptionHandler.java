@@ -134,8 +134,6 @@ public class GlobalExceptionHandler {
   /**
    * MissingRequestHeaderException을 처리합니다.
    *
-   * <p>필수 요청 헤더가 누락되었을 때 발생합니다. 특히 Authorization 헤더가 누락된 경우 401을 반환합니다.
-   *
    * @param e MissingRequestHeaderException
    * @param request HttpServletRequest
    * @return 에러 응답

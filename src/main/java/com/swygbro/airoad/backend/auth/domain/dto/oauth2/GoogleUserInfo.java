@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.auth.domain.info;
+package com.swygbro.airoad.backend.auth.domain.dto.oauth2;
 
 import java.util.Map;
 

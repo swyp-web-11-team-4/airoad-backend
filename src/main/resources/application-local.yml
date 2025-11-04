@@ -36,7 +36,7 @@ spring:
             client-secret: ${GOOGLE_CLIENT_SECRET}
             client-name: Google
             authorization-grant-type: authorization_code
-            redirect-uri: ${OAUTH2_BACKEND_REDIRECT_URI}
+            redirect-uri: ${SERVER_URL:http://localhost:8080}/login/oauth2/code/google
             scope:
               - email
               - profile
@@ -46,25 +46,16 @@ spring:
             token-uri: https://oauth2.googleapis.com/token
             user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
             user-name-attribute: sub
-
-jwt:
-  access-token-secret: ${ACCESS_TOKEN}
-  refresh-token-secret: ${REFRESH_TOKEN}
-  access-token-expiration: ${EXPIRATION_TIME}
-  refresh-token-expiration: ${EXPIRATION_DATE}
+        redirect:
+          base-url: ${OAUTH2_REDIRECT_URL:http://localhost:5173}
+          callback-path: ${OAUTH2_REDIRECT_PATH:/redirect}
+    jwt:
+      secret-key: ${JWT_SECRET_KEY}
+      access-token-validity: 60000 # 1분
+      refresh-token-validity: 300000 # 5분
 
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS}
-
-app:
-  oauth2:
-    redirect-uri: ${OAUTH2_FRONTEND_REDIRECT_URI}
-    access: ${ACCESS_TOKEN_REDIRECT_URI}
-    cookie:
-      auth-request-name: ${OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME}
-      redirect-uri-name: ${REDIRECT_URI_PARAM_COOKIE_NAME}
-      mode-name: ${MODE_PARAM_COOKIE_NAME}
-      expire-seconds: ${COOKIE_EXPIRE_SECONDS}
 
 springdoc:
   swagger-ui:
@@ -73,4 +64,4 @@ springdoc:
     enabled: true
 
 swagger:
-  url: http://localhost:8080
+  url: ${SERVER_URL:http://localhost:8080}

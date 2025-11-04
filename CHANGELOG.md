@@ -1,3 +1,10 @@
+## [0.10.1](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.10.0...v0.10.1) (2025-11-04)
+
+
+### Bug Fixes
+
+* OAuth2 로그인 성공 시 토큰 쿼리 파라미터에 포함되게 변경 ([#45](https://github.com/swyp-web-11-team-4/airoad-backend/issues/45)) ([b287dac](https://github.com/swyp-web-11-team-4/airoad-backend/commit/b287dac7427f17b63bc64c082b4b8ba260a3cf47))
+
 # [0.10.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.9.0...v0.10.0) (2025-11-01)
 
 

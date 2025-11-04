@@ -8,5 +8,11 @@ import com.swygbro.airoad.backend.auth.domain.entity.RefreshToken;
 
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> {
 
-  Optional<RefreshToken> findByMemberEmail(String email);
+  Optional<RefreshToken> findByEmail(String email);
+
+  Optional<RefreshToken> findByToken(String token);
+
+  void deleteByEmail(String email);
+
+  boolean existsByEmail(String email);
 }

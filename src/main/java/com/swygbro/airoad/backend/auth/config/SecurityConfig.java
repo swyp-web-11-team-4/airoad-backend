@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -16,6 +17,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.swygbro.airoad.backend.auth.application.CustomOAuth2UserService;
 import com.swygbro.airoad.backend.auth.filter.JwtAuthenticationFilter;
+import com.swygbro.airoad.backend.auth.presentation.web.JwtAuthenticationEntryPoint;
 import com.swygbro.airoad.backend.auth.presentation.web.OAuth2AuthenticationFailureHandler;
 import com.swygbro.airoad.backend.auth.presentation.web.OAuth2AuthenticationSuccessHandler;
 import com.swygbro.airoad.backend.member.domain.entity.MemberRole;
@@ -26,6 +28,7 @@ import static java.util.Arrays.asList;
 
 @Configuration
 @RequiredArgsConstructor
+@EnableWebSecurity
 public class SecurityConfig {
 
   @Value("${cors.allowed-origins}")
@@ -33,6 +36,7 @@ public class SecurityConfig {
 
   private final CustomOAuth2UserService customOAuth2UserService;
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
+  private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
   private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
   private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
 
@@ -63,6 +67,8 @@ public class SecurityConfig {
                     .successHandler(oAuth2AuthenticationSuccessHandler)
                     .failureHandler(oAuth2AuthenticationFailureHandler)
                     .userInfoEndpoint(config -> config.userService(customOAuth2UserService)))
+        .exceptionHandling(
+            exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();

@@ -3,11 +3,13 @@ package com.swygbro.airoad.backend.auth.presentation.web;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.swygbro.airoad.backend.auth.application.AuthUseCase;
+import com.swygbro.airoad.backend.auth.domain.dto.request.ReissueTokenRequest;
 import com.swygbro.airoad.backend.auth.domain.dto.response.TokenResponse;
 import com.swygbro.airoad.backend.common.domain.dto.CommonResponse;
 
@@ -28,8 +30,10 @@ public class AuthController {
 
   @PostMapping("/reissue")
   public ResponseEntity<CommonResponse<TokenResponse>> reissueToken(
-      @RequestHeader("Authorization") String refreshToken) {
-    TokenResponse tokenResponse = authUseCase.reissue(extractToken(refreshToken));
+      @RequestBody ReissueTokenRequest request) {
+    String refreshToken = extractToken(request.refreshToken());
+
+    TokenResponse tokenResponse = authUseCase.reissue(refreshToken);
 
     return ResponseEntity.ok(CommonResponse.success(HttpStatus.OK, tokenResponse));
   }

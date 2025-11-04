@@ -1,4 +1,3 @@
 package com.swygbro.airoad.backend.auth.domain.dto.request;
 
-public record ReissueTokenRequest() {
-}
+public record ReissueTokenRequest(String refreshToken) {}

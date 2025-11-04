@@ -77,8 +77,8 @@ class AuthControllerTest {
       mockMvc
           .perform(
               post("/api/v1/auth/reissue")
-                  .header("Authorization", BEARER_PREFIX + VALID_REFRESH_TOKEN)
-                  .contentType(MediaType.APPLICATION_JSON))
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content("{\"refreshToken\":\"" + VALID_REFRESH_TOKEN + "\"}"))
           .andDo(print())
           // then - 200 OK와 새로운 토큰 정보가 반환된다
           .andExpect(status().isOk())
@@ -109,8 +109,8 @@ class AuthControllerTest {
       mockMvc
           .perform(
               post("/api/v1/auth/reissue")
-                  .header("Authorization", BEARER_PREFIX + EXPIRED_REFRESH_TOKEN)
-                  .contentType(MediaType.APPLICATION_JSON))
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content("{\"refreshToken\":\"" + EXPIRED_REFRESH_TOKEN + "\"}"))
           .andDo(print())
           // then - 401 Unauthorized 에러가 반환된다
           .andExpect(status().isUnauthorized())
@@ -141,8 +141,8 @@ class AuthControllerTest {
       mockMvc
           .perform(
               post("/api/v1/auth/reissue")
-                  .header("Authorization", BEARER_PREFIX + INVALID_REFRESH_TOKEN)
-                  .contentType(MediaType.APPLICATION_JSON))
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content("{\"refreshToken\":\"" + INVALID_REFRESH_TOKEN + "\"}"))
           .andDo(print())
           // then - 401 Unauthorized 에러가 반환된다
           .andExpect(status().isUnauthorized())
@@ -171,8 +171,8 @@ class AuthControllerTest {
       mockMvc
           .perform(
               post("/api/v1/auth/reissue")
-                  .header("Authorization", BEARER_PREFIX + UNREGISTERED_REFRESH_TOKEN)
-                  .contentType(MediaType.APPLICATION_JSON))
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content("{\"refreshToken\":\"" + UNREGISTERED_REFRESH_TOKEN + "\"}"))
           .andDo(print())
           // then - 401 Unauthorized 에러가 반환된다
           .andExpect(status().isUnauthorized())

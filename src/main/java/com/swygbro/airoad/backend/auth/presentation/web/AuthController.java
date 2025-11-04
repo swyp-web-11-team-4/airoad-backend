@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,14 +27,14 @@ public class AuthController {
 
   @PostMapping("/reissue")
   public ResponseEntity<CommonResponse<TokenResponse>> reissueToken(
-      @Header("Authorization") String refreshToken) {
+      @RequestHeader("Authorization") String refreshToken) {
     TokenResponse tokenResponse = authUseCase.reissue(extractToken(refreshToken));
 
     return ResponseEntity.ok(CommonResponse.success(HttpStatus.OK, tokenResponse));
   }
 
   @PostMapping("/logout")
-  public ResponseEntity<Void> logout(@Header("Authorization") String accessToken) {
+  public ResponseEntity<Void> logout(@RequestHeader("Authorization") String accessToken) {
     authUseCase.logout(extractToken(accessToken));
 
     return ResponseEntity.noContent().build();

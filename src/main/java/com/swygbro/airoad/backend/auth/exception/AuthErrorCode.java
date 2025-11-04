@@ -10,10 +10,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum AuthErrorCode implements ErrorCode {
-  // Member 관련 에러
-  MEMBER_NOT_FOUND("MEMBER001", HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다."),
-  MEMBER_ALREADY_EXISTS("MEMBER002", HttpStatus.CONFLICT, "이미 존재하는 회원입니다."),
-  INVALID_MEMBER_INFO("MEMBER003", HttpStatus.BAD_REQUEST, "올바르지 않은 회원 정보입니다."),
+  // 인증 관련 에러
+  AUTHENTICATION_REQUIRED("AUTH011", HttpStatus.UNAUTHORIZED, "인증이 필요합니다. 로그인해주세요."),
 
   // JWT 토큰 관련 에러
   INVALID_TOKEN("AUTH001", HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),

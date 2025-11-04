@@ -1,18 +1,19 @@
 package com.swygbro.airoad.backend.auth.presentation.web;
 
-import com.swygbro.airoad.backend.auth.application.AuthUseCase;
-import com.swygbro.airoad.backend.auth.domain.dto.response.TokenResponse;
-import com.swygbro.airoad.backend.common.domain.dto.CommonResponse;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.swygbro.airoad.backend.auth.application.AuthUseCase;
+import com.swygbro.airoad.backend.auth.domain.dto.response.TokenResponse;
+import com.swygbro.airoad.backend.common.domain.dto.CommonResponse;
+
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
@@ -40,7 +41,7 @@ public class AuthController {
     return ResponseEntity.noContent().build();
   }
 
-  private String extractToken (String token){
+  private String extractToken(String token) {
     if (token != null && token.startsWith(BEARER_PREFIX)) {
       return token.substring(BEARER_PREFIX.length());
     }

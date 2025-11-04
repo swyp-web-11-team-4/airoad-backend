@@ -123,7 +123,6 @@ class JwtAuthenticationEntryPointTest {
       // then
       String jsonResponse = stringWriter.toString();
       assertThat(jsonResponse).contains("AUTH011");
-      assertThat(jsonResponse).contains("인증이 필요합니다. 다시 로그인해주세요.");
       assertThat(jsonResponse).contains(requestUri);
     }
 

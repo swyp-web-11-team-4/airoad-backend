@@ -18,15 +18,15 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import com.swygbro.airoad.backend.auth.application.JwtTokenProvider;
 import com.swygbro.airoad.backend.auth.application.UserDetailsServiceImpl;
-import com.swygbro.airoad.backend.auth.domain.entity.TokenType;
-import com.swygbro.airoad.backend.auth.filter.JwtTokenProvider;
 import com.swygbro.airoad.backend.chat.presentation.message.WebSocketErrorEventListener;
 import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
 import com.swygbro.airoad.backend.common.domain.event.WebSocketErrorEvent;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.common.exception.WebSocketErrorCode;
 
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -137,7 +137,7 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
    *
    * <ul>
    *   <li>{@link BusinessException} - 비즈니스 로직 예외
-   *   <li>{@link io.jsonwebtoken.JwtException} - JWT 파싱/검증 실패 (만료, 서명 불일치 등)
+   *   <li>{@link JwtException} - JWT 파싱/검증 실패 (만료, 서명 불일치 등)
    *   <li>{@link IllegalArgumentException} - 잘못된 인자 (null 토큰, 빈 클레임 등)
    *   <li>{@link Exception} - 기타 예상치 못한 예외
    * </ul>
@@ -157,9 +157,12 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
 
     try {
       // JWT 토큰 검증
-      jwtTokenProvider.validateAccessToken(token);
-      String email =
-          jwtTokenProvider.getClaimFromToken(token, "email", String.class, TokenType.ACCESS_TOKEN);
+      if (!jwtTokenProvider.validateToken(token)) {
+        log.error("[WebSocket] JWT 검증 실패 - token: {}", token);
+        throw new BusinessException(WebSocketErrorCode.UNAUTHORIZED_CONNECTION);
+      }
+
+      String email = jwtTokenProvider.getEmailFromToken(token);
 
       // Principal 설정
       UserDetails userDetails = userDetailsService.loadUserByUsername(email);
@@ -173,7 +176,7 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
     } catch (BusinessException e) {
       log.error("[WebSocket] JWT 검증 실패 (BusinessException): {}", e.getMessage());
       throw new BusinessException(WebSocketErrorCode.UNAUTHORIZED_CONNECTION);
-    } catch (io.jsonwebtoken.JwtException e) {
+    } catch (JwtException e) {
       log.error("[WebSocket] JWT 파싱/검증 실패 (JwtException): {}", e.getMessage());
       throw new BusinessException(WebSocketErrorCode.UNAUTHORIZED_CONNECTION);
     } catch (IllegalArgumentException e) {

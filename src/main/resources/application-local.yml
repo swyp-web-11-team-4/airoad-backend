@@ -51,7 +51,7 @@ spring:
           callback-path: ${OAUTH2_REDIRECT_PATH:/redirect}
     jwt:
       secret-key: ${JWT_SECRET_KEY}
-      access-token-validity: 1000 # 10초
+      access-token-validity: 60000 # 1분
       refresh-token-validity: 300000 # 5분
 
 cors:

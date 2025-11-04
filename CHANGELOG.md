@@ -1,3 +1,24 @@
+# [0.11.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.10.1...v0.11.0) (2025-11-04)
+
+
+### Bug Fixes
+
+* TripPlan 생성 시 transportation 필드 초기화 ([47490d0](https://github.com/swyp-web-11-team-4/airoad-backend/commit/47490d02592889d4e50d65da89ff1357757bb16f))
+
+
+### Features
+
+* TripPlanCreateRequest에 validation 어노테이션 추가 ([5dc330e](https://github.com/swyp-web-11-team-4/airoad-backend/commit/5dc330e705c3b0317fc1df47130a92590bd10e46))
+* 여행 일정 생성 API 엔드포인트 추가 ([07c5650](https://github.com/swyp-web-11-team-4/airoad-backend/commit/07c5650c8f5cc156a894cbc82e446d17310497c6))
+* 여행 일정 생성 비즈니스 로직 구현 ([e6fb5b7](https://github.com/swyp-web-11-team-4/airoad-backend/commit/e6fb5b7453dcedaceba695c1148822427156057b))
+
+## [0.10.1](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.10.0...v0.10.1) (2025-11-04)
+
+
+### Bug Fixes
+
+* OAuth2 로그인 성공 시 토큰 쿼리 파라미터에 포함되게 변경 ([#45](https://github.com/swyp-web-11-team-4/airoad-backend/issues/45)) ([b287dac](https://github.com/swyp-web-11-team-4/airoad-backend/commit/b287dac7427f17b63bc64c082b4b8ba260a3cf47))
+
 # [0.10.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.9.0...v0.10.0) (2025-11-01)
 
 

@@ -4,6 +4,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageRequest;
 import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageResponse;
@@ -65,7 +66,7 @@ public class AiMessageService implements AiMessageUseCase {
       log.warn("[Message] TEXT 타입이 아닌 메시지는 현재 지원하지 않습니다 - type: {}", request.messageContentType());
       throw new BusinessException(ChatErrorCode.INVALID_MESSAGE_FORMAT);
     }
-    if (!org.springframework.util.StringUtils.hasText(request.content())) {
+    if (!StringUtils.hasText(request.content())) {
       log.warn("[Message] 빈 메시지는 허용되지 않습니다");
       throw new BusinessException(ChatErrorCode.INVALID_MESSAGE_FORMAT);
     }
@@ -76,10 +77,10 @@ public class AiMessageService implements AiMessageUseCase {
       log.warn("[Message] 여행 계획 id 없음");
       throw new BusinessException(ChatErrorCode.INVALID_CONVERSATION_FORMAT);
     }
-    AiChatGenerationRequestedEvent AiChatGenerationRequestedEvent =
+    AiChatGenerationRequestedEvent aiChatGenerationRequestedEvent =
         new AiChatGenerationRequestedEvent(chatRoomId, tripPlanId, username, request.content());
 
-    eventPublisher.publishEvent(AiChatGenerationRequestedEvent);
+    eventPublisher.publishEvent(aiChatGenerationRequestedEvent);
 
     log.debug("[Message] AI 요청 이벤트 발행 완료 - chatRoomId: {}, tripPlanId: {}", chatRoomId, tripPlanId);
   }

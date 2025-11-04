@@ -46,7 +46,9 @@ import lombok.extern.slf4j.Slf4j;
  *
  * <ul>
  *   <li>Principal null 체크
- *   <li>구독 경로 검증 (/user/sub/chat/*, /user/sub/schedule/*, /user/sub/errors/*만 허용)
+ *   <li>구독 경로 검증 (허용 패턴: {@code ^(/user)?/sub/(chat|schedule|errors)/\d+$})
+ *   <li>허용 경로: /user/sub/chat/*, /user/sub/schedule/*, /user/sub/errors/* (클라이언트)
+ *   <li>허용 경로: /sub/chat/*, /sub/schedule/*, /sub/errors/* (서버 내부 변환)
  * </ul>
  *
  * <h3>SEND</h3>
@@ -191,6 +193,17 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
   /**
    * STOMP SUBSCRIBE 처리 - 사용자 인증 및 구독 권한 검증
    *
+   * <p>허용되는 구독 경로:
+   *
+   * <ul>
+   *   <li>/user/sub/chat/{chatRoomId} - 사용자별 채팅 채널 (클라이언트 구독 시)
+   *   <li>/user/sub/schedule/{tripPlanId} - 사용자별 일정 생성 채널 (클라이언트 구독 시)
+   *   <li>/user/sub/errors/{chatRoomId} - 사용자별 에러 채널 (클라이언트 구독 시)
+   *   <li>/sub/chat/{chatRoomId} - 채팅 채널 (서버 내부 변환 후)
+   *   <li>/sub/schedule/{tripPlanId} - 일정 생성 채널 (서버 내부 변환 후)
+   *   <li>/sub/errors/{chatRoomId} - 에러 채널 (서버 내부 변환 후)
+   * </ul>
+   *
    * @param accessor STOMP 헤더 접근자
    */
   private void handleSubscribe(StompHeaderAccessor accessor) {
@@ -206,11 +219,10 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
 
     log.debug("[WebSocket] SUBSCRIBE 요청 - destination: {}", destination);
 
-    // 구독 경로 검증 (에러 채널과 사용자별 채널만 허용)
-    if (destination != null
-        && !destination.startsWith("/user/sub/chat/")
-        && !destination.startsWith("/user/sub/schedule/")
-        && !destination.startsWith("/user/sub/errors/")) {
+    // 구독 경로 검증
+    // /user prefix 있든 없든 모두 허용 (Spring이 내부적으로 변환)
+    // 허용 패턴: /sub/{채널타입}/{ID} 또는 /user/sub/{채널타입}/{ID}
+    if (destination != null && !destination.matches("^(/user)?/sub/(chat|schedule|errors)/\\d+$")) {
       log.error("[WebSocket] 허용되지 않은 구독 경로, destination: {}", destination);
       throw new BusinessException(WebSocketErrorCode.FORBIDDEN_SUBSCRIPTION);
     }

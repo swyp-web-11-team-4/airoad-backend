@@ -1,3 +1,10 @@
+## [0.11.1](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.11.0...v0.11.1) (2025-11-04)
+
+
+### Bug Fixes
+
+* OAuth2 로그인 및 JWT 인증 프로세스 개선 ([#46](https://github.com/swyp-web-11-team-4/airoad-backend/issues/46)) ([0c7fba3](https://github.com/swyp-web-11-team-4/airoad-backend/commit/0c7fba31cd1651c16570b9647938955a3f9dfe95))
+
 # [0.11.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.10.1...v0.11.0) (2025-11-04)
 
 

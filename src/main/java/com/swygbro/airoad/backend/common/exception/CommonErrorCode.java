@@ -16,6 +16,7 @@ public enum CommonErrorCode implements ErrorCode {
   INVALID_INPUT("COMMON001", HttpStatus.BAD_REQUEST, "잘못된 입력값입니다."),
   INVALID_TYPE("COMMON002", HttpStatus.BAD_REQUEST, "잘못된 데이터 타입입니다."),
   MISSING_PARAMETER("COMMON003", HttpStatus.BAD_REQUEST, "필수 파라미터가 누락되었습니다."),
+  MISSING_HEADER("COMMON004", HttpStatus.BAD_REQUEST, "필수 헤더가 누락되었습니다"),
 
   UNAUTHORIZED("COMMON401", HttpStatus.UNAUTHORIZED, "인증이 필요합니다."),
   FORBIDDEN("COMMON403", HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),

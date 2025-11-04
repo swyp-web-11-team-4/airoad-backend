@@ -21,10 +21,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
-import com.swygbro.airoad.backend.auth.application.OAuthLoginSuccessHandler;
+import com.swygbro.airoad.backend.auth.application.JwtTokenProvider;
 import com.swygbro.airoad.backend.auth.application.UserDetailsServiceImpl;
-import com.swygbro.airoad.backend.auth.domain.info.UserPrincipal;
-import com.swygbro.airoad.backend.auth.filter.JwtTokenProvider;
+import com.swygbro.airoad.backend.auth.domain.dto.UserPrincipal;
+import com.swygbro.airoad.backend.auth.infrastructure.RefreshTokenRepository;
+import com.swygbro.airoad.backend.auth.presentation.web.OAuth2AuthenticationSuccessHandler;
 import com.swygbro.airoad.backend.chat.application.AiMessageService;
 import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageResponse;
 import com.swygbro.airoad.backend.chat.domain.dto.MessageContentType;
@@ -63,13 +64,18 @@ class AiConversationControllerTest {
     }
 
     @Bean
-    public OAuthLoginSuccessHandler oAuthLoginSuccessHandler() {
-      return mock(OAuthLoginSuccessHandler.class);
+    public OAuth2AuthenticationSuccessHandler oAuthLoginSuccessHandler() {
+      return mock(OAuth2AuthenticationSuccessHandler.class);
     }
 
     @Bean
     public SimpMessagingTemplate simpMessagingTemplate() {
       return mock(SimpMessagingTemplate.class);
+    }
+
+    @Bean
+    public RefreshTokenRepository refreshTokenRepository() {
+      return mock(RefreshTokenRepository.class);
     }
   }
 

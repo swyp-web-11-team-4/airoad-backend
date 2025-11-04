@@ -13,7 +13,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import com.swygbro.airoad.backend.auth.domain.info.UserPrincipal;
+import com.swygbro.airoad.backend.auth.domain.dto.UserPrincipal;
 import com.swygbro.airoad.backend.common.presentation.GlobalExceptionHandler;
 import com.swygbro.airoad.backend.member.application.MemberUseCase;
 import com.swygbro.airoad.backend.member.domain.dto.MemberResponse;

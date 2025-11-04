@@ -10,6 +10,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -122,6 +123,30 @@ public class GlobalExceptionHandler {
         ErrorResponse.of(
             CommonErrorCode.MISSING_PARAMETER.getCode(),
             String.format("필수 파라미터 '%s'가 누락되었습니다.", e.getParameterName()),
+            request.getRequestURI());
+
+    CommonResponse<ErrorResponse> response =
+        CommonResponse.error(HttpStatus.BAD_REQUEST, errorResponse);
+
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+  }
+
+  /**
+   * MissingRequestHeaderException을 처리합니다.
+   *
+   * @param e MissingRequestHeaderException
+   * @param request HttpServletRequest
+   * @return 에러 응답
+   */
+  @ExceptionHandler(MissingRequestHeaderException.class)
+  public ResponseEntity<CommonResponse<ErrorResponse>> handleMissingRequestHeaderException(
+      MissingRequestHeaderException e, HttpServletRequest request) {
+    log.warn("Missing request header: {}", e.getMessage());
+
+    ErrorResponse errorResponse =
+        ErrorResponse.of(
+            CommonErrorCode.MISSING_HEADER.getCode(),
+            String.format("필수 헤더 '%s'가 누락되었습니다.", e.getHeaderName()),
             request.getRequestURI());
 
     CommonResponse<ErrorResponse> response =

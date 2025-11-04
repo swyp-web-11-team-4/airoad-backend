@@ -18,15 +18,15 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import com.swygbro.airoad.backend.auth.application.JwtTokenProvider;
 import com.swygbro.airoad.backend.auth.application.UserDetailsServiceImpl;
-import com.swygbro.airoad.backend.auth.domain.entity.TokenType;
-import com.swygbro.airoad.backend.auth.filter.JwtTokenProvider;
 import com.swygbro.airoad.backend.chat.presentation.message.WebSocketErrorEventListener;
 import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
 import com.swygbro.airoad.backend.common.domain.event.WebSocketErrorEvent;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.common.exception.WebSocketErrorCode;
 
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,7 +46,9 @@ import lombok.extern.slf4j.Slf4j;
  *
  * <ul>
  *   <li>Principal null 체크
- *   <li>구독 경로 검증 (/user/sub/chat/*, /user/sub/schedule/*, /user/sub/errors/*만 허용)
+ *   <li>구독 경로 검증 (허용 패턴: {@code ^(/user)?/sub/(chat|schedule|errors)/\d+$})
+ *   <li>허용 경로: /user/sub/chat/*, /user/sub/schedule/*, /user/sub/errors/* (클라이언트)
+ *   <li>허용 경로: /sub/chat/*, /sub/schedule/*, /sub/errors/* (서버 내부 변환)
  * </ul>
  *
  * <h3>SEND</h3>
@@ -137,7 +139,7 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
    *
    * <ul>
    *   <li>{@link BusinessException} - 비즈니스 로직 예외
-   *   <li>{@link io.jsonwebtoken.JwtException} - JWT 파싱/검증 실패 (만료, 서명 불일치 등)
+   *   <li>{@link JwtException} - JWT 파싱/검증 실패 (만료, 서명 불일치 등)
    *   <li>{@link IllegalArgumentException} - 잘못된 인자 (null 토큰, 빈 클레임 등)
    *   <li>{@link Exception} - 기타 예상치 못한 예외
    * </ul>
@@ -157,9 +159,12 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
 
     try {
       // JWT 토큰 검증
-      jwtTokenProvider.validateAccessToken(token);
-      String email =
-          jwtTokenProvider.getClaimFromToken(token, "email", String.class, TokenType.ACCESS_TOKEN);
+      if (!jwtTokenProvider.validateToken(token)) {
+        log.error("[WebSocket] JWT 검증 실패 - token: {}", token);
+        throw new BusinessException(WebSocketErrorCode.UNAUTHORIZED_CONNECTION);
+      }
+
+      String email = jwtTokenProvider.getEmailFromToken(token);
 
       // Principal 설정
       UserDetails userDetails = userDetailsService.loadUserByUsername(email);
@@ -173,7 +178,7 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
     } catch (BusinessException e) {
       log.error("[WebSocket] JWT 검증 실패 (BusinessException): {}", e.getMessage());
       throw new BusinessException(WebSocketErrorCode.UNAUTHORIZED_CONNECTION);
-    } catch (io.jsonwebtoken.JwtException e) {
+    } catch (JwtException e) {
       log.error("[WebSocket] JWT 파싱/검증 실패 (JwtException): {}", e.getMessage());
       throw new BusinessException(WebSocketErrorCode.UNAUTHORIZED_CONNECTION);
     } catch (IllegalArgumentException e) {
@@ -187,6 +192,17 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
 
   /**
    * STOMP SUBSCRIBE 처리 - 사용자 인증 및 구독 권한 검증
+   *
+   * <p>허용되는 구독 경로:
+   *
+   * <ul>
+   *   <li>/user/sub/chat/{chatRoomId} - 사용자별 채팅 채널 (클라이언트 구독 시)
+   *   <li>/user/sub/schedule/{tripPlanId} - 사용자별 일정 생성 채널 (클라이언트 구독 시)
+   *   <li>/user/sub/errors/{chatRoomId} - 사용자별 에러 채널 (클라이언트 구독 시)
+   *   <li>/sub/chat/{chatRoomId} - 채팅 채널 (서버 내부 변환 후)
+   *   <li>/sub/schedule/{tripPlanId} - 일정 생성 채널 (서버 내부 변환 후)
+   *   <li>/sub/errors/{chatRoomId} - 에러 채널 (서버 내부 변환 후)
+   * </ul>
    *
    * @param accessor STOMP 헤더 접근자
    */
@@ -203,11 +219,10 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
 
     log.debug("[WebSocket] SUBSCRIBE 요청 - destination: {}", destination);
 
-    // 구독 경로 검증 (에러 채널과 사용자별 채널만 허용)
-    if (destination != null
-        && !destination.startsWith("/user/sub/chat/")
-        && !destination.startsWith("/user/sub/schedule/")
-        && !destination.startsWith("/user/sub/errors/")) {
+    // 구독 경로 검증
+    // /user prefix 있든 없든 모두 허용 (Spring이 내부적으로 변환)
+    // 허용 패턴: /sub/{채널타입}/{ID} 또는 /user/sub/{채널타입}/{ID}
+    if (destination != null && !destination.matches("^(/user)?/sub/(chat|schedule|errors)/\\d+$")) {
       log.error("[WebSocket] 허용되지 않은 구독 경로, destination: {}", destination);
       throw new BusinessException(WebSocketErrorCode.FORBIDDEN_SUBSCRIPTION);
     }

@@ -4,13 +4,9 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 import com.swygbro.airoad.backend.common.domain.entity.BaseEntity;
-import com.swygbro.airoad.backend.member.domain.entity.Member;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -19,20 +15,30 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "refresh_tokens")
+@Table(name = "refresh_token")
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class RefreshToken extends BaseEntity {
 
-  @Column(nullable = false, unique = true, length = 500)
+  @Column(nullable = false, unique = true)
+  private String email;
+
+  @Column(nullable = false, unique = true)
   private String token;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(nullable = false)
-  private Member member;
-
   @Column(nullable = false)
-  private LocalDateTime expiryDate;
+  private LocalDateTime expiresAt;
+
+  /** 토큰 업데이트 */
+  public void updateToken(String token, LocalDateTime expiresAt) {
+    this.token = token;
+    this.expiresAt = expiresAt;
+  }
+
+  /** 토큰 만료 여부 확인 */
+  public boolean isExpired() {
+    return LocalDateTime.now().isAfter(expiresAt);
+  }
 }

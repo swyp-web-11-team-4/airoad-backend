@@ -38,7 +38,7 @@ class TripPlanNotificationListenerTest {
   class HandleDailyPlanSavedTests {
 
     @Test
-    @DisplayName("WebSocket으로 일정 생성 진행 상황을 전송한다")
+    @DisplayName("WebSocket을 통해 일정 생성 채널로 일정 데이터를 전송한다")
     void WebSocket으로_일정_생성_진행_상황_전송() {
       // given
       DailyPlanResponse dailyPlan =
@@ -65,7 +65,7 @@ class TripPlanNotificationListenerTest {
       ArgumentCaptor<TripPlanProgressMessage> messageCaptor =
           ArgumentCaptor.forClass(TripPlanProgressMessage.class);
       verify(messagingTemplate)
-          .convertAndSend(eq("/sub/chatroom/1/trip-progress"), messageCaptor.capture());
+          .convertAndSendToUser(eq("testUser"), eq("/sub/schedule/100"), messageCaptor.capture());
 
       TripPlanProgressMessage message = messageCaptor.getValue();
       assertThat(message.type())
@@ -80,7 +80,7 @@ class TripPlanNotificationListenerTest {
   class HandleTripPlanGenerationCompletedTests {
 
     @Test
-    @DisplayName("WebSocket으로 완료 메시지를 전송한다")
+    @DisplayName("WebSocket을 통해 채팅 채널로 완료 메시지를 전송한다")
     void WebSocket으로_완료_메시지_전송() {
       // given
       String username = "testUser";
@@ -100,7 +100,7 @@ class TripPlanNotificationListenerTest {
       ArgumentCaptor<TripPlanProgressMessage> messageCaptor =
           ArgumentCaptor.forClass(TripPlanProgressMessage.class);
       verify(messagingTemplate)
-          .convertAndSend(eq("/sub/chatroom/1/trip-progress"), messageCaptor.capture());
+          .convertAndSendToUser(eq("testUser"), eq("/sub/chat/1"), messageCaptor.capture());
 
       TripPlanProgressMessage message = messageCaptor.getValue();
       assertThat(message.type()).isEqualTo(TripPlanProgressMessage.MessageType.COMPLETED);
@@ -114,7 +114,7 @@ class TripPlanNotificationListenerTest {
   class HandleTripPlanGenerationErrorTests {
 
     @Test
-    @DisplayName("WebSocket으로 에러 메시지를 전송한다")
+    @DisplayName("WebSocket을 통해 에러 채널로 오류 메시지를 전송한다")
     void WebSocket으로_에러_메시지_전송() {
       // given
       String username = "testUser";
@@ -134,7 +134,7 @@ class TripPlanNotificationListenerTest {
       ArgumentCaptor<TripPlanProgressMessage> messageCaptor =
           ArgumentCaptor.forClass(TripPlanProgressMessage.class);
       verify(messagingTemplate)
-          .convertAndSend(eq("/sub/chatroom/1/trip-progress"), messageCaptor.capture());
+          .convertAndSendToUser(eq("testUser"), eq("/sub/errors/1"), messageCaptor.capture());
 
       TripPlanProgressMessage message = messageCaptor.getValue();
       assertThat(message.type()).isEqualTo(TripPlanProgressMessage.MessageType.ERROR);
@@ -148,7 +148,7 @@ class TripPlanNotificationListenerTest {
   class HandleTripPlanGenerationCancelledTests {
 
     @Test
-    @DisplayName("WebSocket으로 취소 메시지를 전송한다")
+    @DisplayName("WebSocket을 통해 채팅 채널로 취소 메시지를 전송한다")
     void WebSocket으로_취소_메시지_전송() {
       // given
       String username = "testUser";
@@ -168,7 +168,7 @@ class TripPlanNotificationListenerTest {
       ArgumentCaptor<TripPlanProgressMessage> messageCaptor =
           ArgumentCaptor.forClass(TripPlanProgressMessage.class);
       verify(messagingTemplate)
-          .convertAndSend(eq("/sub/chatroom/1/trip-progress"), messageCaptor.capture());
+          .convertAndSendToUser(eq("testUser"), eq("/sub/chat/1"), messageCaptor.capture());
 
       TripPlanProgressMessage message = messageCaptor.getValue();
       assertThat(message.type()).isEqualTo(TripPlanProgressMessage.MessageType.CANCELLED);

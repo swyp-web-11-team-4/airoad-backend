@@ -41,17 +41,17 @@ import lombok.extern.slf4j.Slf4j;
  * <h3>메시지 구독 (Server → Client)</h3>
  *
  * <ul>
- *   <li><strong>채팅 응답</strong>: {@code /user/sub/chat/{tripPlanId}}
+ *   <li><strong>채팅 응답</strong>: {@code /user/sub/chat/{chatRoomId}}
  *   <li><strong>일정 응답</strong>: {@code /user/sub/schedule/{tripPlanId}}
  *   <li><strong>페이로드</strong>: {@link
  *       com.swygbro.airoad.backend.chat.domain.dto.ChatMessageResponse}
- *   <li><strong>설명</strong>: tripPlanId별로 구분된 AI 응답을 실시간으로 수신 (사용자 email 기반 라우팅)
+ *   <li><strong>설명</strong>: chatRoomId별로 구분된 AI 채팅 응답을 실시간으로 수신 (사용자 email 기반 라우팅)
  * </ul>
  *
  * <h3>에러 메시지 구독 (Server → Client)</h3>
  *
  * <ul>
- *   <li><strong>경로</strong>: {@code /user/sub/errors}
+ *   <li><strong>경로</strong>: {@code /user/sub/errors/{chatRoomId}}
  *   <li><strong>페이로드</strong>: {@link com.swygbro.airoad.backend.common.domain.dto.ErrorResponse}
  *   <li><strong>설명</strong>: WebSocket 메시지 처리 중 발생한 에러를 실시간으로 수신 ({@link WebSocketExceptionHandler}
  *       참조)
@@ -77,7 +77,7 @@ import lombok.extern.slf4j.Slf4j;
  *     });
  *
  *     // 4. 에러 구독
- *     stompClient.subscribe('/user/sub/errors', function(error) {
+ *     stompClient.subscribe('/user/sub/errors/1', function(error) {
  *         const errorResponse = JSON.parse(error.body);
  *         console.error('Error:', errorResponse);
  *     });

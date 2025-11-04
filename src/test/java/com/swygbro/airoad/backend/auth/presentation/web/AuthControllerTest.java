@@ -1,25 +1,16 @@
 package com.swygbro.airoad.backend.auth.presentation.web;
 
-import jakarta.servlet.http.HttpServletRequest;
-
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.bind.support.WebDataBinderFactory;
-import org.springframework.web.context.request.NativeWebRequest;
-import org.springframework.web.method.support.HandlerMethodArgumentResolver;
-import org.springframework.web.method.support.ModelAndViewContainer;
 
 import com.swygbro.airoad.backend.auth.application.AuthUseCase;
 import com.swygbro.airoad.backend.auth.domain.dto.response.TokenResponse;
@@ -32,7 +23,8 @@ import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
@@ -45,10 +37,11 @@ class AuthControllerTest {
 
   private MockMvc mockMvc;
 
-  private static final String VALID_REFRESH_TOKEN = "Bearer valid.refresh.token";
-  private static final String INVALID_REFRESH_TOKEN = "Bearer invalid.refresh.token";
-  private static final String EXPIRED_REFRESH_TOKEN = "Bearer expired.refresh.token";
-  private static final String UNREGISTERED_REFRESH_TOKEN = "Bearer unregistered.refresh.token";
+  private static final String BEARER_PREFIX = "Bearer ";
+  private static final String VALID_REFRESH_TOKEN = "valid.refresh.token";
+  private static final String INVALID_REFRESH_TOKEN = "invalid.refresh.token";
+  private static final String EXPIRED_REFRESH_TOKEN = "expired.refresh.token";
+  private static final String UNREGISTERED_REFRESH_TOKEN = "unregistered.refresh.token";
 
   private static final String NEW_ACCESS_TOKEN = "new.access.token";
   private static final String NEW_REFRESH_TOKEN = "new.refresh.token";
@@ -59,37 +52,7 @@ class AuthControllerTest {
     mockMvc =
         MockMvcBuilders.standaloneSetup(authController)
             .setControllerAdvice(new GlobalExceptionHandler())
-            .setCustomArgumentResolvers(
-                new AuthenticationPrincipalArgumentResolver(), new HeaderArgumentResolver())
             .build();
-  }
-
-  /**
-   * @Header 어노테이션을 처리하기 위한 커스텀 ArgumentResolver HTTP 헤더를 메서드 파라미터로 주입
-   */
-  private static class HeaderArgumentResolver implements HandlerMethodArgumentResolver {
-
-    @Override
-    public boolean supportsParameter(MethodParameter parameter) {
-      return parameter.hasParameterAnnotation(Header.class);
-    }
-
-    @Override
-    public Object resolveArgument(
-        MethodParameter parameter,
-        ModelAndViewContainer mavContainer,
-        NativeWebRequest webRequest,
-        WebDataBinderFactory binderFactory) {
-      Header headerAnnotation = parameter.getParameterAnnotation(Header.class);
-      if (headerAnnotation != null) {
-        String headerName = headerAnnotation.value();
-        HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
-        if (request != null) {
-          return request.getHeader(headerName);
-        }
-      }
-      return null;
-    }
   }
 
   @AfterEach
@@ -114,7 +77,7 @@ class AuthControllerTest {
       mockMvc
           .perform(
               post("/api/v1/auth/reissue")
-                  .header("Authorization", VALID_REFRESH_TOKEN)
+                  .header("Authorization", BEARER_PREFIX + VALID_REFRESH_TOKEN)
                   .contentType(MediaType.APPLICATION_JSON))
           .andDo(print())
           // then - 200 OK와 새로운 토큰 정보가 반환된다
@@ -146,7 +109,7 @@ class AuthControllerTest {
       mockMvc
           .perform(
               post("/api/v1/auth/reissue")
-                  .header("Authorization", EXPIRED_REFRESH_TOKEN)
+                  .header("Authorization", BEARER_PREFIX + EXPIRED_REFRESH_TOKEN)
                   .contentType(MediaType.APPLICATION_JSON))
           .andDo(print())
           // then - 401 Unauthorized 에러가 반환된다
@@ -178,7 +141,7 @@ class AuthControllerTest {
       mockMvc
           .perform(
               post("/api/v1/auth/reissue")
-                  .header("Authorization", INVALID_REFRESH_TOKEN)
+                  .header("Authorization", BEARER_PREFIX + INVALID_REFRESH_TOKEN)
                   .contentType(MediaType.APPLICATION_JSON))
           .andDo(print())
           // then - 401 Unauthorized 에러가 반환된다
@@ -208,7 +171,7 @@ class AuthControllerTest {
       mockMvc
           .perform(
               post("/api/v1/auth/reissue")
-                  .header("Authorization", UNREGISTERED_REFRESH_TOKEN)
+                  .header("Authorization", BEARER_PREFIX + UNREGISTERED_REFRESH_TOKEN)
                   .contentType(MediaType.APPLICATION_JSON))
           .andDo(print())
           // then - 401 Unauthorized 에러가 반환된다
@@ -232,13 +195,13 @@ class AuthControllerTest {
     @DisplayName("204 NO_CONTENT가 반환되고 응답 본문이 비어있다")
     void returnsOkWithEmptyBody() throws Exception {
       // given - 인증된 사용자 설정
-      String accessToken = "Bearer " + "test-access-token";
+      String accessToken = "test-access-token";
 
       // when - 로그아웃 요청 실행
       mockMvc
           .perform(
               post("/api/v1/auth/logout")
-                  .header("Authorization", accessToken)
+                  .header("Authorization", BEARER_PREFIX + accessToken)
                   .contentType(MediaType.APPLICATION_JSON))
           .andDo(print())
           // then - 204 NO_CONTENT가 반환되고 응답 본문이 비어있다

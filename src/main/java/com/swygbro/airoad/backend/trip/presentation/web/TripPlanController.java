@@ -392,7 +392,7 @@ public class TripPlanController {
                 }
                 """)))
   })
-  @PostMapping("/generate")
+  @PostMapping("")
   public ResponseEntity<CommonResponse<Object>> generateTripPlan(
       @AuthenticationPrincipal UserPrincipal userPrincipal,
       @Parameter(description = "채팅방 ID", example = "1", required = true) @RequestParam

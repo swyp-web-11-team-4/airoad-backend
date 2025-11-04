@@ -2,6 +2,7 @@ package com.swygbro.airoad.backend.trip.application;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
@@ -16,9 +17,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.swygbro.airoad.backend.common.exception.BusinessException;
+import com.swygbro.airoad.backend.fixture.member.MemberFixture;
+import com.swygbro.airoad.backend.fixture.trip.TripPlanFixture;
 import com.swygbro.airoad.backend.member.domain.entity.Member;
-import com.swygbro.airoad.backend.member.domain.entity.MemberRole;
-import com.swygbro.airoad.backend.member.domain.entity.ProviderType;
 import com.swygbro.airoad.backend.member.exception.MemberErrorCode;
 import com.swygbro.airoad.backend.member.infrastructure.MemberRepository;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
@@ -56,33 +57,17 @@ class TripServiceTest {
       String username = "test@naver.com";
       Long chatRoomId = 1L;
 
-      Member member =
-          Member.builder()
-              .email(username)
-              .name("테스트")
-              .imageUrl("https://example.com/image.jpg")
-              .provider(ProviderType.GOOGLE)
-              .role(MemberRole.MEMBER)
-              .build();
+      Member member = MemberFixture.create();
+
+      TripPlan savedTripPlan = TripPlanFixture.create();
 
       TripPlanCreateRequest request =
           TripPlanCreateRequest.builder()
-              .region("제주")
-              .startDate(LocalDate.of(2025, 3, 1))
-              .duration(3)
-              .themes(List.of("힐링", "맛집"))
-              .peopleCount(2)
-              .build();
-
-      TripPlan savedTripPlan =
-          TripPlan.builder()
-              .member(member)
-              .title("제주 여행")
-              .startDate(LocalDate.of(2025, 3, 1))
-              .endDate(LocalDate.of(2025, 3, 3))
-              .isCompleted(false)
-              .region("제주")
-              .peopleCount(2)
+              .region(savedTripPlan.getRegion())
+              .startDate(savedTripPlan.getStartDate())
+              .duration(4) // 3박 4일 (2025-12-01 ~ 2025-12-04)
+              .themes(savedTripPlan.getTripThemes().stream().map(Objects::toString).toList())
+              .peopleCount(savedTripPlan.getPeopleCount())
               .build();
 
       given(memberRepository.findByEmail(username)).willReturn(Optional.of(member));
@@ -98,12 +83,12 @@ class TripServiceTest {
 
       TripPlan capturedTripPlan = tripPlanCaptor.getValue();
       assertThat(capturedTripPlan.getMember()).isEqualTo(member);
-      assertThat(capturedTripPlan.getTitle()).isEqualTo("제주 여행");
-      assertThat(capturedTripPlan.getStartDate()).isEqualTo(LocalDate.of(2025, 3, 1));
-      assertThat(capturedTripPlan.getEndDate()).isEqualTo(LocalDate.of(2025, 3, 3));
+      assertThat(capturedTripPlan.getTitle()).isEqualTo("서울 여행"); // region + " 여행"
+      assertThat(capturedTripPlan.getStartDate()).isEqualTo(savedTripPlan.getStartDate());
+      assertThat(capturedTripPlan.getEndDate()).isEqualTo(savedTripPlan.getEndDate());
       assertThat(capturedTripPlan.getIsCompleted()).isFalse();
-      assertThat(capturedTripPlan.getRegion()).isEqualTo("제주");
-      assertThat(capturedTripPlan.getPeopleCount()).isEqualTo(2);
+      assertThat(capturedTripPlan.getRegion()).isEqualTo(savedTripPlan.getRegion());
+      assertThat(capturedTripPlan.getPeopleCount()).isEqualTo(savedTripPlan.getPeopleCount());
 
       // 이벤트 발행 검증
       ArgumentCaptor<TripPlanGenerationRequestedEvent> eventCaptor =
@@ -157,33 +142,17 @@ class TripServiceTest {
       String username = "test@naver.com";
       Long chatRoomId = 1L;
 
-      Member member =
-          Member.builder()
-              .email(username)
-              .name("테스트")
-              .imageUrl("https://example.com/image.jpg")
-              .provider(ProviderType.GOOGLE)
-              .role(MemberRole.MEMBER)
-              .build();
+      Member member = MemberFixture.create();
+
+      TripPlan savedTripPlan = TripPlanFixture.create();
 
       TripPlanCreateRequest request =
           TripPlanCreateRequest.builder()
-              .region("부산")
-              .startDate(LocalDate.of(2025, 4, 10))
-              .duration(5) // 4박 5일
-              .themes(List.of("액티비티"))
-              .peopleCount(4)
-              .build();
-
-      TripPlan savedTripPlan =
-          TripPlan.builder()
-              .member(member)
-              .title("부산 여행")
-              .startDate(LocalDate.of(2025, 4, 10))
-              .endDate(LocalDate.of(2025, 4, 14)) // 4월 10일 + 5일 - 1일 = 4월 14일
-              .isCompleted(false)
-              .region("부산")
-              .peopleCount(4)
+              .region(savedTripPlan.getRegion())
+              .startDate(savedTripPlan.getStartDate())
+              .duration(4) // 3박 4일 (2025-12-01 ~ 2025-12-04)
+              .themes(savedTripPlan.getTripThemes().stream().map(Objects::toString).toList())
+              .peopleCount(savedTripPlan.getPeopleCount())
               .build();
 
       given(memberRepository.findByEmail(username)).willReturn(Optional.of(member));
@@ -197,8 +166,10 @@ class TripServiceTest {
       verify(tripPlanRepository, times(1)).save(tripPlanCaptor.capture());
 
       TripPlan capturedTripPlan = tripPlanCaptor.getValue();
-      assertThat(capturedTripPlan.getStartDate()).isEqualTo(LocalDate.of(2025, 4, 10));
-      assertThat(capturedTripPlan.getEndDate()).isEqualTo(LocalDate.of(2025, 4, 14));
+      assertThat(capturedTripPlan.getStartDate()).isEqualTo(request.startDate());
+      // 종료일 = 시작일 + 기간 - 1일
+      assertThat(capturedTripPlan.getEndDate())
+          .isEqualTo(request.startDate().plusDays(request.duration() - 1));
     }
 
     @Test
@@ -208,33 +179,17 @@ class TripServiceTest {
       String username = "test@naver.com";
       Long chatRoomId = 1L;
 
-      Member member =
-          Member.builder()
-              .email(username)
-              .name("테스트")
-              .imageUrl("https://example.com/image.jpg")
-              .provider(ProviderType.GOOGLE)
-              .role(MemberRole.MEMBER)
-              .build();
+      Member member = MemberFixture.create();
+
+      TripPlan savedTripPlan = TripPlanFixture.create();
 
       TripPlanCreateRequest request =
           TripPlanCreateRequest.builder()
-              .region("강릉")
-              .startDate(LocalDate.of(2025, 5, 1))
-              .duration(2)
-              .themes(List.of("바다"))
-              .peopleCount(1)
-              .build();
-
-      TripPlan savedTripPlan =
-          TripPlan.builder()
-              .member(member)
-              .title("강릉 여행")
-              .startDate(LocalDate.of(2025, 5, 1))
-              .endDate(LocalDate.of(2025, 5, 2))
-              .isCompleted(false)
-              .region("강릉")
-              .peopleCount(1)
+              .region(savedTripPlan.getRegion())
+              .startDate(savedTripPlan.getStartDate())
+              .duration(4) // 3박 4일 (2025-12-01 ~ 2025-12-04)
+              .themes(savedTripPlan.getTripThemes().stream().map(Objects::toString).toList())
+              .peopleCount(savedTripPlan.getPeopleCount())
               .build();
 
       given(memberRepository.findByEmail(username)).willReturn(Optional.of(member));
@@ -248,7 +203,7 @@ class TripServiceTest {
       verify(tripPlanRepository, times(1)).save(tripPlanCaptor.capture());
 
       TripPlan capturedTripPlan = tripPlanCaptor.getValue();
-      assertThat(capturedTripPlan.getTitle()).isEqualTo("강릉 여행");
+      assertThat(capturedTripPlan.getTitle()).isEqualTo("서울 여행");
     }
 
     @Test
@@ -258,35 +213,18 @@ class TripServiceTest {
       String username = "test@naver.com";
       Long chatRoomId = 1L;
 
-      Member member =
-          Member.builder()
-              .email(username)
-              .name("테스트")
-              .imageUrl("https://example.com/image.jpg")
-              .provider(ProviderType.GOOGLE)
-              .role(MemberRole.MEMBER)
-              .build();
+      Member member = MemberFixture.create();
 
       List<String> multipleThemes = List.of("힐링", "맛집", "액티비티", "문화");
 
+      TripPlan savedTripPlan = TripPlanFixture.create();
       TripPlanCreateRequest request =
           TripPlanCreateRequest.builder()
-              .region("서울")
-              .startDate(LocalDate.of(2025, 6, 1))
-              .duration(4)
+              .region(savedTripPlan.getRegion())
+              .startDate(savedTripPlan.getStartDate())
+              .duration(4) // 3박 4일 (2025-12-01 ~ 2025-12-04)
               .themes(multipleThemes)
-              .peopleCount(3)
-              .build();
-
-      TripPlan savedTripPlan =
-          TripPlan.builder()
-              .member(member)
-              .title("서울 여행")
-              .startDate(LocalDate.of(2025, 6, 1))
-              .endDate(LocalDate.of(2025, 6, 4))
-              .isCompleted(false)
-              .region("서울")
-              .peopleCount(3)
+              .peopleCount(savedTripPlan.getPeopleCount())
               .build();
 
       given(memberRepository.findByEmail(username)).willReturn(Optional.of(member));
@@ -312,33 +250,17 @@ class TripServiceTest {
       String username = "test@naver.com";
       Long chatRoomId = 1L;
 
-      Member member =
-          Member.builder()
-              .email(username)
-              .name("테스트")
-              .imageUrl("https://example.com/image.jpg")
-              .provider(ProviderType.GOOGLE)
-              .role(MemberRole.MEMBER)
-              .build();
+      Member member = MemberFixture.create();
+
+      TripPlan savedTripPlan = TripPlanFixture.create();
 
       TripPlanCreateRequest request =
           TripPlanCreateRequest.builder()
-              .region("제주")
-              .startDate(LocalDate.of(2025, 3, 1))
-              .duration(3)
-              .themes(List.of("힐링"))
-              .peopleCount(2)
-              .build();
-
-      TripPlan savedTripPlan =
-          TripPlan.builder()
-              .member(member)
-              .title("제주 여행")
-              .startDate(LocalDate.of(2025, 3, 1))
-              .endDate(LocalDate.of(2025, 3, 3))
-              .isCompleted(false)
-              .region("제주")
-              .peopleCount(2)
+              .region(savedTripPlan.getRegion())
+              .startDate(savedTripPlan.getStartDate())
+              .duration(4) // 3박 4일 (2025-12-01 ~ 2025-12-04)
+              .themes(savedTripPlan.getTripThemes().stream().map(Objects::toString).toList())
+              .peopleCount(savedTripPlan.getPeopleCount())
               .build();
 
       given(memberRepository.findByEmail(username)).willReturn(Optional.of(member));

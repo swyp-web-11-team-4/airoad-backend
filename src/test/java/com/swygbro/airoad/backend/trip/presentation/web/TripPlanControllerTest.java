@@ -96,7 +96,7 @@ class TripPlanControllerTest {
       // when & then
       mockMvc
           .perform(
-              post("/api/v1/trips/generate")
+              post("/api/v1/trips")
                   .param("chatRoomId", String.valueOf(TEST_CHAT_ROOM_ID))
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(objectMapper.writeValueAsString(request)))
@@ -128,7 +128,7 @@ class TripPlanControllerTest {
       // when & then
       mockMvc
           .perform(
-              post("/api/v1/trips/generate")
+              post("/api/v1/trips")
                   .param("chatRoomId", String.valueOf(TEST_CHAT_ROOM_ID))
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(objectMapper.writeValueAsString(request)))
@@ -159,7 +159,7 @@ class TripPlanControllerTest {
       // when & then
       mockMvc
           .perform(
-              post("/api/v1/trips/generate")
+              post("/api/v1/trips")
                   .param("chatRoomId", String.valueOf(TEST_CHAT_ROOM_ID))
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(objectMapper.writeValueAsString(request)))
@@ -190,7 +190,7 @@ class TripPlanControllerTest {
       // when & then
       mockMvc
           .perform(
-              post("/api/v1/trips/generate")
+              post("/api/v1/trips")
                   .param("chatRoomId", String.valueOf(TEST_CHAT_ROOM_ID))
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(objectMapper.writeValueAsString(request)))
@@ -221,7 +221,7 @@ class TripPlanControllerTest {
       // when & then
       mockMvc
           .perform(
-              post("/api/v1/trips/generate")
+              post("/api/v1/trips")
                   .param("chatRoomId", String.valueOf(TEST_CHAT_ROOM_ID))
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(objectMapper.writeValueAsString(request)))
@@ -252,7 +252,7 @@ class TripPlanControllerTest {
       // when & then
       mockMvc
           .perform(
-              post("/api/v1/trips/generate")
+              post("/api/v1/trips")
                   .param("chatRoomId", String.valueOf(TEST_CHAT_ROOM_ID))
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(objectMapper.writeValueAsString(request)))
@@ -283,7 +283,7 @@ class TripPlanControllerTest {
       // when & then
       mockMvc
           .perform(
-              post("/api/v1/trips/generate")
+              post("/api/v1/trips")
                   // chatRoomId 파라미터 누락
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(objectMapper.writeValueAsString(request)))
@@ -316,7 +316,7 @@ class TripPlanControllerTest {
       // when & then
       mockMvc
           .perform(
-              post("/api/v1/trips/generate")
+              post("/api/v1/trips")
                   .param("chatRoomId", String.valueOf(TEST_CHAT_ROOM_ID))
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(objectMapper.writeValueAsString(request)))

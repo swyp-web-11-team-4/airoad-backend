@@ -59,21 +59,11 @@ public class TripService implements TripUseCase {
             .endDate(endDate)
             .isCompleted(false)
             .region(request.region())
-            .transportation(Transportation.NONE)
+            .transportation(Transportation.PUBLIC_TRANSIT)
             .peopleCount(request.peopleCount())
             .build();
 
     TripPlan savedTripPlan = tripPlanRepository.save(tripPlan);
-
-    // TripPlanCreateRequest 변환
-    TripPlanCreateRequest tripPlanCreateRequest =
-        TripPlanCreateRequest.builder()
-            .themes(request.themes())
-            .startDate(request.startDate())
-            .duration(request.duration())
-            .region(request.region())
-            .peopleCount(request.peopleCount())
-            .build();
 
     // 이벤트 발행
     TripPlanGenerationRequestedEvent event =
@@ -81,7 +71,7 @@ public class TripService implements TripUseCase {
             .chatRoomId(chatRoomId)
             .tripPlanId(savedTripPlan.getId())
             .username(username)
-            .request(tripPlanCreateRequest)
+            .request(request)
             .build();
 
     eventPublisher.publishEvent(event);

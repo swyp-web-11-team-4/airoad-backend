@@ -59,7 +59,8 @@ public class TripPlanService implements TripPlanUseCase {
     if (cursor != null) {
       TripPlan cursorPlan =
           tripPlanRepository
-              .findById(cursor)
+              .findByIdWithMember(cursor)
+              .filter(tripPlan -> tripPlan.getMember().getId().equals(memberId))
               .orElseThrow(() -> new BusinessException(TripErrorCode.TRIP_PLAN_NOT_FOUND));
 
       Sort.Order order = sortBy.get().findFirst().orElse(Sort.Order.desc("createdAt"));

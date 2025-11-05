@@ -59,7 +59,7 @@ public class TripPlan extends BaseEntity {
 
   /** AI에 의한 여행 일정 생성 완료 여부 */
   @Column(nullable = false)
-  private Boolean isCompleted;
+  private Boolean isCompleted = false;
 
   /** 선호 도시 (서울, 경기, 제주 등) */
   @Column(nullable = false, length = 50)

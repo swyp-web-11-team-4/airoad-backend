@@ -2,11 +2,13 @@ package com.swygbro.airoad.backend.trip.application;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +18,8 @@ import com.swygbro.airoad.backend.member.domain.entity.Member;
 import com.swygbro.airoad.backend.member.exception.MemberErrorCode;
 import com.swygbro.airoad.backend.member.infrastructure.MemberRepository;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
+import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanSortField;
+import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanUpdateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.response.TripPlanResponse;
 import com.swygbro.airoad.backend.trip.domain.entity.Transportation;
 import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
@@ -46,23 +50,32 @@ public class TripPlanService implements TripPlanUseCase {
       Long memberId, int size, Long cursor, String sort) {
     log.info("사용자 여행 일정 목록 조회 - memberId: {}, size: {}, cursor: {}", memberId, size, cursor);
 
-    // 정렬 파라미터 파싱
     Sort sortBy = parseSort(sort);
     PageRequest pageRequest = PageRequest.of(0, size, sortBy);
 
-    // Slice를 사용하여 데이터 조회
-    Slice<TripPlan> tripPlans =
-        tripPlanRepository.findByMemberIdWithCursor(memberId, cursor, pageRequest);
+    Specification<TripPlan> spec =
+        (root, query, cb) -> cb.equal(root.get("member").get("id"), memberId);
 
-    // hasNext 판단 및 실제 컨텐츠 추출
-    List<TripPlan> content = tripPlans.getContent();
-    boolean hasNext = tripPlans.hasNext();
+    if (cursor != null) {
+      TripPlan cursorPlan =
+          tripPlanRepository
+              .findById(cursor)
+              .orElseThrow(() -> new BusinessException(TripErrorCode.TRIP_PLAN_NOT_FOUND));
 
-    // nextCursor 설정
+      Sort.Order order = sortBy.get().findFirst().orElse(Sort.Order.desc("createdAt"));
+      TripPlanSortField sortField = TripPlanSortField.from(order.getProperty());
+
+      spec = spec.and(sortField.getCursorSpecification(cursorPlan, order.getDirection()));
+    }
+
+    Page<TripPlan> tripPlansPage = tripPlanRepository.findAll(spec, pageRequest);
+
+    List<TripPlan> content = tripPlansPage.getContent();
+    boolean hasNext = tripPlansPage.hasNext();
+
     Long nextCursor =
         hasNext && !content.isEmpty() ? content.get(content.size() - 1).getId() : null;
 
-    // 응답 변환
     List<TripPlanResponse> responses = content.stream().map(TripPlanResponse::of).toList();
 
     log.info(
@@ -136,6 +149,25 @@ public class TripPlanService implements TripPlanUseCase {
     eventPublisher.publishEvent(event);
   }
 
+  @Override
+  @Transactional
+  public void updateTripPlan(Long tripPlanId, Long memberId, TripPlanUpdateRequest request) {
+    log.info("여행 일정 수정 요청 - tripPlanId: {}, memberId: {}", tripPlanId, memberId);
+
+    TripPlan tripPlan =
+        tripPlanRepository
+            .findByIdWithMember(tripPlanId)
+            .orElseThrow(() -> new BusinessException(TripErrorCode.TRIP_PLAN_NOT_FOUND));
+
+    if (!tripPlan.getMember().getId().equals(memberId)) {
+      throw new BusinessException(TripErrorCode.TRIP_PLAN_FORBIDDEN);
+    }
+
+    applyUpdate(request.title(), tripPlan::updateTitle);
+
+    log.info("여행 일정 수정 완료 - tripPlanId: {}", tripPlanId);
+  }
+
   /**
    * 정렬 파라미터를 파싱하여 Sort 객체를 생성합니다.
    *
@@ -144,16 +176,27 @@ public class TripPlanService implements TripPlanUseCase {
    */
   private Sort parseSort(String sort) {
     if (sort == null || sort.isBlank()) {
-      return Sort.by(Sort.Direction.DESC, "createdAt");
+      sort = "createdAt:desc";
     }
 
     String[] parts = sort.split(":");
     String field = parts[0].trim();
-    String direction = parts[1].trim().toLowerCase();
+    Sort.Direction direction =
+        parts[1].trim().equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
 
-    // Sort 객체 생성
-    Sort.Direction sortDirection =
-        direction.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-    return Sort.by(sortDirection, field);
+    return Sort.by(direction, field).and(Sort.by(direction, "id"));
+  }
+
+  /**
+   * 값이 null이 아닐 경우에만 Consumer의 업데이트 로직을 실행하는 헬퍼 메서드
+   *
+   * @param value 업데이트할 값
+   * @param updater 업데이트 로직을 담은 Consumer
+   * @param <T> 값의 타입
+   */
+  private <T> void applyUpdate(T value, Consumer<T> updater) {
+    if (value != null) {
+      updater.accept(value);
+    }
   }
 }

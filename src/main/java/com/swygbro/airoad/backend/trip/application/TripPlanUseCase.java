@@ -3,6 +3,7 @@ package com.swygbro.airoad.backend.trip.application;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
+import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanUpdateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.response.TripPlanResponse;
 
 /**
@@ -33,6 +34,15 @@ public interface TripPlanUseCase {
    * @throws BusinessException TRIP_PLAN_FORBIDDEN - 소유자가 아님
    */
   void deleteTripPlan(Long tripPlanId, Long memberId);
+
+  /**
+   * 여행 일정을 수정합니다.
+   *
+   * @param tripPlanId 수정할 여행 일정 ID
+   * @param memberId 요청한 사용자 ID
+   * @param request 수정할 여행 일정 정보
+   */
+  void updateTripPlan(Long tripPlanId, Long memberId, TripPlanUpdateRequest request);
 
   /**
    * 여행 일정 생성을 요청합니다.

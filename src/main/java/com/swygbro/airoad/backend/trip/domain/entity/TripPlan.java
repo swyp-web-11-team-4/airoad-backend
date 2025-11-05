@@ -131,6 +131,15 @@ public class TripPlan extends BaseEntity {
   }
 
   /**
+   * 여행 계획의 제목을 업데이트합니다.
+   *
+   * @param title 새로운 여행 제목
+   */
+  public void updateTitle(String title) {
+    this.title = title;
+  }
+
+  /**
    * 일차별 여행 일정을 추가합니다.
    *
    * <p>애그리게이트 루트를 통한 일관성 보장을 위해 DailyPlan 추가 시 이 메서드를 사용해야 합니다. 모든 일차가 생성되면 자동으로 여행 계획을 완료 상태로

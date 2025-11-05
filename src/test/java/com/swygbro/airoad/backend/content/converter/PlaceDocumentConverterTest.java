@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.content.domain.converter;
+package com.swygbro.airoad.backend.content.converter;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.ai.document.Document;
 import org.springframework.test.context.ActiveProfiles;
 
+import com.swygbro.airoad.backend.content.domain.converter.PlaceDocumentConverter;
 import com.swygbro.airoad.backend.content.domain.entity.Place;
 import com.swygbro.airoad.backend.fixture.content.PlaceFixture;
 

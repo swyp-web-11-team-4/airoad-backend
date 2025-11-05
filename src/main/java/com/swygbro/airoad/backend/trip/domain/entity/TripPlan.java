@@ -19,6 +19,7 @@ import jakarta.persistence.OneToMany;
 
 import com.swygbro.airoad.backend.common.domain.embeddable.Location;
 import com.swygbro.airoad.backend.common.domain.entity.BaseEntity;
+import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
 import com.swygbro.airoad.backend.member.domain.entity.Member;
 
 import lombok.AccessLevel;
@@ -33,8 +34,7 @@ import lombok.NoArgsConstructor;
 public class TripPlan extends BaseEntity {
 
   /** 여행 테마 목록 */
-  @OneToMany(mappedBy = "tripPlan", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<TripTheme> tripThemes = new ArrayList<>();
+  private List<PlaceThemeType> tripThemes = new ArrayList<>();
 
   /** 일차별 여행 일정 목록 */
   @OneToMany(mappedBy = "tripPlan", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -159,5 +159,21 @@ public class TripPlan extends BaseEntity {
     }
     long expectedDays = ChronoUnit.DAYS.between(startDate, endDate) + 1;
     return dailyPlans.size() >= expectedDays;
+  }
+
+  /**
+   * 여행 테마를 추가합니다.
+   *
+   * <p>애그리게이트 루트를 통한 일관성 보장을 위해 TripTheme 추가 시 이 메서드를 사용해야 합니다.
+   *
+   * @param tripTheme 추가할 여행 테마
+   */
+  public void addTripTheme(PlaceThemeType tripTheme) {
+    this.tripThemes.add(tripTheme);
+  }
+
+  /** 모든 여행 테마를 제거합니다. */
+  public void clearTripThemes() {
+    this.tripThemes.clear();
   }
 }

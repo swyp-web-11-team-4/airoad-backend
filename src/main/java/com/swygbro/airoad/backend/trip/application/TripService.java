@@ -6,14 +6,20 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.swygbro.airoad.backend.chat.domain.entity.AiConversation;
+import com.swygbro.airoad.backend.chat.exception.ChatErrorCode;
+import com.swygbro.airoad.backend.chat.infrastructure.repository.AiConversationRepository;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
+import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
 import com.swygbro.airoad.backend.member.domain.entity.Member;
 import com.swygbro.airoad.backend.member.exception.MemberErrorCode;
 import com.swygbro.airoad.backend.member.infrastructure.MemberRepository;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
+import com.swygbro.airoad.backend.trip.domain.dto.response.ChannelIdResponse;
 import com.swygbro.airoad.backend.trip.domain.entity.Transportation;
 import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationRequestedEvent;
+import com.swygbro.airoad.backend.trip.exception.TripErrorCode;
 import com.swygbro.airoad.backend.trip.infrastructure.TripPlanRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -26,20 +32,20 @@ public class TripService implements TripUseCase {
   private final ApplicationEventPublisher eventPublisher;
   private final MemberRepository memberRepository;
   private final TripPlanRepository tripPlanRepository;
+  private final AiConversationRepository aiConversationRepository;
 
   /**
-   * 여행 일정 생성을 요청합니다.
+   * 여행 일정 생성 세션을 시작합니다.
    *
-   * <p>사용자가 입력한 여행 조건을 바탕으로 임시 TripPlan을 생성하고, AI 기반 여행 일정 생성 이벤트를 발행합니다.
+   * <p>사용자가 사용할 채팅방과 여행계획을 생성하고 그 id를 반환합니다.
    *
    * @param username 사용자 이름 (이메일)
-   * @param request 여행 일정 생성 요청 정보
-   * @param chatRoomId 채팅방 ID
+   * @param request 여행 계획 요청 dto
+   * @return 채팅방 ID와 여행 계획 ID
    */
   @Override
   @Transactional
-  public void requestTripPlanGeneration(
-      String username, TripPlanCreateRequest request, Long chatRoomId) {
+  public ChannelIdResponse createTripPlanSession(String username, TripPlanCreateRequest request) {
 
     // 사용자 조회
     Member member =
@@ -47,14 +53,14 @@ public class TripService implements TripUseCase {
             .findByEmail(username)
             .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
 
-    // 여행 종료일 계산 (시작일 + 기간 - 1일)
+    // 여행 종료일 계산
     LocalDate endDate = request.startDate().plusDays(request.duration() - 1);
 
-    // 임시 TripPlan 생성 (AI 일정 생성 전)
+    // TripPlan 생성
     TripPlan tripPlan =
         TripPlan.builder()
             .member(member)
-            .title(request.region() + " 여행")
+            .title("") // 초기 제목은 비어있음
             .startDate(request.startDate())
             .endDate(endDate)
             .isCompleted(false)
@@ -63,15 +69,48 @@ public class TripService implements TripUseCase {
             .peopleCount(request.peopleCount())
             .build();
 
+    // 테마 추가
+    for (PlaceThemeType placeThemeType : request.themes()) {
+      tripPlan.addTripTheme(placeThemeType);
+    }
+
     TripPlan savedTripPlan = tripPlanRepository.save(tripPlan);
 
-    // 이벤트 발행
+    // 채팅방 생성
+    AiConversation aiConversation =
+        AiConversation.builder().member(member).tripPlan(savedTripPlan).build();
+    aiConversationRepository.save(aiConversation);
+
+    return new ChannelIdResponse(aiConversation.getId(), savedTripPlan.getId());
+  }
+
+  @Override
+  @Transactional
+  public void startTripPlanGeneration(String username, Long chatRoomId) {
+
+    // 채팅방 조회
+    AiConversation aiConversation =
+        aiConversationRepository
+            .findById(chatRoomId)
+            .orElseThrow(() -> new BusinessException(ChatErrorCode.CONVERSATION_NOT_FOUND));
+
+    // 권한 검증: 채팅방 소유자와 요청자가 일치하는지 확인
+    if (!aiConversation.getMember().getEmail().equals(username)) {
+      throw new BusinessException(ChatErrorCode.CONVERSATION_ACCESS_DENIED);
+    }
+
+    // 여행 계획 존재 여부 확인
+    TripPlan tripPlan = aiConversation.getTripPlan();
+    if (tripPlan == null) {
+      throw new BusinessException(TripErrorCode.TRIP_PLAN_NOT_FOUND);
+    }
+
+    // 이벤트 발행 (TripPlan은 이미 생성되어 있음)
     TripPlanGenerationRequestedEvent event =
         TripPlanGenerationRequestedEvent.builder()
-            .chatRoomId(chatRoomId)
-            .tripPlanId(savedTripPlan.getId())
+            .chatRoomId(aiConversation.getId())
+            .tripPlanId(tripPlan.getId())
             .username(username)
-            .request(request)
             .build();
 
     eventPublisher.publishEvent(event);

@@ -8,6 +8,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
+import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
+
 import lombok.Builder;
 
 /**
@@ -15,7 +17,7 @@ import lombok.Builder;
  *
  * <p>여행 일정을 생성하기 위해 필요한 사용자의 선호도 및 여행 조건을 담습니다.
  *
- * @param themes 여행 테마 목록 (예: ["힐링", "맛집", "액티비티"])
+ * @param themes 여행 테마 목록 (예: [HEALING, RESTAURANT, EXPERIENCE_ACTIVITY])
  * @param startDate 여행 시작 날짜
  * @param duration 여행 기간 (일)
  * @param region 선호 지역 (예: "제주", "서울", "부산")
@@ -23,7 +25,7 @@ import lombok.Builder;
  */
 @Builder
 public record TripPlanCreateRequest(
-    @NotEmpty(message = "여행 테마는 최소 1개 이상 선택해야 합니다.") List<String> themes,
+    @NotEmpty(message = "여행 테마는 최소 1개 이상 선택해야 합니다.") List<PlaceThemeType> themes,
     @NotNull(message = "여행 시작 날짜는 필수입니다.") LocalDate startDate,
     @NotNull(message = "여행 기간은 필수입니다.") @Min(value = 1, message = "여행 기간은 최소 1일 이상이어야 합니다.")
         Integer duration,

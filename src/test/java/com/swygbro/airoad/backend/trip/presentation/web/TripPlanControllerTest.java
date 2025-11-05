@@ -1,6 +1,7 @@
 package com.swygbro.airoad.backend.trip.presentation.web;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
@@ -22,17 +23,23 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swygbro.airoad.backend.auth.domain.dto.UserPrincipal;
+import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.common.presentation.GlobalExceptionHandler;
+import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
 import com.swygbro.airoad.backend.member.domain.entity.Member;
 import com.swygbro.airoad.backend.member.domain.entity.MemberRole;
 import com.swygbro.airoad.backend.member.domain.entity.ProviderType;
+import com.swygbro.airoad.backend.member.exception.MemberErrorCode;
 import com.swygbro.airoad.backend.trip.application.TripUseCase;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
+import com.swygbro.airoad.backend.trip.domain.dto.response.ChannelIdResponse;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.doNothing;
+import static org.mockito.BDDMockito.doThrow;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.verify;
 import static org.mockito.Mockito.times;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -52,6 +59,7 @@ class TripPlanControllerTest {
 
   private static final String TEST_EMAIL = "test@naver.com";
   private static final Long TEST_CHAT_ROOM_ID = 1L;
+  private static final Long TEST_TRIP_PLAN_ID = 100L;
 
   @BeforeEach
   void setUp() {
@@ -70,278 +78,17 @@ class TripPlanControllerTest {
     SecurityContextHolder.clearContext();
   }
 
-  @Nested
-  @DisplayName("generateTripPlan 메서드는")
-  class GenerateTripPlan {
-
-    @Test
-    @DisplayName("유효한 요청으로 여행 일정 생성을 요청하면 202 Accepted를 반환한다")
-    void shouldReturn202WhenValidRequest() throws Exception {
-      // given
-      setupAuthentication();
-
-      TripPlanCreateRequest request =
-          TripPlanCreateRequest.builder()
-              .region("제주")
-              .startDate(LocalDate.of(2025, 3, 1))
-              .duration(3)
-              .themes(List.of("힐링", "맛집"))
-              .peopleCount(2)
-              .build();
-
-      doNothing()
-          .when(tripUseCase)
-          .requestTripPlanGeneration(anyString(), any(TripPlanCreateRequest.class), anyLong());
-
-      // when & then
-      mockMvc
-          .perform(
-              post("/api/v1/trips")
-                  .param("chatRoomId", String.valueOf(TEST_CHAT_ROOM_ID))
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(objectMapper.writeValueAsString(request)))
-          .andDo(print())
-          .andExpect(status().isAccepted())
-          .andExpect(jsonPath("$.success").value(true))
-          .andExpect(jsonPath("$.status").value(202))
-          .andExpect(jsonPath("$.data.message").value("여행 일정 생성이 시작되었습니다."));
-
-      verify(tripUseCase, times(1))
-          .requestTripPlanGeneration(TEST_EMAIL, request, TEST_CHAT_ROOM_ID);
-    }
-
-    @Test
-    @DisplayName("region이 누락되면 400 Bad Request를 반환한다")
-    void shouldReturn400WhenRegionIsMissing() throws Exception {
-      // given
-      setupAuthentication();
-
-      TripPlanCreateRequest request =
-          TripPlanCreateRequest.builder()
-              .region(null) // 누락
-              .startDate(LocalDate.of(2025, 3, 1))
-              .duration(3)
-              .themes(List.of("힐링", "맛집"))
-              .peopleCount(2)
-              .build();
-
-      // when & then
-      mockMvc
-          .perform(
-              post("/api/v1/trips")
-                  .param("chatRoomId", String.valueOf(TEST_CHAT_ROOM_ID))
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(objectMapper.writeValueAsString(request)))
-          .andDo(print())
-          .andExpect(status().isBadRequest())
-          .andExpect(jsonPath("$.success").value(false))
-          .andExpect(jsonPath("$.status").value(400));
-
-      verify(tripUseCase, times(0))
-          .requestTripPlanGeneration(anyString(), any(TripPlanCreateRequest.class), anyLong());
-    }
-
-    @Test
-    @DisplayName("startDate가 누락되면 400 Bad Request를 반환한다")
-    void shouldReturn400WhenStartDateIsMissing() throws Exception {
-      // given
-      setupAuthentication();
-
-      TripPlanCreateRequest request =
-          TripPlanCreateRequest.builder()
-              .region("제주")
-              .startDate(null) // 누락
-              .duration(3)
-              .themes(List.of("힐링", "맛집"))
-              .peopleCount(2)
-              .build();
-
-      // when & then
-      mockMvc
-          .perform(
-              post("/api/v1/trips")
-                  .param("chatRoomId", String.valueOf(TEST_CHAT_ROOM_ID))
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(objectMapper.writeValueAsString(request)))
-          .andDo(print())
-          .andExpect(status().isBadRequest())
-          .andExpect(jsonPath("$.success").value(false))
-          .andExpect(jsonPath("$.status").value(400));
-
-      verify(tripUseCase, times(0))
-          .requestTripPlanGeneration(anyString(), any(TripPlanCreateRequest.class), anyLong());
-    }
-
-    @Test
-    @DisplayName("duration이 0 이하면 400 Bad Request를 반환한다")
-    void shouldReturn400WhenDurationIsZeroOrNegative() throws Exception {
-      // given
-      setupAuthentication();
-
-      TripPlanCreateRequest request =
-          TripPlanCreateRequest.builder()
-              .region("제주")
-              .startDate(LocalDate.of(2025, 3, 1))
-              .duration(0) // 유효하지 않은 값
-              .themes(List.of("힐링", "맛집"))
-              .peopleCount(2)
-              .build();
-
-      // when & then
-      mockMvc
-          .perform(
-              post("/api/v1/trips")
-                  .param("chatRoomId", String.valueOf(TEST_CHAT_ROOM_ID))
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(objectMapper.writeValueAsString(request)))
-          .andDo(print())
-          .andExpect(status().isBadRequest())
-          .andExpect(jsonPath("$.success").value(false))
-          .andExpect(jsonPath("$.status").value(400));
-
-      verify(tripUseCase, times(0))
-          .requestTripPlanGeneration(anyString(), any(TripPlanCreateRequest.class), anyLong());
-    }
-
-    @Test
-    @DisplayName("themes가 비어있으면 400 Bad Request를 반환한다")
-    void shouldReturn400WhenThemesIsEmpty() throws Exception {
-      // given
-      setupAuthentication();
-
-      TripPlanCreateRequest request =
-          TripPlanCreateRequest.builder()
-              .region("제주")
-              .startDate(LocalDate.of(2025, 3, 1))
-              .duration(3)
-              .themes(List.of()) // 비어있음
-              .peopleCount(2)
-              .build();
-
-      // when & then
-      mockMvc
-          .perform(
-              post("/api/v1/trips")
-                  .param("chatRoomId", String.valueOf(TEST_CHAT_ROOM_ID))
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(objectMapper.writeValueAsString(request)))
-          .andDo(print())
-          .andExpect(status().isBadRequest())
-          .andExpect(jsonPath("$.success").value(false))
-          .andExpect(jsonPath("$.status").value(400));
-
-      verify(tripUseCase, times(0))
-          .requestTripPlanGeneration(anyString(), any(TripPlanCreateRequest.class), anyLong());
-    }
-
-    @Test
-    @DisplayName("peopleCount가 0 이하면 400 Bad Request를 반환한다")
-    void shouldReturn400WhenPeopleCountIsZeroOrNegative() throws Exception {
-      // given
-      setupAuthentication();
-
-      TripPlanCreateRequest request =
-          TripPlanCreateRequest.builder()
-              .region("제주")
-              .startDate(LocalDate.of(2025, 3, 1))
-              .duration(3)
-              .themes(List.of("힐링", "맛집"))
-              .peopleCount(0) // 유효하지 않은 값
-              .build();
-
-      // when & then
-      mockMvc
-          .perform(
-              post("/api/v1/trips")
-                  .param("chatRoomId", String.valueOf(TEST_CHAT_ROOM_ID))
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(objectMapper.writeValueAsString(request)))
-          .andDo(print())
-          .andExpect(status().isBadRequest())
-          .andExpect(jsonPath("$.success").value(false))
-          .andExpect(jsonPath("$.status").value(400));
-
-      verify(tripUseCase, times(0))
-          .requestTripPlanGeneration(anyString(), any(TripPlanCreateRequest.class), anyLong());
-    }
-
-    @Test
-    @DisplayName("chatRoomId가 누락되면 400 Bad Request를 반환한다")
-    void shouldReturn400WhenChatRoomIdIsMissing() throws Exception {
-      // given
-      setupAuthentication();
-
-      TripPlanCreateRequest request =
-          TripPlanCreateRequest.builder()
-              .region("제주")
-              .startDate(LocalDate.of(2025, 3, 1))
-              .duration(3)
-              .themes(List.of("힐링", "맛집"))
-              .peopleCount(2)
-              .build();
-
-      // when & then
-      mockMvc
-          .perform(
-              post("/api/v1/trips")
-                  // chatRoomId 파라미터 누락
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(objectMapper.writeValueAsString(request)))
-          .andDo(print())
-          .andExpect(status().isBadRequest());
-
-      verify(tripUseCase, times(0))
-          .requestTripPlanGeneration(anyString(), any(TripPlanCreateRequest.class), anyLong());
-    }
-
-    @Test
-    @DisplayName("여러 테마로 요청하면 성공적으로 처리한다")
-    void shouldHandleMultipleThemes() throws Exception {
-      // given
-      setupAuthentication();
-
-      TripPlanCreateRequest request =
-          TripPlanCreateRequest.builder()
-              .region("부산")
-              .startDate(LocalDate.of(2025, 4, 15))
-              .duration(5)
-              .themes(List.of("힐링", "맛집", "액티비티", "문화"))
-              .peopleCount(4)
-              .build();
-
-      doNothing()
-          .when(tripUseCase)
-          .requestTripPlanGeneration(anyString(), any(TripPlanCreateRequest.class), anyLong());
-
-      // when & then
-      mockMvc
-          .perform(
-              post("/api/v1/trips")
-                  .param("chatRoomId", String.valueOf(TEST_CHAT_ROOM_ID))
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(objectMapper.writeValueAsString(request)))
-          .andDo(print())
-          .andExpect(status().isAccepted())
-          .andExpect(jsonPath("$.success").value(true))
-          .andExpect(jsonPath("$.status").value(202));
-
-      verify(tripUseCase, times(1))
-          .requestTripPlanGeneration(TEST_EMAIL, request, TEST_CHAT_ROOM_ID);
-    }
-  }
-
-  private void setupAuthentication() {
-    Member member =
+  private void setUpSecurityContext() {
+    Member testMember =
         Member.builder()
             .email(TEST_EMAIL)
-            .name("테스트")
-            .imageUrl("https://example.com/image.jpg")
+            .name("테스트 사용자")
+            .imageUrl("https://example.com/profile.jpg")
             .provider(ProviderType.GOOGLE)
             .role(MemberRole.MEMBER)
             .build();
 
-    UserPrincipal userPrincipal = new UserPrincipal(member);
-
+    UserPrincipal userPrincipal = new UserPrincipal(testMember);
     UsernamePasswordAuthenticationToken authentication =
         new UsernamePasswordAuthenticationToken(
             userPrincipal, null, userPrincipal.getAuthorities());
@@ -349,5 +96,335 @@ class TripPlanControllerTest {
     SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
     securityContext.setAuthentication(authentication);
     SecurityContextHolder.setContext(securityContext);
+  }
+
+  @Nested
+  @DisplayName("generateTripPlan 메서드는")
+  class GenerateTripPlan {
+
+    @Test
+    @DisplayName("given 유효한 요청 when 여행 계획 생성 세션 생성 then 202 상태와 채널 ID를 반환한다")
+    void generateTripPlanSuccess() throws Exception {
+      // given
+      setUpSecurityContext();
+
+      TripPlanCreateRequest request =
+          TripPlanCreateRequest.builder()
+              .themes(List.of(PlaceThemeType.HEALING, PlaceThemeType.RESTAURANT))
+              .startDate(LocalDate.of(2025, 12, 1))
+              .duration(3)
+              .region("서울")
+              .peopleCount(2)
+              .build();
+
+      ChannelIdResponse response = new ChannelIdResponse(TEST_CHAT_ROOM_ID, TEST_TRIP_PLAN_ID);
+
+      given(tripUseCase.createTripPlanSession(eq(TEST_EMAIL), any(TripPlanCreateRequest.class)))
+          .willReturn(response);
+
+      // when & then
+      mockMvc
+          .perform(
+              post("/api/v1/trips")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(objectMapper.writeValueAsString(request)))
+          .andDo(print())
+          .andExpect(status().isAccepted())
+          .andExpect(jsonPath("$.success").value(true))
+          .andExpect(jsonPath("$.status").value(202))
+          .andExpect(jsonPath("$.data.conversationId").value(TEST_CHAT_ROOM_ID))
+          .andExpect(jsonPath("$.data.tripPlanId").value(TEST_TRIP_PLAN_ID));
+
+      verify(tripUseCase).createTripPlanSession(eq(TEST_EMAIL), any(TripPlanCreateRequest.class));
+    }
+
+    @Test
+    @DisplayName("given 테마가 비어있는 요청 when 여행 계획 생성 세션 생성 then 400 에러가 발생한다")
+    void generateTripPlanWithEmptyThemes() throws Exception {
+      // given
+      setUpSecurityContext();
+
+      TripPlanCreateRequest request =
+          TripPlanCreateRequest.builder()
+              .themes(Collections.emptyList())
+              .startDate(LocalDate.of(2025, 12, 1))
+              .duration(3)
+              .region("서울")
+              .peopleCount(2)
+              .build();
+
+      // when & then
+      mockMvc
+          .perform(
+              post("/api/v1/trips")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(objectMapper.writeValueAsString(request)))
+          .andDo(print())
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.success").value(false))
+          .andExpect(jsonPath("$.status").value(400));
+
+      verify(tripUseCase, times(0))
+          .createTripPlanSession(anyString(), any(TripPlanCreateRequest.class));
+    }
+
+    @Test
+    @DisplayName("given startDate가 null인 요청 when 여행 계획 생성 세션 생성 then 400 에러가 발생한다")
+    void generateTripPlanWithNullStartDate() throws Exception {
+      // given
+      setUpSecurityContext();
+
+      String invalidRequestJson =
+          """
+          {
+            "themes": ["HEALING", "RESTAURANT"],
+            "startDate": null,
+            "duration": 3,
+            "region": "서울",
+            "peopleCount": 2
+          }
+          """;
+
+      // when & then
+      mockMvc
+          .perform(
+              post("/api/v1/trips")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(invalidRequestJson))
+          .andDo(print())
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.success").value(false))
+          .andExpect(jsonPath("$.status").value(400));
+
+      verify(tripUseCase, times(0))
+          .createTripPlanSession(anyString(), any(TripPlanCreateRequest.class));
+    }
+
+    @Test
+    @DisplayName("given duration이 0인 요청 when 여행 계획 생성 세션 생성 then 400 에러가 발생한다")
+    void generateTripPlanWithZeroDuration() throws Exception {
+      // given
+      setUpSecurityContext();
+
+      TripPlanCreateRequest request =
+          TripPlanCreateRequest.builder()
+              .themes(List.of(PlaceThemeType.HEALING))
+              .startDate(LocalDate.of(2025, 12, 1))
+              .duration(0)
+              .region("서울")
+              .peopleCount(2)
+              .build();
+
+      // when & then
+      mockMvc
+          .perform(
+              post("/api/v1/trips")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(objectMapper.writeValueAsString(request)))
+          .andDo(print())
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.success").value(false))
+          .andExpect(jsonPath("$.status").value(400));
+
+      verify(tripUseCase, times(0))
+          .createTripPlanSession(anyString(), any(TripPlanCreateRequest.class));
+    }
+
+    @Test
+    @DisplayName("given region이 빈 문자열인 요청 when 여행 계획 생성 세션 생성 then 400 에러가 발생한다")
+    void generateTripPlanWithBlankRegion() throws Exception {
+      // given
+      setUpSecurityContext();
+
+      TripPlanCreateRequest request =
+          TripPlanCreateRequest.builder()
+              .themes(List.of(PlaceThemeType.HEALING))
+              .startDate(LocalDate.of(2025, 12, 1))
+              .duration(3)
+              .region("")
+              .peopleCount(2)
+              .build();
+
+      // when & then
+      mockMvc
+          .perform(
+              post("/api/v1/trips")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(objectMapper.writeValueAsString(request)))
+          .andDo(print())
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.success").value(false))
+          .andExpect(jsonPath("$.status").value(400));
+
+      verify(tripUseCase, times(0))
+          .createTripPlanSession(anyString(), any(TripPlanCreateRequest.class));
+    }
+
+    @Test
+    @DisplayName("given peopleCount가 0인 요청 when 여행 계획 생성 세션 생성 then 400 에러가 발생한다")
+    void generateTripPlanWithZeroPeopleCount() throws Exception {
+      // given
+      setUpSecurityContext();
+
+      TripPlanCreateRequest request =
+          TripPlanCreateRequest.builder()
+              .themes(List.of(PlaceThemeType.HEALING))
+              .startDate(LocalDate.of(2025, 12, 1))
+              .duration(3)
+              .region("서울")
+              .peopleCount(0)
+              .build();
+
+      // when & then
+      mockMvc
+          .perform(
+              post("/api/v1/trips")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(objectMapper.writeValueAsString(request)))
+          .andDo(print())
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.success").value(false))
+          .andExpect(jsonPath("$.status").value(400));
+
+      verify(tripUseCase, times(0))
+          .createTripPlanSession(anyString(), any(TripPlanCreateRequest.class));
+    }
+
+    @Test
+    @DisplayName("given 존재하지 않는 사용자 when 여행 계획 생성 세션 생성 then 404 에러가 발생한다")
+    void generateTripPlanWithNonExistentMember() throws Exception {
+      // given
+      setUpSecurityContext();
+
+      TripPlanCreateRequest request =
+          TripPlanCreateRequest.builder()
+              .themes(List.of(PlaceThemeType.HEALING))
+              .startDate(LocalDate.of(2025, 12, 1))
+              .duration(3)
+              .region("서울")
+              .peopleCount(2)
+              .build();
+
+      given(tripUseCase.createTripPlanSession(eq(TEST_EMAIL), any(TripPlanCreateRequest.class)))
+          .willThrow(new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+      // when & then
+      mockMvc
+          .perform(
+              post("/api/v1/trips")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(objectMapper.writeValueAsString(request)))
+          .andDo(print())
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.success").value(false))
+          .andExpect(jsonPath("$.status").value(404));
+
+      verify(tripUseCase).createTripPlanSession(eq(TEST_EMAIL), any(TripPlanCreateRequest.class));
+    }
+
+    @Test
+    @DisplayName("given 여러 테마를 포함한 요청 when 여행 계획 생성 세션 생성 then 성공적으로 처리된다")
+    void generateTripPlanWithMultipleThemes() throws Exception {
+      // given
+      setUpSecurityContext();
+
+      TripPlanCreateRequest request =
+          TripPlanCreateRequest.builder()
+              .themes(
+                  List.of(
+                      PlaceThemeType.HEALING,
+                      PlaceThemeType.RESTAURANT,
+                      PlaceThemeType.EXPERIENCE_ACTIVITY))
+              .startDate(LocalDate.of(2025, 12, 1))
+              .duration(5)
+              .region("제주")
+              .peopleCount(4)
+              .build();
+
+      ChannelIdResponse response = new ChannelIdResponse(TEST_CHAT_ROOM_ID, TEST_TRIP_PLAN_ID);
+
+      given(tripUseCase.createTripPlanSession(eq(TEST_EMAIL), any(TripPlanCreateRequest.class)))
+          .willReturn(response);
+
+      // when & then
+      mockMvc
+          .perform(
+              post("/api/v1/trips")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(objectMapper.writeValueAsString(request)))
+          .andDo(print())
+          .andExpect(status().isAccepted())
+          .andExpect(jsonPath("$.success").value(true))
+          .andExpect(jsonPath("$.status").value(202));
+
+      verify(tripUseCase).createTripPlanSession(eq(TEST_EMAIL), any(TripPlanCreateRequest.class));
+    }
+  }
+
+  @Nested
+  @DisplayName("startTripPlanGeneration 메서드는")
+  class StartTripPlanGeneration {
+
+    @Test
+    @DisplayName("given 유효한 채팅방 ID when 여행 계획 생성 시작 then 200 상태와 성공 메시지를 반환한다")
+    void startTripPlanGenerationSuccess() throws Exception {
+      // given
+      setUpSecurityContext();
+      doNothing().when(tripUseCase).startTripPlanGeneration(TEST_EMAIL, TEST_CHAT_ROOM_ID);
+
+      // when & then
+      mockMvc
+          .perform(post("/api/v1/trips/{chatRoomId}", TEST_CHAT_ROOM_ID))
+          .andDo(print())
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.success").value(true))
+          .andExpect(jsonPath("$.status").value(200))
+          .andExpect(jsonPath("$.data.message").value("여행 일정 생성을 시작합니다."));
+
+      verify(tripUseCase).startTripPlanGeneration(TEST_EMAIL, TEST_CHAT_ROOM_ID);
+    }
+
+    @Test
+    @DisplayName("given 존재하지 않는 채팅방 ID when 여행 계획 생성 시작 then 예외가 발생한다")
+    void startTripPlanGenerationWithNonExistentChatRoom() throws Exception {
+      // given
+      setUpSecurityContext();
+      Long nonExistentChatRoomId = 999L;
+
+      doThrow(new RuntimeException("채팅방을 찾을 수 없습니다."))
+          .when(tripUseCase)
+          .startTripPlanGeneration(TEST_EMAIL, nonExistentChatRoomId);
+
+      // when & then
+      mockMvc
+          .perform(post("/api/v1/trips/{chatRoomId}", nonExistentChatRoomId))
+          .andDo(print())
+          .andExpect(status().is5xxServerError());
+
+      verify(tripUseCase).startTripPlanGeneration(TEST_EMAIL, nonExistentChatRoomId);
+    }
+
+    @Test
+    @DisplayName("given 다양한 채팅방 ID when 여행 계획 생성 시작 then 각각의 ID로 서비스가 호출된다")
+    void startTripPlanGenerationWithDifferentChatRoomIds() throws Exception {
+      // given
+      setUpSecurityContext();
+      Long[] chatRoomIds = {1L, 100L, 9999L};
+
+      for (Long chatRoomId : chatRoomIds) {
+        doNothing().when(tripUseCase).startTripPlanGeneration(TEST_EMAIL, chatRoomId);
+
+        // when & then
+        mockMvc
+            .perform(post("/api/v1/trips/{chatRoomId}", chatRoomId))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.status").value(200))
+            .andExpect(jsonPath("$.data.message").value("여행 일정 생성을 시작합니다."));
+
+        verify(tripUseCase).startTripPlanGeneration(TEST_EMAIL, chatRoomId);
+      }
+    }
   }
 }

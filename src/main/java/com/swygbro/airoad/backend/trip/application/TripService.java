@@ -84,7 +84,7 @@ public class TripService implements TripUseCase {
     return new ChannelIdResponse(aiConversation.getId(), savedTripPlan.getId());
   }
 
-  //일정 생성을 위한 이벤트를 배포합니다
+  // 일정 생성을 위한 이벤트를 배포합니다
   @Override
   @Transactional
   public void startTripPlanGeneration(String username, Long chatRoomId) {
@@ -107,7 +107,8 @@ public class TripService implements TripUseCase {
     }
 
     // TripPlan으로부터 TripPlanCreateRequest 재구성
-    int duration = (int) (tripPlan.getEndDate().toEpochDay() - tripPlan.getStartDate().toEpochDay() + 1);
+    int duration =
+        (int) (tripPlan.getEndDate().toEpochDay() - tripPlan.getStartDate().toEpochDay() + 1);
     TripPlanCreateRequest request =
         TripPlanCreateRequest.builder()
             .themes(tripPlan.getTripThemes())

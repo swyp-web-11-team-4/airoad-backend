@@ -1,8 +1,10 @@
 package com.swygbro.airoad.backend.common.presentation;
 
 import java.util.List;
+import java.util.Objects;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.swygbro.airoad.backend.common.domain.dto.CommonResponse;
@@ -25,11 +28,6 @@ import com.swygbro.airoad.backend.common.exception.ErrorCode;
 
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * 전역 예외 처리 핸들러입니다.
- *
- * <p>애플리케이션에서 발생하는 모든 예외를 일관된 형식으로 처리하여 클라이언트에 응답합니다.
- */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -75,6 +73,38 @@ public class GlobalExceptionHandler {
     List<ErrorResponse.FieldError> fieldErrors = extractFieldErrors(e.getBindingResult());
     ErrorResponse errorResponse = createErrorResponse(request.getRequestURI(), fieldErrors);
 
+    CommonResponse<ErrorResponse> response =
+        CommonResponse.error(HttpStatus.BAD_REQUEST, errorResponse);
+
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+  }
+
+  /**
+   * ConstraintViolationException을 처리합니다.
+   *
+   * <p>@RequestParam, @PathVariable 등에 대한 유효성 검사 실패 시 발생합니다.
+   *
+   * @param e ConstraintViolationException
+   * @param request HttpServletRequest
+   * @return 에러 응답
+   */
+  @ExceptionHandler(ConstraintViolationException.class)
+  public ResponseEntity<CommonResponse<ErrorResponse>> handleConstraintViolationException(
+      ConstraintViolationException e, HttpServletRequest request) {
+    log.warn("Constraint violation occurred: {}", e.getMessage());
+
+    List<ErrorResponse.FieldError> fieldErrors =
+        e.getConstraintViolations().stream()
+            .map(
+                violation -> {
+                  String propertyPath = violation.getPropertyPath().toString();
+                  String field = propertyPath.substring(propertyPath.lastIndexOf('.') + 1);
+                  return ErrorResponse.FieldError.of(
+                      field, violation.getInvalidValue(), violation.getMessage());
+                })
+            .toList();
+
+    ErrorResponse errorResponse = createErrorResponse(request.getRequestURI(), fieldErrors);
     CommonResponse<ErrorResponse> response =
         CommonResponse.error(HttpStatus.BAD_REQUEST, errorResponse);
 
@@ -167,6 +197,34 @@ public class GlobalExceptionHandler {
         CommonResponse.error(HttpStatus.NOT_FOUND, errorResponse);
 
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+  }
+
+  /**
+   * MethodArgumentTypeMismatchException을 처리합니다.
+   *
+   * <p>요청 파라미터의 타입 변환이 실패했을 때 발생합니다.
+   *
+   * @param e MethodArgumentTypeMismatchException
+   * @param request HttpServletRequest
+   * @return 에러 응답
+   */
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  public ResponseEntity<CommonResponse<ErrorResponse>> handleMethodArgumentTypeMismatchException(
+      MethodArgumentTypeMismatchException e, HttpServletRequest request) {
+    log.warn("Method argument type mismatch: {}", e.getMessage());
+
+    String message =
+        String.format(
+            "파라미터 '%s'의 타입이 올바르지 않습니다. '%s' 타입이 필요합니다.",
+            e.getName(), Objects.requireNonNull(e.getRequiredType()).getSimpleName());
+
+    ErrorResponse errorResponse =
+        ErrorResponse.of(CommonErrorCode.INVALID_TYPE.getCode(), message, request.getRequestURI());
+
+    CommonResponse<ErrorResponse> response =
+        CommonResponse.error(HttpStatus.BAD_REQUEST, errorResponse);
+
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
   }
 
   /**

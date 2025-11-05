@@ -52,3 +52,5 @@ spring:
 
 cors:
   allowed-origins: http://localhost:3000
+tour-api:
+  service-key: test-service-key

@@ -50,8 +50,12 @@ public class Place extends BaseEntity {
   private Boolean isMustVisit = false;
 
   /** TourAPI 장소 고유 ID (외부 API 연동용) */
-  @Column(unique = true)
+  @Column(unique = true, nullable = true)
   private Long apiPlaceId;
+
+  /** TourAPI 콘텐츠 타입 ID (12=관광지, 14=문화시설, 15=축제, 28=레포츠, 38=쇼핑, 39=음식점) */
+  @Column(nullable = true)
+  private Integer contentTypeId;
 
   /** 장소 테마 (한 장소는 여러 테마를 가질 수 있음) */
   @ElementCollection(fetch = FetchType.LAZY)
@@ -69,6 +73,7 @@ public class Place extends BaseEntity {
       String holidayInfo,
       Boolean isMustVisit,
       Long apiPlaceId,
+      Integer contentTypeId,
       @Singular Set<PlaceThemeType> themes) {
     this.location = location;
     this.description = description;
@@ -77,11 +82,18 @@ public class Place extends BaseEntity {
     this.holidayInfo = holidayInfo;
     this.isMustVisit = isMustVisit;
     this.apiPlaceId = apiPlaceId;
+    this.contentTypeId = contentTypeId;
     this.themes = themes != null ? new HashSet<>(themes) : new HashSet<>();
   }
 
   /** description 업데이트 메서드 (Phase 2에서 overview 추가용) */
   public void updateDescription(String description) {
     this.description = description;
+  }
+
+  /** 운영 시간 및 휴무일 정보 업데이트 메서드 */
+  public void updateOperatingInfo(String operatingHours, String holidayInfo) {
+    this.operatingHours = operatingHours;
+    this.holidayInfo = holidayInfo;
   }
 }

@@ -10,6 +10,7 @@ val excludePatterns =
         "**/dto/**",
         "**/exception/**",
         "**/agent/**",
+        "**/tourdata/**", // Tour API 데이터 동기화 도메인 제외
         "**/chat/presentation/web/**", // TODO: 명세용 controller만 만든 상황이라 controller 구현 후 제거하겠습니다.
         "**/trip/presentation/web/**", // TODO: API 구현 후 삭제 필요
         "**/*Application*",

@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.content.converter;
+package com.swygbro.airoad.backend.content.domain.converter;
 
 import java.time.LocalDateTime;
 import java.util.Map;

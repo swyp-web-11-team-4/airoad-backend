@@ -66,8 +66,8 @@ springdoc:
 swagger:
   url: ${SERVER_URL:http://localhost:8080}
 
-  tour-api:
-    service-key: ${TOUR_API_SERVICE_KEY}
+tour-api:
+  service-key: ${TOUR_API_SERVICE_KEY}
 
 logging:
   level:

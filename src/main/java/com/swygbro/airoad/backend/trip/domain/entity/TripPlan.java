@@ -5,17 +5,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.AttributeOverride;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 
 import com.swygbro.airoad.backend.common.domain.embeddable.Location;
 import com.swygbro.airoad.backend.common.domain.entity.BaseEntity;
@@ -34,6 +24,9 @@ import lombok.NoArgsConstructor;
 public class TripPlan extends BaseEntity {
 
   /** 여행 테마 목록 */
+  @ElementCollection(fetch = FetchType.LAZY)
+  @CollectionTable(name = "trip_plan_theme", joinColumns = @JoinColumn(name = "trip_plan_id"))
+  @Enumerated(EnumType.STRING)
   private List<PlaceThemeType> tripThemes = new ArrayList<>();
 
   /** 일차별 여행 일정 목록 */

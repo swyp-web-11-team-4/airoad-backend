@@ -80,7 +80,7 @@ public class Place extends BaseEntity {
     this.imageUrl = imageUrl;
     this.operatingHours = operatingHours;
     this.holidayInfo = holidayInfo;
-    this.isMustVisit = isMustVisit;
+    this.isMustVisit = isMustVisit != null ? isMustVisit : Boolean.FALSE;
     this.apiPlaceId = apiPlaceId;
     this.contentTypeId = contentTypeId;
     this.themes = themes != null ? new HashSet<>(themes) : new HashSet<>();

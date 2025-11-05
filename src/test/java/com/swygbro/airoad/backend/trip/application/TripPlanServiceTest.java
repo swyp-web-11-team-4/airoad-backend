@@ -93,11 +93,11 @@ class TripPlanServiceTest {
       Long memberId = 1L;
       int size = 2;
       Long cursor = 3L;
-      Member member = MemberFixture.create();
+      Member member = MemberFixture.withId(memberId, MemberFixture.create());
 
       TripPlan cursorTripPlan =
           TripPlanFixture.withId(cursor, TripPlanFixture.createWithMember(member));
-      given(tripPlanRepository.findById(eq(cursor))).willReturn(Optional.of(cursorTripPlan));
+      given(tripPlanRepository.findByIdWithMember(eq(cursor))).willReturn(Optional.of(cursorTripPlan));
 
       List<TripPlan> nextTripPlans =
           List.of(

@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 public enum TripErrorCode implements ErrorCode {
   // 여행 일정 조회 관련 에러
   TRIP_PLAN_NOT_FOUND("TRIP101", HttpStatus.NOT_FOUND, "여행 일정을 찾을 수 없습니다."),
+  TRIP_PLAN_FORBIDDEN("TRIP102", HttpStatus.FORBIDDEN, "여행 일정에 대한 접근 권한이 없습니다."),
 
   // 장소 관련 에러
   PLACE_NOT_FOUND("TRIP201", HttpStatus.NOT_FOUND, "장소를 찾을 수 없습니다");

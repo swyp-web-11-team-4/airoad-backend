@@ -6,12 +6,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.swygbro.airoad.backend.trip.domain.entity.DailyPlan;
+import com.swygbro.airoad.backend.trip.domain.entity.TripTheme;
 
 @Repository
-public interface DailyPlanRepository extends JpaRepository<DailyPlan, Long> {
+public interface TripThemeRepository extends JpaRepository<TripTheme, Long> {
 
   @Modifying
-  @Query("DELETE FROM DailyPlan dp WHERE dp.tripPlan.id = :tripPlanId")
+  @Query("DELETE FROM TripTheme tt WHERE tt.tripPlan.id = :tripPlanId")
   void deleteByTripPlanId(@Param("tripPlanId") Long tripPlanId);
 }

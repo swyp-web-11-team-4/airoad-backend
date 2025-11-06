@@ -5,5 +5,3 @@ spring:
     active: local
     include:
       - ai
-  jackson:
-    default-property-inclusion: non_null

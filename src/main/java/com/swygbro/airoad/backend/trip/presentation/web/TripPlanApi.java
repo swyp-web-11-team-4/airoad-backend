@@ -58,6 +58,8 @@ public interface TripPlanApi {
                                   "content": [
                                     {
                                       "id": 15,
+                                      "memberId": 1,
+                                      "chatRoomId": 105,
                                       "title": "제주도 힐링 여행",
                                       "startDate": "2025-03-01",
                                       "region": "제주",
@@ -65,6 +67,8 @@ public interface TripPlanApi {
                                     },
                                     {
                                       "id": 14,
+                                      "memberId": 1,
+                                      "chatRoomId": 104,
                                       "title": "부산 맛집 투어",
                                       "startDate": "2025-02-15",
                                       "region": "부산",
@@ -72,6 +76,8 @@ public interface TripPlanApi {
                                     },
                                     {
                                       "id": 13,
+                                      "memberId": 1,
+                                      "chatRoomId": 103,
                                       "title": "서울 3박 4일",
                                       "startDate": "2025-01-20",
                                       "region": "서울",
@@ -95,6 +101,8 @@ public interface TripPlanApi {
                                   "content": [
                                     {
                                       "id": 12,
+                                      "memberId": 1,
+                                      "chatRoomId": 102,
                                       "title": "강릉 바다 여행",
                                       "startDate": "2024-12-10",
                                       "region": "강릉",

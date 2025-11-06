@@ -35,7 +35,7 @@ public class TripPlanGenerationListener {
             .chatRoomId(event.chatRoomId())
             .tripPlanId(event.tripPlanId())
             .username(event.username())
-            .themes(event.request().themes())
+            .themes(event.request().themes().stream().map(Enum::name).toList())
             .startDate(event.request().startDate())
             .duration(event.request().duration())
             .region(event.request().region())

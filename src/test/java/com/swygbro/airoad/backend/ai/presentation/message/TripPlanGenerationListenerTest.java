@@ -15,6 +15,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.swygbro.airoad.backend.ai.agent.trip.dto.request.AiDailyPlanRequest;
 import com.swygbro.airoad.backend.ai.application.AiUseCase;
+import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationRequestedEvent;
 
@@ -43,7 +44,7 @@ class TripPlanGenerationListenerTest {
       Long tripPlanId = 100L;
       TripPlanCreateRequest request =
           TripPlanCreateRequest.builder()
-              .themes(List.of("힐링", "맛집"))
+              .themes(List.of(PlaceThemeType.HEALING, PlaceThemeType.CULTURE_ART))
               .startDate(LocalDate.of(2025, 12, 1))
               .duration(3)
               .region("제주")
@@ -68,7 +69,7 @@ class TripPlanGenerationListenerTest {
       AiDailyPlanRequest capturedRequest = requestCaptor.getValue();
       assertThat(capturedRequest.chatRoomId()).isEqualTo(chatRoomId);
       assertThat(capturedRequest.tripPlanId()).isEqualTo(tripPlanId);
-      assertThat(capturedRequest.themes()).containsExactly("힐링", "맛집");
+      assertThat(capturedRequest.themes()).containsExactly("HEALING", "CULTURE_ART");
       assertThat(capturedRequest.startDate()).isEqualTo(LocalDate.of(2025, 12, 1));
       assertThat(capturedRequest.duration()).isEqualTo(3);
       assertThat(capturedRequest.region()).isEqualTo("제주");
@@ -81,7 +82,12 @@ class TripPlanGenerationListenerTest {
       // given
       TripPlanCreateRequest request =
           TripPlanCreateRequest.builder()
-              .themes(List.of("맛집", "문화", "쇼핑", "액티비티"))
+              .themes(
+                  List.of(
+                      PlaceThemeType.HEALING,
+                      PlaceThemeType.CULTURE_ART,
+                      PlaceThemeType.EXPERIENCE_ACTIVITY,
+                      PlaceThemeType.RESTAURANT))
               .startDate(LocalDate.of(2025, 9, 1))
               .duration(4)
               .region("서울")
@@ -105,7 +111,8 @@ class TripPlanGenerationListenerTest {
 
       AiDailyPlanRequest capturedRequest = requestCaptor.getValue();
       assertThat(capturedRequest.themes()).hasSize(4);
-      assertThat(capturedRequest.themes()).containsExactly("맛집", "문화", "쇼핑", "액티비티");
+      assertThat(capturedRequest.themes())
+          .containsExactly("HEALING", "CULTURE_ART", "EXPERIENCE_ACTIVITY", "RESTAURANT");
     }
 
     @Test
@@ -114,7 +121,7 @@ class TripPlanGenerationListenerTest {
       // given
       TripPlanCreateRequest request =
           TripPlanCreateRequest.builder()
-              .themes(List.of("힐링"))
+              .themes(List.of(PlaceThemeType.HEALING))
               .startDate(LocalDate.of(2025, 8, 1))
               .duration(2)
               .region("부산")

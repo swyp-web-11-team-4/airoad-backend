@@ -28,8 +28,10 @@ import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
 import com.swygbro.airoad.backend.trip.application.TripPlanUseCase;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanUpdateRequest;
+import com.swygbro.airoad.backend.trip.domain.dto.response.ChannelIdResponse;
 import com.swygbro.airoad.backend.trip.domain.dto.response.TripPlanResponse;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -67,7 +69,6 @@ public class TripPlanController implements TripPlanApi {
       @AuthenticationPrincipal UserPrincipal userPrincipal,
       @PathVariable Long tripPlanId,
       @Valid @RequestBody TripPlanUpdateRequest request) {
-
     tripPlanUseCase.updateTripPlan(tripPlanId, userPrincipal.getId(), request);
     return ResponseEntity.noContent().build();
   }
@@ -76,24 +77,33 @@ public class TripPlanController implements TripPlanApi {
   @DeleteMapping("/{tripPlanId}")
   public ResponseEntity<Void> deleteTripPlan(
       @AuthenticationPrincipal UserPrincipal userPrincipal, @PathVariable Long tripPlanId) {
-
     tripPlanUseCase.deleteTripPlan(tripPlanId, userPrincipal.getId());
     return ResponseEntity.noContent().build();
   }
 
-  @Override
   @PostMapping
   public ResponseEntity<CommonResponse<Object>> generateTripPlan(
       @AuthenticationPrincipal UserPrincipal userPrincipal,
-      @RequestParam Long chatRoomId,
       @Valid @RequestBody TripPlanCreateRequest request) {
 
     String username = userPrincipal.getUsername();
-    tripPlanUseCase.requestTripPlanGeneration(username, request, chatRoomId);
+    ChannelIdResponse channelIdResponse = tripPlanUseCase.createTripPlanSession(username, request);
 
     return ResponseEntity.status(HttpStatus.ACCEPTED)
-        .body(
-            CommonResponse.success(
-                HttpStatus.ACCEPTED.value(), Map.of("message", "여행 일정 생성이 시작되었습니다.")));
+        .body(CommonResponse.success(HttpStatus.ACCEPTED.value(), channelIdResponse));
+  }
+
+  @PostMapping("/{tripPlanId}")
+  public ResponseEntity<CommonResponse<Object>> startTripPlanGeneration(
+      @AuthenticationPrincipal UserPrincipal userPrincipal,
+      @Parameter(description = "여행 계획 ID (tripPlanId)", example = "123", required = true)
+          @PathVariable
+          Long tripPlanId) {
+
+    String username = userPrincipal.getUsername();
+    tripPlanUseCase.startTripPlanGeneration(username, tripPlanId);
+
+    return ResponseEntity.ok()
+        .body(CommonResponse.success(HttpStatus.OK.value(), Map.of("message", "여행 일정 생성을 시작합니다.")));
   }
 }

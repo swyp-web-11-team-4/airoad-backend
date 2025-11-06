@@ -1,6 +1,7 @@
 package com.swygbro.airoad.backend.chat.infrastructure.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,4 +16,7 @@ public interface AiConversationRepository extends JpaRepository<AiConversation, 
           + "FROM AiConversation ac WHERE ac.tripPlan.id IN :tripPlanIds")
   List<ConversationIdProjection> findConversationIdsByTripPlanIds(
       @Param("tripPlanIds") List<Long> tripPlanIds);
+
+  @Query("SELECT ac FROM AiConversation ac WHERE ac.tripPlan.id = :tripPlanId")
+  Optional<AiConversation> findByTripPlanId(@Param("tripPlanId") Long tripPlanId);
 }

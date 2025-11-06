@@ -5,20 +5,11 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.AttributeOverride;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 
 import com.swygbro.airoad.backend.common.domain.embeddable.Location;
 import com.swygbro.airoad.backend.common.domain.entity.BaseEntity;
+import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
 import com.swygbro.airoad.backend.member.domain.entity.Member;
 
 import lombok.AccessLevel;
@@ -33,12 +24,14 @@ import lombok.NoArgsConstructor;
 public class TripPlan extends BaseEntity {
 
   /** 여행 테마 목록 */
-  @OneToMany(mappedBy = "tripPlan", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<TripTheme> tripThemes = new ArrayList<>();
+  @ElementCollection(fetch = FetchType.LAZY)
+  @CollectionTable(name = "trip_plan_theme", joinColumns = @JoinColumn(name = "trip_plan_id"))
+  @Enumerated(EnumType.STRING)
+  private final List<PlaceThemeType> tripThemes = new ArrayList<>();
 
   /** 일차별 여행 일정 목록 */
   @OneToMany(mappedBy = "tripPlan", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<DailyPlan> dailyPlans = new ArrayList<>();
+  private final List<DailyPlan> dailyPlans = new ArrayList<>();
 
   /** 여행 계획을 생성한 사용자 */
   @ManyToOne(fetch = FetchType.LAZY)
@@ -168,5 +161,21 @@ public class TripPlan extends BaseEntity {
     }
     long expectedDays = ChronoUnit.DAYS.between(startDate, endDate) + 1;
     return dailyPlans.size() >= expectedDays;
+  }
+
+  /**
+   * 여행 테마를 추가합니다.
+   *
+   * <p>애그리게이트 루트를 통한 일관성 보장을 위해 TripTheme 추가 시 이 메서드를 사용해야 합니다.
+   *
+   * @param tripTheme 추가할 여행 테마
+   */
+  public void addTripTheme(PlaceThemeType tripTheme) {
+    this.tripThemes.add(tripTheme);
+  }
+
+  /** 모든 여행 테마를 제거합니다. */
+  public void clearTripThemes() {
+    this.tripThemes.clear();
   }
 }

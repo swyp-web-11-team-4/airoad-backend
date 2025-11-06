@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -320,62 +321,62 @@ public interface TripPlanApi {
           Long tripPlanId);
 
   @Operation(
-      summary = "AI 여행 일정 생성 요청",
+      summary = "여행 일정 생성 세션 생성",
       description =
           """
-          AI에게 여행 일정 생성을 요청합니다.
-          요청이 성공하면 202 Accepted 상태와 함께 생성 시작 메시지를 반환합니다.
-          실제 여행 일정 생성은 비동기적으로 처리됩니다.
-          """,
+                    AI 기반 여행 일정 생성을 위한 세션을 생성합니다.
+                    사용자가 제공한 여행 조건으로 chatRoom과 TripPlan을 생성하고, WebSocket 구독에 필요한 채널 ID를 반환합니다.
+
+                    ## 처리 흐름
+                    1. **이 API 호출** → 여행 조건(request body)과 함께 요청
+                    2. 서버: ChatRoom, TripPlan 생성 및 ID 반환
+                    3. 클라이언트: 반환받은 ID로 WebSocket 채널 구독
+                       - `/user/sub/chat/{chatRoomId}`
+                       - `/user/sub/schedule/{tripPlanId}`
+                       - `/user/sub/errors/{chatRoomId}`
+                    4. 클라이언트: POST /api/v1/trips/{tripPlanId} 호출
+                    5. 서버: AI 일정 생성 시작 및 WebSocket으로 실시간 스트리밍
+
+                    ## Request Body
+                    - themes: 여행 테마 목록 (PlaceThemeType enum 배열)
+                      - FAMOUS_SPOT: 유명 관광지
+                      - HEALING: 힐링
+                      - SNS_HOTSPOT: SNS 핫플
+                      - EXPERIENCE_ACTIVITY: 체험 액티비티
+                      - CULTURE_ART: 문화/예술
+                      - SHOPPING: 쇼핑
+                      - RESTAURANT: 음식점
+                    - startDate: 여행 시작 날짜 (YYYY-MM-DD)
+                    - duration: 여행 기간 (일 단위, 최소 1일)
+                    - region: 여행 지역 (예: "제주", "서울", "부산")
+                    - peopleCount: 여행 인원 (최소 1명)
+
+                    ## 주의사항
+                    - 이 API는 세션만 생성하며, 실제 AI 일정 생성은 시작하지 않습니다
+                    - 반환된 chatRoomId, tripPlanId로 WebSocket 구독 후 tripPlanId를 사용하여 start API를 호출해야 합니다
+                    """,
       security = @SecurityRequirement(name = "bearerAuth"))
   @ApiResponses({
     @ApiResponse(
         responseCode = "202",
-        description = "생성 요청 성공",
+        description = "ChatRoom 및 TripPlan 생성 완료",
         content =
             @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = CommonResponse.class),
                 examples =
                     @ExampleObject(
                         value =
                             """
-                                {
-                                  "success": true,
-                                  "status": 202,
-                                  "data": {
-                                    "message": "여행 일정 생성이 시작되었습니다."
-                                  }
-                                }
-                                """))),
-    @ApiResponse(
-        responseCode = "400",
-        description = "잘못된 요청",
-        content =
-            @Content(
-                mediaType = "application/json",
-                examples =
-                    @ExampleObject(
-                        name = "필수 파라미터 누락",
-                        value =
-                            """
-                                {
-                                  "success": false,
-                                  "status": 400,
-                                  "data": {
-                                    "timestamp": "2025-10-30T10:00:00",
-                                    "code": "COMMON002",
-                                    "message": "잘못된 요청입니다.",
-                                    "path": "/api/v1/trips",
-                                    "errors": [
-                                      {
-                                        "field": "chatRoomId",
-                                        "rejectedValue": null,
-                                        "message": "채팅방 ID는 필수입니다."
+                                    {
+                                      "success": true,
+                                      "status": 202,
+                                      "data": {
+                                        "chatRoomId": 123,
+                                        "tripPlanId": 456
                                       }
-                                    ]
-                                  }
-                                }
-                                """))),
+                                    }
+                                    """))),
     @ApiResponse(
         responseCode = "401",
         description = "인증되지 않은 사용자",
@@ -397,11 +398,141 @@ public interface TripPlanApi {
                                     "errors": null
                                   }
                                 }
+                                """))),
+    @ApiResponse(
+        responseCode = "404",
+        description = "회원을 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                {
+                                  "success": false,
+                                  "status": 404,
+                                  "data": {
+                                    "timestamp": "2025-10-30T10:00:00",
+                                    "code": "MEMBER001",
+                                    "message": "회원을 찾을 수 없습니다.",
+                                    "path": "/api/v1/trips",
+                                    "errors": null
+                                  }
+                                }
                                 """)))
   })
+  @PostMapping
   ResponseEntity<CommonResponse<Object>> generateTripPlan(
       @AuthenticationPrincipal UserPrincipal userPrincipal,
-      @Parameter(description = "채팅방 ID", example = "1", required = true) @RequestParam
-          Long chatRoomId,
       @Valid @RequestBody TripPlanCreateRequest request);
+
+  @Operation(
+      summary = "AI 여행 일정 생성 시작",
+      description =
+          """
+                    클라이언트가 WebSocket 채널 구독을 완료한 후 호출하는 API입니다.
+                    TripPlanGenerationRequestedEvent를 발행하여 AI 기반 여행 일정 생성 프로세스를 시작합니다.
+
+                    ## 호출 시점
+                    1. POST /api/v1/trips 호출 → 여행 조건(request body)과 함께 요청
+                    2. 서버 응답으로 chatRoomId와 tripPlanId 수신
+                    3. WebSocket 채널 구독 완료
+                       - `/user/sub/chat/{chatRoomId}`
+                       - `/user/sub/schedule/{tripPlanId}`
+                       - `/user/sub/errors/{chatRoomId}`
+                    4. **이 API 호출** → tripPlanId를 경로 변수로 전달
+                    5. 서버: TripPlanGenerationRequestedEvent 발행
+                    6. AI 리스너: 이벤트 수신하여 일정 생성 시작
+                    7. WebSocket으로 실시간 스트리밍 응답 전송
+
+                    ## WebSocket 메시지 수신
+                    ### 채팅 채널 (`/user/sub/chat/{chatRoomId}`)
+                    - AI 스트리밍 응답 (여행 일정 생성 과정 설명)
+                    - 완료/취소 알림 (`COMPLETED`, `CANCELLED`)
+
+                    ### 일정 전송 채널 (`/user/sub/schedule/{tripPlanId}`)
+                    - 일차별 일정(DailyPlan) 저장 완료 데이터
+                    - 각 일차의 방문지, 이동 정보 포함
+
+                    ### 에러 채널 (`/user/sub/errors/{chatRoomId}`)
+                    - 일정 생성 중 발생한 오류 알림
+
+                    ## 주의사항
+                    - 구독 완료 전 이 API를 호출하면 메시지 손실 위험이 있습니다
+                    - tripPlanId는 POST /api/v1/trips 응답의 tripPlanId 값을 사용하세요
+                    - 여행 조건은 이미 TripPlan에 저장되어 있으므로 별도로 전달하지 않습니다
+                    """,
+      security = @SecurityRequirement(name = "bearerAuth"))
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "AI 일정 생성 시작",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = CommonResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                    {
+                                      "success": true,
+                                      "status": 200,
+                                      "data": {
+                                        "message": "여행 일정 생성을 시작합니다."
+                                      }
+                                    }
+                                    """))),
+    @ApiResponse(
+        responseCode = "401",
+        description = "인증되지 않은 사용자",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                {
+                                  "success": false,
+                                  "status": 401,
+                                  "data": {
+                                    "timestamp": "2025-10-30T10:00:00",
+                                    "code": "AUTH001",
+                                    "message": "인증이 필요합니다.",
+                                    "path": "/api/v1/trips/{chatRoomId}",
+                                    "errors": null
+                                  }
+                                }
+                                """))),
+    @ApiResponse(
+        responseCode = "404",
+        description = "채팅방을 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                                {
+                                  "success": false,
+                                  "status": 404,
+                                  "data": {
+                                    "timestamp": "2025-10-30T10:00:00",
+                                    "code": "CHAT001",
+                                    "message": "채팅방을 찾을 수 없습니다.",
+                                    "path": "/api/v1/trips/{chatRoomId}",
+                                    "errors": null
+                                  }
+                                }
+                                """)))
+  })
+  @PostMapping("/{tripPlanId}")
+  ResponseEntity<CommonResponse<Object>> startTripPlanGeneration(
+      @AuthenticationPrincipal UserPrincipal userPrincipal,
+      @Parameter(description = "여행 계획 ID (tripPlanId)", example = "123", required = true)
+          @PathVariable
+          Long tripPlanId);
 }

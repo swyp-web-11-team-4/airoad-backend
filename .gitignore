@@ -45,3 +45,6 @@ application*.properties
 
 ### Docker Compose ###
 /docker-compose.local.yml
+
+### Tour API External Package ###
+src/main/java/com/swygbro/airoad/backend/content/external/tourapi/

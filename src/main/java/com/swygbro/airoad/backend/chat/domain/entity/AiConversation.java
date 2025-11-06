@@ -1,9 +1,6 @@
 package com.swygbro.airoad.backend.chat.domain.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 
 import com.swygbro.airoad.backend.common.domain.entity.BaseEntity;
 import com.swygbro.airoad.backend.member.domain.entity.Member;
@@ -26,7 +23,7 @@ public class AiConversation extends BaseEntity {
   private Member member;
 
   /** 대화와 관련된 여행 계획 */
-  @ManyToOne(fetch = FetchType.LAZY)
+  @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(nullable = false)
   private TripPlan tripPlan;
 

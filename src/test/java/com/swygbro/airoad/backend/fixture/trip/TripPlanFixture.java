@@ -3,12 +3,12 @@ package com.swygbro.airoad.backend.fixture.trip;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 
+import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
 import com.swygbro.airoad.backend.fixture.common.LocationFixture;
 import com.swygbro.airoad.backend.fixture.member.MemberFixture;
 import com.swygbro.airoad.backend.member.domain.entity.Member;
 import com.swygbro.airoad.backend.trip.domain.entity.Transportation;
 import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
-import com.swygbro.airoad.backend.trip.domain.entity.TripTheme;
 
 public class TripPlanFixture {
 
@@ -60,20 +60,23 @@ public class TripPlanFixture {
         .build();
   }
 
-  public static TripPlan createWithMemberAndTheme(Member member, TripTheme tripTheme) {
-    return TripPlan.builder()
-        .member(member)
-        .title("서울 3박 4일 여행")
-        .startDate(LocalDate.of(2025, 12, 1))
-        .endDate(LocalDate.of(2025, 12, 4))
-        .isCompleted(false)
-        .region("서울")
-        .transportation(Transportation.PUBLIC_TRANSIT)
-        .budget("50만원")
-        .peopleCount(2)
-        .startLocation(LocationFixture.create())
-        .endLocation(LocationFixture.createGangnam())
-        .build();
+  public static TripPlan createWithMemberAndTheme(Member member, PlaceThemeType tripTheme) {
+    TripPlan tripPlan =
+        TripPlan.builder()
+            .member(member)
+            .title("서울 3박 4일 여행")
+            .startDate(LocalDate.of(2025, 12, 1))
+            .endDate(LocalDate.of(2025, 12, 4))
+            .isCompleted(false)
+            .region("서울")
+            .transportation(Transportation.PUBLIC_TRANSIT)
+            .budget("50만원")
+            .peopleCount(2)
+            .startLocation(LocationFixture.create())
+            .endLocation(LocationFixture.createGangnam())
+            .build();
+    tripPlan.getTripThemes().add(tripTheme);
+    return tripPlan;
   }
 
   public static TripPlan.TripPlanBuilder builder() {

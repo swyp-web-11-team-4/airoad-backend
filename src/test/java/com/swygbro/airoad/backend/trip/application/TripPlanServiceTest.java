@@ -453,10 +453,11 @@ class TripPlanServiceTest {
       conversationIdField.setAccessible(true);
       conversationIdField.set(aiConversation, chatRoomId);
 
-      given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(aiConversation));
+      given(aiConversationRepository.findByTripPlanId(tripPlanId))
+          .willReturn(Optional.of(aiConversation));
 
       // when
-      tripPlanService.startTripPlanGeneration(username, chatRoomId);
+      tripPlanService.startTripPlanGeneration(username, tripPlanId);
 
       // then
       ArgumentCaptor<TripPlanGenerationRequestedEvent> eventCaptor =
@@ -470,16 +471,16 @@ class TripPlanServiceTest {
     }
 
     @Test
-    @DisplayName("given 존재하지 않는 채팅방 ID when 여행 계획 생성 시작 then 예외가 발생한다")
+    @DisplayName("given 존재하지 않는 채팅방 when 여행 계획 생성 시작 then 예외가 발생한다")
     void startTripPlanGenerationWithNonExistentChatRoom() {
       // given
       String username = "test@example.com";
-      Long chatRoomId = 999L;
+      Long tripPlanId = 999L;
 
-      given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.empty());
+      given(aiConversationRepository.findByTripPlanId(tripPlanId)).willReturn(Optional.empty());
 
       // when & then
-      assertThatThrownBy(() -> tripPlanService.startTripPlanGeneration(username, chatRoomId))
+      assertThatThrownBy(() -> tripPlanService.startTripPlanGeneration(username, tripPlanId))
           .isInstanceOf(Exception.class);
 
       verify(eventPublisher, times(0)).publishEvent(any(TripPlanGenerationRequestedEvent.class));
@@ -490,9 +491,8 @@ class TripPlanServiceTest {
     void startTripPlanGenerationWithValidTripPlan() throws Exception {
       // given
       String username = "test@example.com";
-      Long chatRoomId = 1L;
       Long tripPlanId = 100L;
-
+      Long chatRoomId = 1L;
       Member member = MemberFixture.createWithEmail(username);
       TripPlan tripPlan = TripPlanFixture.createWithMember(member);
 
@@ -509,10 +509,11 @@ class TripPlanServiceTest {
       conversationIdField.setAccessible(true);
       conversationIdField.set(aiConversation, chatRoomId);
 
-      given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(aiConversation));
+      given(aiConversationRepository.findByTripPlanId(tripPlanId))
+          .willReturn(Optional.of(aiConversation));
 
       // when
-      tripPlanService.startTripPlanGeneration(username, chatRoomId);
+      tripPlanService.startTripPlanGeneration(username, tripPlanId);
 
       // then
       ArgumentCaptor<TripPlanGenerationRequestedEvent> eventCaptor =

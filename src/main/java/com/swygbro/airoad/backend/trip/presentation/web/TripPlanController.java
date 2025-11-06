@@ -93,15 +93,15 @@ public class TripPlanController implements TripPlanApi {
         .body(CommonResponse.success(HttpStatus.ACCEPTED.value(), channelIdResponse));
   }
 
-  @PostMapping("/{chatRoomId}")
+  @PostMapping("/{tripPlanId}")
   public ResponseEntity<CommonResponse<Object>> startTripPlanGeneration(
       @AuthenticationPrincipal UserPrincipal userPrincipal,
       @Parameter(description = "채팅방 ID (chatRoomId)", example = "123", required = true)
           @PathVariable
-          Long chatRoomId) {
+          Long tripPlanId) {
 
     String username = userPrincipal.getUsername();
-    tripPlanUseCase.startTripPlanGeneration(username, chatRoomId);
+    tripPlanUseCase.startTripPlanGeneration(username, tripPlanId);
 
     return ResponseEntity.ok()
         .body(CommonResponse.success(HttpStatus.OK.value(), Map.of("message", "여행 일정 생성을 시작합니다.")));

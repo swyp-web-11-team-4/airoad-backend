@@ -184,12 +184,12 @@ public class TripPlanService implements TripPlanUseCase {
   // 일정 생성을 위한 이벤트를 배포합니다
   @Override
   @Transactional
-  public void startTripPlanGeneration(String username, Long chatRoomId) {
+  public void startTripPlanGeneration(String username, Long tripPlanId) {
 
     // 채팅방 조회
     AiConversation aiConversation =
         aiConversationRepository
-            .findById(chatRoomId)
+            .findByTripPlanId(tripPlanId)
             .orElseThrow(() -> new BusinessException(ChatErrorCode.CONVERSATION_NOT_FOUND));
 
     // 권한 검증: 채팅방 소유자와 요청자가 일치하는지 확인

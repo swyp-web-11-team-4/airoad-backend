@@ -1,5 +1,7 @@
 package com.swygbro.airoad.backend.fixture.member;
 
+import java.lang.reflect.Field;
+
 import com.swygbro.airoad.backend.member.domain.entity.Member;
 import com.swygbro.airoad.backend.member.domain.entity.MemberRole;
 import com.swygbro.airoad.backend.member.domain.entity.ProviderType;
@@ -43,5 +45,16 @@ public class MemberFixture {
         .imageUrl("https://example.com/profile.jpg")
         .provider(ProviderType.GOOGLE)
         .role(MemberRole.MEMBER);
+  }
+
+  public static Member withId(Long id, Member member) {
+    try {
+      Field idField = member.getClass().getSuperclass().getDeclaredField("id");
+      idField.setAccessible(true);
+      idField.set(member, id);
+      return member;
+    } catch (NoSuchFieldException | IllegalAccessException e) {
+      throw new RuntimeException("ID 설정 실패", e);
+    }
   }
 }

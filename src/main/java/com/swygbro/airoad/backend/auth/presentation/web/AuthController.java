@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
-@Tag(name = "v1-auth", description = "회원 인증을 담당하는 API")
+@Tag(name = "Auth", description = "회원 인증을 담당하는 API")
 public class AuthController {
 
   private static final String BEARER_PREFIX = "Bearer ";

@@ -1,5 +1,6 @@
 package com.swygbro.airoad.backend.fixture.trip;
 
+import java.lang.reflect.Field;
 import java.time.LocalDate;
 
 import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
@@ -91,5 +92,16 @@ public class TripPlanFixture {
         .peopleCount(2)
         .startLocation(LocationFixture.create())
         .endLocation(LocationFixture.createGangnam());
+  }
+
+  public static TripPlan withId(Long id, TripPlan tripPlan) {
+    try {
+      Field idField = tripPlan.getClass().getSuperclass().getDeclaredField("id");
+      idField.setAccessible(true);
+      idField.set(tripPlan, id);
+      return tripPlan;
+    } catch (NoSuchFieldException | IllegalAccessException e) {
+      throw new RuntimeException("ID 설정 실패", e);
+    }
   }
 }

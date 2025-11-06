@@ -47,8 +47,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
+@ExtendWith(MockitoExtension.class)
+@DisplayName("TripPlanController 테스트")
 class TripPlanControllerTest {
 
   @Mock private TripUseCase tripUseCase;

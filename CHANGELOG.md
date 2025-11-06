@@ -1,3 +1,10 @@
+# [0.12.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.11.1...v0.12.0) (2025-11-06)
+
+
+### Features
+
+* 사용자 여행 일정 목록 조회 및 삭제 API 구현 ([#48](https://github.com/swyp-web-11-team-4/airoad-backend/issues/48)) ([c142e7c](https://github.com/swyp-web-11-team-4/airoad-backend/commit/c142e7c4fb1683bd5aeb4e612cf86a94d9bab884))
+
 ## [0.11.1](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.11.0...v0.11.1) (2025-11-04)
 
 

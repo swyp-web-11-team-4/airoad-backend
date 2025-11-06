@@ -2,7 +2,9 @@ package com.swygbro.airoad.backend.trip.application;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -12,6 +14,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.swygbro.airoad.backend.chat.infrastructure.repository.AiConversationRepository;
+import com.swygbro.airoad.backend.chat.infrastructure.repository.ConversationIdProjection;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.member.domain.entity.Member;
@@ -38,14 +42,22 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TripPlanService implements TripPlanUseCase {
 
+  // Trip 도메인 관련 레포지토리
   private final TripPlanRepository tripPlanRepository;
   private final DailyPlanRepository dailyPlanRepository;
   private final ScheduledPlaceRepository scheduledPlaceRepository;
   private final TripThemeRepository tripThemeRepository;
+
+  // 회원 관련 레포지토리
   private final MemberRepository memberRepository;
+
+  // 채팅 관련 레포지토리
+  private final AiConversationRepository aiConversationRepository;
+
   private final ApplicationEventPublisher eventPublisher;
 
   @Override
+  @Transactional(readOnly = true)
   public CursorPageResponse<TripPlanResponse> getUserTripPlans(
       Long memberId, int size, Long cursor, String sort) {
     log.info("사용자 여행 일정 목록 조회 - memberId: {}, size: {}, cursor: {}", memberId, size, cursor);
@@ -70,14 +82,32 @@ public class TripPlanService implements TripPlanUseCase {
     }
 
     Page<TripPlan> tripPlansPage = tripPlanRepository.findAll(spec, pageRequest);
-
     List<TripPlan> content = tripPlansPage.getContent();
     boolean hasNext = tripPlansPage.hasNext();
+
+    List<Long> tripPlanIds = content.stream().map(TripPlan::getId).toList();
+
+    Map<Long, Long> conversationIdByTripPlanIdMap = Map.of();
+    if (!tripPlanIds.isEmpty()) {
+      List<ConversationIdProjection> projections =
+          aiConversationRepository.findConversationIdsByTripPlanIds(tripPlanIds);
+      conversationIdByTripPlanIdMap =
+          projections.stream()
+              .collect(
+                  Collectors.toMap(
+                      ConversationIdProjection::getTripPlanId,
+                      ConversationIdProjection::getConversationId,
+                      (existing, replacement) -> existing));
+    }
 
     Long nextCursor =
         hasNext && !content.isEmpty() ? content.get(content.size() - 1).getId() : null;
 
-    List<TripPlanResponse> responses = content.stream().map(TripPlanResponse::of).toList();
+    final Map<Long, Long> finalMap = conversationIdByTripPlanIdMap;
+    List<TripPlanResponse> responses =
+        content.stream()
+            .map(tripPlan -> TripPlanResponse.of(tripPlan, finalMap.get(tripPlan.getId())))
+            .toList();
 
     log.info(
         "사용자 여행 일정 목록 조회 완료 - memberId: {}, 조회된 일정 수: {}, hasNext: {}",

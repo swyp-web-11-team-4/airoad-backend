@@ -92,8 +92,7 @@ class TripPlanServiceTest {
           .willReturn(tripPlanPage);
 
       given(aiConversationRepository.findConversationIdsByTripPlanIds(anyList()))
-          .willReturn(
-              List.of(new TestConversationIdProjection()));
+          .willReturn(List.of(new TestConversationIdProjection()));
 
       // when
       CursorPageResponse<TripPlanResponse> response =
@@ -130,8 +129,7 @@ class TripPlanServiceTest {
           .willReturn(nextTripPlanPage);
 
       given(aiConversationRepository.findConversationIdsByTripPlanIds(anyList()))
-          .willReturn(
-              List.of(new TestConversationIdProjection()));
+          .willReturn(List.of(new TestConversationIdProjection()));
 
       // when
       CursorPageResponse<TripPlanResponse> response =

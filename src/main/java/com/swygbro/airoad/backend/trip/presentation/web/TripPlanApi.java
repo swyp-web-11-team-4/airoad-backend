@@ -329,12 +329,12 @@ public interface TripPlanApi {
 
                     ## 처리 흐름
                     1. **이 API 호출** → 여행 조건(request body)과 함께 요청
-                    2. 서버: AiConversation, TripPlan 생성 및 ID 반환
+                    2. 서버: ChatRoom, TripPlan 생성 및 ID 반환
                     3. 클라이언트: 반환받은 ID로 WebSocket 채널 구독
                        - `/user/sub/chat/{chatRoomId}`
                        - `/user/sub/schedule/{tripPlanId}`
                        - `/user/sub/errors/{chatRoomId}`
-                    4. 클라이언트: POST /api/v1/trips/{chatRoomId} 호출
+                    4. 클라이언트: POST /api/v1/trips/{tripPlanId} 호출
                     5. 서버: AI 일정 생성 시작 및 WebSocket으로 실시간 스트리밍
 
                     ## Request Body
@@ -353,13 +353,13 @@ public interface TripPlanApi {
 
                     ## 주의사항
                     - 이 API는 세션만 생성하며, 실제 AI 일정 생성은 시작하지 않습니다
-                    - 반환된 chatRoomId tripPlanId로 WebSocket 구독 후 start API를 호출해야 합니다
+                    - 반환된 chatRoomId, tripPlanId로 WebSocket 구독 후 tripPlanId를 사용하여 start API를 호출해야 합니다
                     """,
       security = @SecurityRequirement(name = "bearerAuth"))
   @ApiResponses({
     @ApiResponse(
         responseCode = "202",
-        description = "AiConversation 및 TripPlan 생성 완료",
+        description = "ChatRoom 및 TripPlan 생성 완료",
         content =
             @Content(
                 mediaType = "application/json",
@@ -372,7 +372,7 @@ public interface TripPlanApi {
                                       "success": true,
                                       "status": 202,
                                       "data": {
-                                        "aiConversationId": 123,
+                                        "chatRoomId": 123,
                                         "tripPlanId": 456
                                       }
                                     }
@@ -441,7 +441,7 @@ public interface TripPlanApi {
                        - `/user/sub/chat/{chatRoomId}`
                        - `/user/sub/schedule/{tripPlanId}`
                        - `/user/sub/errors/{chatRoomId}`
-                    4. **이 API 호출** → chatRoomId를 경로 변수로 전달
+                    4. **이 API 호출** → tripPlanId를 경로 변수로 전달
                     5. 서버: TripPlanGenerationRequestedEvent 발행
                     6. AI 리스너: 이벤트 수신하여 일정 생성 시작
                     7. WebSocket으로 실시간 스트리밍 응답 전송
@@ -460,7 +460,7 @@ public interface TripPlanApi {
 
                     ## 주의사항
                     - 구독 완료 전 이 API를 호출하면 메시지 손실 위험이 있습니다
-                    - chatRoomId는 POST /api/v1/trips 응답의 chatRoomId 값을 사용하세요
+                    - tripPlanId는 POST /api/v1/trips 응답의 tripPlanId 값을 사용하세요
                     - 여행 조건은 이미 TripPlan에 저장되어 있으므로 별도로 전달하지 않습니다
                     """,
       security = @SecurityRequirement(name = "bearerAuth"))

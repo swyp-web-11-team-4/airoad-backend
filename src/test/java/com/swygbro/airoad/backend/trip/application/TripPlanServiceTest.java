@@ -19,6 +19,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.ActiveProfiles;
 
+import com.swygbro.airoad.backend.chat.infrastructure.repository.AiConversationRepository;
+import com.swygbro.airoad.backend.chat.infrastructure.repository.ConversationIdProjection;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.fixture.member.MemberFixture;
@@ -52,6 +54,7 @@ class TripPlanServiceTest {
   @Mock private ScheduledPlaceRepository scheduledPlaceRepository;
   @Mock private TripThemeRepository tripThemeRepository;
   @Mock private MemberRepository memberRepository;
+  @Mock private AiConversationRepository aiConversationRepository;
   @Mock private ApplicationEventPublisher eventPublisher;
 
   @InjectMocks private TripPlanService tripPlanService;
@@ -59,6 +62,18 @@ class TripPlanServiceTest {
   @Nested
   @DisplayName("사용자가 자신의 여행 일정 목록을 조회하면")
   class GetUserTripPlans {
+
+    static class TestConversationIdProjection implements ConversationIdProjection {
+      @Override
+      public Long getTripPlanId() {
+        return 2L;
+      }
+
+      @Override
+      public Long getConversationId() {
+        return 102L;
+      }
+    }
 
     @Test
     @DisplayName("요청한 페이지에 맞는 여행 일정 목록이 반환된다 (첫 페이지)")
@@ -75,6 +90,10 @@ class TripPlanServiceTest {
 
       given(tripPlanRepository.findAll(any(Specification.class), any(PageRequest.class)))
           .willReturn(tripPlanPage);
+
+      given(aiConversationRepository.findConversationIdsByTripPlanIds(anyList()))
+          .willReturn(
+              List.of(new TestConversationIdProjection()));
 
       // when
       CursorPageResponse<TripPlanResponse> response =
@@ -109,6 +128,10 @@ class TripPlanServiceTest {
 
       given(tripPlanRepository.findAll(any(Specification.class), any(PageRequest.class)))
           .willReturn(nextTripPlanPage);
+
+      given(aiConversationRepository.findConversationIdsByTripPlanIds(anyList()))
+          .willReturn(
+              List.of(new TestConversationIdProjection()));
 
       // when
       CursorPageResponse<TripPlanResponse> response =

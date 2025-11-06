@@ -57,6 +57,8 @@ class AiMessageRepositoryTest {
     // given: Fixture를 사용하여 테스트 데이터 생성 및 저장
     Member testMember = memberRepository.save(MemberFixture.create());
     TripPlan testTripPlan = tripPlanRepository.save(TripPlanFixture.createWithMember(testMember));
+    TripPlan anotherTripPlan =
+        tripPlanRepository.save(TripPlanFixture.createWithMember(testMember));
 
     // given: 테스트용 대화 세션 생성 및 저장
     testConversation =
@@ -64,7 +66,7 @@ class AiMessageRepositoryTest {
             AiConversationFixture.createWithMemberAndTripPlan(testMember, testTripPlan));
     anotherConversation =
         aiConversationRepository.save(
-            AiConversationFixture.createWithMemberAndTripPlan(testMember, testTripPlan));
+            AiConversationFixture.createWithMemberAndTripPlan(testMember, anotherTripPlan));
   }
 
   @AfterEach

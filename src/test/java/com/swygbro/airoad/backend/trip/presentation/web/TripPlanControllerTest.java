@@ -4,12 +4,12 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
@@ -23,26 +23,27 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swygbro.airoad.backend.auth.domain.dto.UserPrincipal;
+import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.common.presentation.GlobalExceptionHandler;
 import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
+import com.swygbro.airoad.backend.fixture.member.MemberFixture;
 import com.swygbro.airoad.backend.member.domain.entity.Member;
 import com.swygbro.airoad.backend.member.domain.entity.MemberRole;
 import com.swygbro.airoad.backend.member.domain.entity.ProviderType;
 import com.swygbro.airoad.backend.member.exception.MemberErrorCode;
-import com.swygbro.airoad.backend.trip.application.TripUseCase;
+import com.swygbro.airoad.backend.trip.application.TripPlanUseCase;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
+import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanUpdateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.response.ChannelIdResponse;
+import com.swygbro.airoad.backend.trip.domain.dto.response.TripPlanResponse;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.doNothing;
-import static org.mockito.BDDMockito.doThrow;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.verify;
+import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.times;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -52,7 +53,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("TripPlanController 테스트")
 class TripPlanControllerTest {
 
-  @Mock private TripUseCase tripUseCase;
+  @Mock private TripPlanUseCase tripPlanUseCase;
+  @InjectMocks private TripPlanController tripPlanController;
 
   private MockMvc mockMvc;
 
@@ -68,13 +70,24 @@ class TripPlanControllerTest {
     objectMapper.findAndRegisterModules(); // LocalDate 등을 처리하기 위해 필요
 
     mockMvc =
-        MockMvcBuilders.standaloneSetup(new TripPlanController(tripUseCase))
+        MockMvcBuilders.standaloneSetup(tripPlanController)
             .setControllerAdvice(new GlobalExceptionHandler())
             .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
             .build();
+    mockUserPrincipal();
   }
 
-  @AfterEach
+  private void mockUserPrincipal() {
+    Member member = MemberFixture.withId(1L, MemberFixture.create());
+    UserPrincipal userPrincipal = new UserPrincipal(member);
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            userPrincipal, null, userPrincipal.getAuthorities()));
+    SecurityContextHolder.setContext(context);
+  }
+
+  // @AfterEach
   void tearDown() {
     SecurityContextHolder.clearContext();
   }
@@ -120,7 +133,7 @@ class TripPlanControllerTest {
 
       ChannelIdResponse response = new ChannelIdResponse(TEST_CHAT_ROOM_ID, TEST_TRIP_PLAN_ID);
 
-      given(tripUseCase.createTripPlanSession(eq(TEST_EMAIL), any(TripPlanCreateRequest.class)))
+      given(tripPlanUseCase.createTripPlanSession(eq(TEST_EMAIL), any(TripPlanCreateRequest.class)))
           .willReturn(response);
 
       // when & then
@@ -136,7 +149,8 @@ class TripPlanControllerTest {
           .andExpect(jsonPath("$.data.conversationId").value(TEST_CHAT_ROOM_ID))
           .andExpect(jsonPath("$.data.tripPlanId").value(TEST_TRIP_PLAN_ID));
 
-      verify(tripUseCase).createTripPlanSession(eq(TEST_EMAIL), any(TripPlanCreateRequest.class));
+      verify(tripPlanUseCase)
+          .createTripPlanSession(eq(TEST_EMAIL), any(TripPlanCreateRequest.class));
     }
 
     @Test
@@ -165,7 +179,7 @@ class TripPlanControllerTest {
           .andExpect(jsonPath("$.success").value(false))
           .andExpect(jsonPath("$.status").value(400));
 
-      verify(tripUseCase, times(0))
+      verify(tripPlanUseCase, times(0))
           .createTripPlanSession(anyString(), any(TripPlanCreateRequest.class));
     }
 
@@ -197,7 +211,7 @@ class TripPlanControllerTest {
           .andExpect(jsonPath("$.success").value(false))
           .andExpect(jsonPath("$.status").value(400));
 
-      verify(tripUseCase, times(0))
+      verify(tripPlanUseCase, times(0))
           .createTripPlanSession(anyString(), any(TripPlanCreateRequest.class));
     }
 
@@ -227,7 +241,7 @@ class TripPlanControllerTest {
           .andExpect(jsonPath("$.success").value(false))
           .andExpect(jsonPath("$.status").value(400));
 
-      verify(tripUseCase, times(0))
+      verify(tripPlanUseCase, times(0))
           .createTripPlanSession(anyString(), any(TripPlanCreateRequest.class));
     }
 
@@ -257,7 +271,7 @@ class TripPlanControllerTest {
           .andExpect(jsonPath("$.success").value(false))
           .andExpect(jsonPath("$.status").value(400));
 
-      verify(tripUseCase, times(0))
+      verify(tripPlanUseCase, times(0))
           .createTripPlanSession(anyString(), any(TripPlanCreateRequest.class));
     }
 
@@ -287,7 +301,7 @@ class TripPlanControllerTest {
           .andExpect(jsonPath("$.success").value(false))
           .andExpect(jsonPath("$.status").value(400));
 
-      verify(tripUseCase, times(0))
+      verify(tripPlanUseCase, times(0))
           .createTripPlanSession(anyString(), any(TripPlanCreateRequest.class));
     }
 
@@ -306,7 +320,7 @@ class TripPlanControllerTest {
               .peopleCount(2)
               .build();
 
-      given(tripUseCase.createTripPlanSession(eq(TEST_EMAIL), any(TripPlanCreateRequest.class)))
+      given(tripPlanUseCase.createTripPlanSession(eq(TEST_EMAIL), any(TripPlanCreateRequest.class)))
           .willThrow(new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
 
       // when & then
@@ -320,7 +334,8 @@ class TripPlanControllerTest {
           .andExpect(jsonPath("$.success").value(false))
           .andExpect(jsonPath("$.status").value(404));
 
-      verify(tripUseCase).createTripPlanSession(eq(TEST_EMAIL), any(TripPlanCreateRequest.class));
+      verify(tripPlanUseCase)
+          .createTripPlanSession(eq(TEST_EMAIL), any(TripPlanCreateRequest.class));
     }
 
     @Test
@@ -344,7 +359,7 @@ class TripPlanControllerTest {
 
       ChannelIdResponse response = new ChannelIdResponse(TEST_CHAT_ROOM_ID, TEST_TRIP_PLAN_ID);
 
-      given(tripUseCase.createTripPlanSession(eq(TEST_EMAIL), any(TripPlanCreateRequest.class)))
+      given(tripPlanUseCase.createTripPlanSession(eq(TEST_EMAIL), any(TripPlanCreateRequest.class)))
           .willReturn(response);
 
       // when & then
@@ -358,7 +373,8 @@ class TripPlanControllerTest {
           .andExpect(jsonPath("$.success").value(true))
           .andExpect(jsonPath("$.status").value(202));
 
-      verify(tripUseCase).createTripPlanSession(eq(TEST_EMAIL), any(TripPlanCreateRequest.class));
+      verify(tripPlanUseCase)
+          .createTripPlanSession(eq(TEST_EMAIL), any(TripPlanCreateRequest.class));
     }
   }
 
@@ -371,7 +387,7 @@ class TripPlanControllerTest {
     void startTripPlanGenerationSuccess() throws Exception {
       // given
       setUpSecurityContext();
-      doNothing().when(tripUseCase).startTripPlanGeneration(TEST_EMAIL, TEST_CHAT_ROOM_ID);
+      doNothing().when(tripPlanUseCase).startTripPlanGeneration(TEST_EMAIL, TEST_CHAT_ROOM_ID);
 
       // when & then
       mockMvc
@@ -382,7 +398,7 @@ class TripPlanControllerTest {
           .andExpect(jsonPath("$.status").value(200))
           .andExpect(jsonPath("$.data.message").value("여행 일정 생성을 시작합니다."));
 
-      verify(tripUseCase).startTripPlanGeneration(TEST_EMAIL, TEST_CHAT_ROOM_ID);
+      verify(tripPlanUseCase).startTripPlanGeneration(TEST_EMAIL, TEST_CHAT_ROOM_ID);
     }
 
     @Test
@@ -393,7 +409,7 @@ class TripPlanControllerTest {
       Long nonExistentChatRoomId = 999L;
 
       doThrow(new RuntimeException("채팅방을 찾을 수 없습니다."))
-          .when(tripUseCase)
+          .when(tripPlanUseCase)
           .startTripPlanGeneration(TEST_EMAIL, nonExistentChatRoomId);
 
       // when & then
@@ -402,7 +418,7 @@ class TripPlanControllerTest {
           .andDo(print())
           .andExpect(status().is5xxServerError());
 
-      verify(tripUseCase).startTripPlanGeneration(TEST_EMAIL, nonExistentChatRoomId);
+      verify(tripPlanUseCase).startTripPlanGeneration(TEST_EMAIL, nonExistentChatRoomId);
     }
 
     @Test
@@ -413,7 +429,7 @@ class TripPlanControllerTest {
       Long[] chatRoomIds = {1L, 100L, 9999L};
 
       for (Long chatRoomId : chatRoomIds) {
-        doNothing().when(tripUseCase).startTripPlanGeneration(TEST_EMAIL, chatRoomId);
+        doNothing().when(tripPlanUseCase).startTripPlanGeneration(TEST_EMAIL, chatRoomId);
 
         // when & then
         mockMvc
@@ -424,8 +440,98 @@ class TripPlanControllerTest {
             .andExpect(jsonPath("$.status").value(200))
             .andExpect(jsonPath("$.data.message").value("여행 일정 생성을 시작합니다."));
 
-        verify(tripUseCase).startTripPlanGeneration(TEST_EMAIL, chatRoomId);
+        verify(tripPlanUseCase).startTripPlanGeneration(TEST_EMAIL, chatRoomId);
       }
+    }
+  }
+
+  @Nested
+  @DisplayName("사용자 여행 일정 목록 조회 API 호출 시")
+  class GetUserTripPlans {
+
+    @Test
+    @DisplayName("인증된 사용자가 자신의 여행 목록을 성공적으로 조회한다")
+    void getsUserTripPlansSuccessfully() throws Exception {
+      // given
+      CursorPageResponse<TripPlanResponse> response =
+          CursorPageResponse.of(Collections.emptyList(), null, false);
+      given(tripPlanUseCase.getUserTripPlans(anyLong(), anyInt(), any(), anyString()))
+          .willReturn(response);
+
+      // when & then
+      mockMvc
+          .perform(get("/api/v1/trips"))
+          .andDo(print())
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.success").value(true))
+          .andExpect(jsonPath("$.data.hasNext").value(false));
+    }
+  }
+
+  @Nested
+  @DisplayName("여행 일정 삭제 API 호출 시")
+  class DeleteTripPlan {
+
+    @Test
+    @DisplayName("인증된 사용자가 자신의 여행 일정을 성공적으로 삭제한다")
+    void deletesOwnTripPlanSuccessfully() throws Exception {
+      // given
+      Long tripPlanId = 1L;
+      willDoNothing().given(tripPlanUseCase).deleteTripPlan(anyLong(), anyLong());
+
+      // when & then
+      mockMvc
+          .perform(delete("/api/v1/trips/{tripPlanId}", tripPlanId))
+          .andDo(print())
+          .andExpect(status().isNoContent());
+    }
+  }
+
+  @Nested
+  @DisplayName("여행 일정 수정 API 호출 시")
+  class UpdateTripPlan {
+
+    @Test
+    @DisplayName("인증된 사용자가 자신의 여행 일정을 성공적으로 수정한다")
+    void updatesTripPlanSuccessfully() throws Exception {
+      // given
+      mockUserPrincipal();
+      Long tripPlanId = 1L;
+      TripPlanUpdateRequest request = new TripPlanUpdateRequest("새로운 여행 제목");
+
+      willDoNothing()
+          .given(tripPlanUseCase)
+          .updateTripPlan(anyLong(), anyLong(), any(TripPlanUpdateRequest.class));
+
+      // when & then
+      mockMvc
+          .perform(
+              patch("/api/v1/trips/{tripPlanId}", tripPlanId)
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(objectMapper.writeValueAsString(request)))
+          .andDo(print())
+          .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("요청 본문이 유효하지 않으면 400 Bad Request를 반환한다")
+    void failsWithInvalidRequest() throws Exception {
+      // given
+      mockUserPrincipal();
+      Long tripPlanId = 1L;
+      TripPlanUpdateRequest request = new TripPlanUpdateRequest(" ");
+
+      // when & then
+      mockMvc
+          .perform(
+              patch("/api/v1/trips/{tripPlanId}", tripPlanId)
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(objectMapper.writeValueAsString(request)))
+          .andDo(print())
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.success").value(false))
+          .andExpect(jsonPath("$.data.errors[0].field").value("title"))
+          .andExpect(jsonPath("$.data.errors[0].message").value("여행 제목은 비워둘 수 없습니다."));
     }
   }
 }

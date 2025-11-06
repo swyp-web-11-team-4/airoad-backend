@@ -27,11 +27,11 @@ public class TripPlan extends BaseEntity {
   @ElementCollection(fetch = FetchType.LAZY)
   @CollectionTable(name = "trip_plan_theme", joinColumns = @JoinColumn(name = "trip_plan_id"))
   @Enumerated(EnumType.STRING)
-  private List<PlaceThemeType> tripThemes = new ArrayList<>();
+  private final List<PlaceThemeType> tripThemes = new ArrayList<>();
 
   /** 일차별 여행 일정 목록 */
   @OneToMany(mappedBy = "tripPlan", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<DailyPlan> dailyPlans = new ArrayList<>();
+  private final List<DailyPlan> dailyPlans = new ArrayList<>();
 
   /** 여행 계획을 생성한 사용자 */
   @ManyToOne(fetch = FetchType.LAZY)

@@ -62,7 +62,7 @@ public interface TripPlanUseCase {
    * <p>사용자가 입력한 여행 조건을 바탕으로 AI 기반 여행 일정 생성 이벤트를 발행합니다.
    *
    * @param username 사용자 이름 (이메일)
-   * @param tripPlanId 채팅방 ID
+   * @param tripPlanId 여행 계획 Id
    */
   void startTripPlanGeneration(String username, Long tripPlanId);
 }

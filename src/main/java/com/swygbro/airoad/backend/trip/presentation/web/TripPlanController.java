@@ -96,7 +96,7 @@ public class TripPlanController implements TripPlanApi {
   @PostMapping("/{tripPlanId}")
   public ResponseEntity<CommonResponse<Object>> startTripPlanGeneration(
       @AuthenticationPrincipal UserPrincipal userPrincipal,
-      @Parameter(description = "채팅방 ID (chatRoomId)", example = "123", required = true)
+      @Parameter(description = "여행 계획 ID (tripPlanId)", example = "123", required = true)
           @PathVariable
           Long tripPlanId) {
 

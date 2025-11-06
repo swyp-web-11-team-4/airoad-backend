@@ -1,3 +1,17 @@
+# [0.13.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.12.0...v0.13.0) (2025-11-06)
+
+
+### Bug Fixes
+
+* 여행 계획 생성 API 분리 및 권한 검증 강화 ([b11cdc2](https://github.com/swyp-web-11-team-4/airoad-backend/commit/b11cdc29b4f1ed12940e49241e04847c7d40dea7))
+* 여행 계획 생성 이벤트에 요청 데이터 포함 및 엔티티 매핑 개선 ([bd40abf](https://github.com/swyp-web-11-team-4/airoad-backend/commit/bd40abfbf727ced47db08be0a19f88500ebcb92d))
+
+
+### Features
+
+* Place 엔티티에 TourAPI 연동 필드 추가 ([925d2ef](https://github.com/swyp-web-11-team-4/airoad-backend/commit/925d2ef711bbf2adf5b2fb43e7116098acd04465))
+* TourAPI 데이터 동기화 기능 구현 ([d2393ff](https://github.com/swyp-web-11-team-4/airoad-backend/commit/d2393ff13f9ca602ebbf7722717a1db2f5ece9ca))
+
 # [0.12.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.11.1...v0.12.0) (2025-11-06)
 
 

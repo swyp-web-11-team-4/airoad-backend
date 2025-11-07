@@ -48,6 +48,10 @@ dependencies {
     // Redis (Lettuce)
     implementation libs.lettuce.core
 
+    // OTLP
+    implementation(platform(libs.otlp.bom))
+    implementation(libs.otlp.spring.boot.starter)
+
     // Lombok
     compileOnly libs.lombok
     annotationProcessor libs.lombok
@@ -57,6 +61,12 @@ dependencies {
 
     // Database
     runtimeOnly libs.postgresql
+
+    // OTLP
+    runtimeOnly(libs.micrometer.registry.otlp)
+
+    // Micrometer
+    runtimeOnly(libs.micrometer.registry.prometheus)
 
     // Test
     testImplementation libs.spring.boot.starter.test

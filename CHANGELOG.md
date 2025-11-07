@@ -1,3 +1,10 @@
+# [0.14.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.13.0...v0.14.0) (2025-11-07)
+
+
+### Features
+
+* OpenTelemetry 기반 옵저빌리티 환경 구축 ([#50](https://github.com/swyp-web-11-team-4/airoad-backend/issues/50)) ([81eb064](https://github.com/swyp-web-11-team-4/airoad-backend/commit/81eb064d1985bbedaad193b3ca9a45914412949f))
+
 # [0.13.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.12.0...v0.13.0) (2025-11-06)
 
 

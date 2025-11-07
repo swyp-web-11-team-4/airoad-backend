@@ -1,0 +1,36 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: metrics,prometheus
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  otlp:
+    metrics:
+      export:
+        enabled: false
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+otel:
+  service:
+    name: ${spring.application.name}
+  exporter:
+    otlp:
+      endpoint: ${OTEL_EXPORTER_ENDPOINT:http://localhost:4317}
+      compression: gzip
+      timeout: 10s
+  traces:
+    exporter: ${OTEL_EXPORTER_OPTION:none}
+    sampler: parentbased_traceidratio
+    sampler.arg: 1
+  metrics:
+    exporter: ${OTEL_EXPORTER_OPTION:none}
+  logs:
+    exporter: ${OTEL_EXPORTER_OPTION:none}
+  instrumentation:
+    micrometer:
+      enabled: true

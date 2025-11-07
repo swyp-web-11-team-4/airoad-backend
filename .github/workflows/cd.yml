@@ -1,0 +1,143 @@
+name: CD Pipeline
+
+on:
+    workflow_run:
+        workflows: ["CI/CD Pipeline"]
+        types:
+            - completed
+        branches:
+            - main
+
+permissions:
+    contents: read
+    packages: read
+
+jobs:
+    deploy:
+        name: Deploy to NCP Server
+        runs-on: ubuntu-latest
+        if: ${{ github.event.workflow_run.conclusion == 'success' }}
+        timeout-minutes: 10
+        environment: production
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v5
+
+            - name: Get latest version
+              id: version
+              run: |
+                  VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "latest")
+                  echo "version=${VERSION}" >> $GITHUB_OUTPUT
+                  echo "📦 Deploying version: ${VERSION}"
+
+            - name: Prepare docker-compose.yml
+              run: |
+                  mkdir -p deploy
+                  envsubst < docker/docker-compose.yml > deploy/docker-compose.yml
+              env:
+                  GITHUB_REPOSITORY: ${{ github.repository }}
+
+            - name: Copy docker-compose.yml to server
+              uses: appleboy/scp-action@v0.1.7
+              with:
+                  host: ${{ secrets.SSH_HOST }}
+                  username: ${{ secrets.SSH_USER }}
+                  key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  port: ${{ secrets.SSH_PORT }}
+                  source: "deploy/docker-compose.yml"
+                  target: "/root/airoad-backend"
+                  overwrite: true
+                  strip_components: 1
+
+            - name: Deploy to NCP server
+              uses: appleboy/ssh-action@v1.2.0
+              with:
+                  host: ${{ secrets.SSH_HOST }}
+                  username: ${{ secrets.SSH_USER }}
+                  key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  port: ${{ secrets.SSH_PORT }}
+                  script: |
+                      cd /root/airoad-backend
+
+                      echo "🔐 Logging into GHCR..."
+                      echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+                      echo "🛑 Stopping existing containers..."
+                      docker-compose down || true
+
+                      echo "📦 Pulling latest Docker image..."
+                      docker pull ghcr.io/${{ github.repository }}:latest
+
+                      echo "🗑️ Removing old containers and images..."
+                      docker container prune -f
+                      docker image prune -f
+
+                      echo "🚀 Starting new containers..."
+                      docker-compose up -d
+
+                      echo "🔍 Checking container status..."
+                      docker-compose ps
+
+                      echo "📋 Application logs:"
+                      docker-compose logs --tail=50 app
+
+                      echo "✅ Deployment completed successfully!"
+
+            - name: Health check
+              uses: appleboy/ssh-action@v1.2.0
+              with:
+                  host: ${{ secrets.SSH_HOST }}
+                  username: ${{ secrets.SSH_USER }}
+                  key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  port: ${{ secrets.SSH_PORT }}
+                  script: |
+                      cd /root/airoad-backend
+
+                      # Wait for container to start
+                      echo "⏳ Waiting for container to start..."
+                      sleep 10
+
+                      # Check container status
+                      if ! docker-compose ps | grep -q "Up"; then
+                        echo "❌ Container is not running!"
+                        docker-compose logs --tail=100 app
+                        exit 1
+                      fi
+
+                      # Health check with retry
+                      echo "🏥 Performing health check..."
+                      MAX_RETRIES=10
+                      RETRY_COUNT=0
+
+                      while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+                        HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health || echo "000")
+
+                        if [ "$HEALTH_STATUS" = "200" ]; then
+                          echo "✅ Application is healthy!"
+                          echo "🎉 Deployment successful - Version: ${{ steps.version.outputs.version }}"
+                          exit 0
+                        fi
+
+                        RETRY_COUNT=$((RETRY_COUNT + 1))
+                        echo "⏳ Retry $RETRY_COUNT/$MAX_RETRIES - Health check status: $HEALTH_STATUS"
+                        sleep 5
+                      done
+
+                      echo "❌ Health check failed after $MAX_RETRIES retries"
+                      echo "📋 Recent logs:"
+                      docker-compose logs --tail=100 app
+                      exit 1
+
+            - name: Deployment summary
+              if: always()
+              run: |
+                  if [ "${{ job.status }}" = "success" ]; then
+                    echo "✅ Deployment succeeded!"
+                    echo "🔗 Server: http://${{ secrets.SSH_HOST }}:8080"
+                    echo "📦 Version: ${{ steps.version.outputs.version }}"
+                    echo "🏥 Health check: Passed"
+                  else
+                    echo "❌ Deployment failed!"
+                    echo "Please check the logs above for details."
+                  fi

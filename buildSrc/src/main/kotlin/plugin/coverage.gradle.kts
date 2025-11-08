@@ -31,7 +31,10 @@ val excludeClassPatterns =
         "*.*Exception*",
         "*.*ErrorCode*",
         "*.*Handler*",
-        "*.CustomOAuth2UserService", // OAuth2 통합은 E2E 테스트로 검증
+
+        // OAuth2 관련 일부 테스트는 E2E 테스트로 검증
+        "*.CustomOAuth2UserService",
+        "*.CustomOAuth2AuthorizationRequestRepository"
     )
 
 fun JacocoReportBase.configureClassDirectories() {

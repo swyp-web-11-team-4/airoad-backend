@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.swygbro.airoad.backend.content.domain.entity.Place;
@@ -46,4 +47,13 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
    * @return description이 null인 Place 목록
    */
   List<Place> findByDescriptionIsNull();
+
+  /**
+   * description이 null인 Place를 제한된 개수만큼 조회 (API 호출 제한 고려)
+   *
+   * @param pageable 페이지 정보 (limit 포함)
+   * @return description이 null인 Place 목록 (최대 limit개)
+   */
+  List<Place> findByDescriptionIsNullOrderByIdAsc(
+      Pageable pageable);
 }

@@ -49,6 +49,7 @@ spring:
         redirect:
           base-url: ${OAUTH2_REDIRECT_URL}
           callback-path: ${OAUTH2_REDIRECT_PATH}
+          local-base-url: http://localhost:5173
     jwt:
       secret-key: ${JWT_SECRET_KEY}
       access-token-validity: ${JWT_ACCESS_TOKEN_VALIDITY}

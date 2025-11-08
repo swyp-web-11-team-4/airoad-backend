@@ -327,7 +327,7 @@ public interface TripPlanApi {
                             }
                             """)))
   })
-  @GetMapping("/detail/{tripPlanId}")
+  @GetMapping("/{tripPlanId}")
   ResponseEntity<CommonResponse<TripPlanDetailResponse>> getTripPlanDetail(
       @AuthenticationPrincipal UserPrincipal userPrincipal,
       @Parameter(description = "조회할 여행 일정 ID", required = true, example = "123") @PathVariable

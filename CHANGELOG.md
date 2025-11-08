@@ -1,3 +1,17 @@
+# [0.16.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.15.0...v0.16.0) (2025-11-08)
+
+
+### Features
+
+* OAuth2 인증 시 프론트엔드 출처 기반 동적 리다이렉트 기능 추가 ([#54](https://github.com/swyp-web-11-team-4/airoad-backend/issues/54)) ([be46ea3](https://github.com/swyp-web-11-team-4/airoad-backend/commit/be46ea37dcc7e4c0797da768dbd0844658b0b14e))
+
+# [0.15.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.14.0...v0.15.0) (2025-11-08)
+
+
+### Features
+
+* 관광 데이터 동기화를 위한 인프라 개선 ([e193a27](https://github.com/swyp-web-11-team-4/airoad-backend/commit/e193a2723582460b07d419e1a8d1e9f97657cad4))
+
 # [0.14.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.13.0...v0.14.0) (2025-11-07)
 
 

@@ -96,4 +96,13 @@ public class Place extends BaseEntity {
     this.operatingHours = operatingHours;
     this.holidayInfo = holidayInfo;
   }
+
+  /**
+   * isMustVisit 업데이트 메서드
+   *
+   * @param isMustVisit 추천 여행지 여부
+   */
+  public void updateIsMustVisit(Boolean isMustVisit) {
+    this.isMustVisit = isMustVisit != null ? isMustVisit : Boolean.FALSE;
+  }
 }

@@ -14,6 +14,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.swygbro.airoad.backend.auth.application.AuthUseCase;
 import com.swygbro.airoad.backend.auth.domain.dto.UserPrincipal;
 import com.swygbro.airoad.backend.auth.domain.dto.response.TokenResponse;
+import com.swygbro.airoad.backend.auth.infrastructure.CustomOAuth2AuthorizationRequestRepository;
+import com.swygbro.airoad.backend.auth.infrastructure.OAuth2RedirectUrlResolver;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,9 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
   private final AuthUseCase authUseCase;
-
-  @Value("${spring.security.oauth2.client.redirect.base-url}")
-  private String clientBaseUrl;
+  private final CustomOAuth2AuthorizationRequestRepository authorizationRequestRepository;
+  private final OAuth2RedirectUrlResolver redirectUrlResolver;
 
   @Value("${spring.security.oauth2.client.redirect.callback-path}")
   private String clientCallbackPath;
@@ -45,10 +46,12 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     log.debug("OAuth2User attributes: {}", userPrincipal.getAttributes());
     log.debug("Email from OAuth2User: {}", email);
 
+    String baseUrl = redirectUrlResolver.resolveBaseUrl(request, "Success Handler");
+
     if (email == null) {
       log.error("Email not found in OAuth2User attributes");
       getRedirectStrategy()
-          .sendRedirect(request, response, clientBaseUrl + clientCallbackPath + "?status=error");
+          .sendRedirect(request, response, baseUrl + clientCallbackPath + "?status=error");
       return;
     }
 
@@ -57,7 +60,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
       TokenResponse tokenResponse = authUseCase.createTokens(email);
 
       String url =
-          UriComponentsBuilder.fromUriString(clientBaseUrl + clientCallbackPath)
+          UriComponentsBuilder.fromUriString(baseUrl + clientCallbackPath)
               .queryParam("accessToken", tokenResponse.accessToken())
               .queryParam("refreshToken", tokenResponse.refreshToken())
               .toUriString();
@@ -70,11 +73,14 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
       log.error("Error during OAuth2 authentication success handling", e);
 
       String url =
-          UriComponentsBuilder.fromUriString(clientBaseUrl + clientCallbackPath)
+          UriComponentsBuilder.fromUriString(baseUrl + clientCallbackPath)
               .queryParam("status", "error")
               .toUriString();
 
       getRedirectStrategy().sendRedirect(request, response, url);
+    } finally {
+      // 세션에서 프론트엔드 출처 정보 제거
+      authorizationRequestRepository.removeFrontendOrigin(request);
     }
   }
 }

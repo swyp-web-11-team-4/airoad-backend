@@ -1,7 +1,5 @@
 package com.swygbro.airoad.backend.auth.config;
 
-import java.util.Collections;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +15,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.swygbro.airoad.backend.auth.application.CustomOAuth2UserService;
 import com.swygbro.airoad.backend.auth.filter.JwtAuthenticationFilter;
+import com.swygbro.airoad.backend.auth.infrastructure.CustomOAuth2AuthorizationRequestRepository;
 import com.swygbro.airoad.backend.auth.presentation.web.JwtAuthenticationEntryPoint;
 import com.swygbro.airoad.backend.auth.presentation.web.OAuth2AuthenticationFailureHandler;
 import com.swygbro.airoad.backend.auth.presentation.web.OAuth2AuthenticationSuccessHandler;
@@ -39,6 +38,8 @@ public class SecurityConfig {
   private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
   private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
   private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
+  private final CustomOAuth2AuthorizationRequestRepository
+      customOAuth2AuthorizationRequestRepository;
 
   @Bean
   public SecurityFilterChain prodFilterChain(HttpSecurity http) throws Exception {
@@ -66,6 +67,10 @@ public class SecurityConfig {
         .oauth2Login(
             oauth2 ->
                 oauth2
+                    .authorizationEndpoint(
+                        authorization ->
+                            authorization.authorizationRequestRepository(
+                                customOAuth2AuthorizationRequestRepository))
                     .successHandler(oAuth2AuthenticationSuccessHandler)
                     .failureHandler(oAuth2AuthenticationFailureHandler)
                     .userInfoEndpoint(config -> config.userService(customOAuth2UserService)))
@@ -79,9 +84,10 @@ public class SecurityConfig {
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration config = new CorsConfiguration();
-    config.setAllowedOrigins(Collections.singletonList(allowedOrigins));
+    config.setAllowedOrigins(asList(allowedOrigins.split(",")));
     config.setAllowedMethods(asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-    config.setAllowedHeaders(asList("Authorization", "Content-Type", "Accept", "Cookie"));
+    config.setAllowedHeaders(
+        asList("Authorization", "Content-Type", "Accept", "Cookie", "Origin", "Referer"));
     config.setExposedHeaders(asList("Set-Cookie", "Authorization"));
     config.setAllowCredentials(true);
 

@@ -277,7 +277,7 @@ public interface TripPlanApi {
                                 "timestamp": "2025-10-30T10:00:00",
                                 "code": "AUTH001",
                                 "message": "인증이 필요합니다.",
-                                "path": "/api/v1/trips/detail/123",
+                                "path": "/api/v1/trips/123",
                                 "errors": null
                               }
                             }
@@ -299,7 +299,7 @@ public interface TripPlanApi {
                                 "timestamp": "2025-10-30T10:00:00",
                                 "code": "TRIP102",
                                 "message": "여행 일정에 대한 접근 권한이 없습니다.",
-                                "path": "/api/v1/trips/detail/123",
+                                "path": "/api/v1/trips/123",
                                 "errors": null
                               }
                             }
@@ -321,7 +321,7 @@ public interface TripPlanApi {
                                 "timestamp": "2025-10-30T10:00:00",
                                 "code": "TRIP101",
                                 "message": "여행 일정을 찾을 수 없습니다.",
-                                "path": "/api/v1/trips/detail/123",
+                                "path": "/api/v1/trips/123",
                                 "errors": null
                               }
                             }

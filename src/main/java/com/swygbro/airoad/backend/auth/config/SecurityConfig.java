@@ -57,6 +57,8 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/api/v1/auth/**")
                     .permitAll()
+                    .requestMatchers("/api/admin/tourdata/**")
+                    .permitAll()
                     .requestMatchers("/api/v1/**")
                     .hasRole(MemberRole.MEMBER.getRole())
                     .anyRequest()

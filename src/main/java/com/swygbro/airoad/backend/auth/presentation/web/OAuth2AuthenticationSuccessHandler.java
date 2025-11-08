@@ -1,6 +1,7 @@
 package com.swygbro.airoad.backend.auth.presentation.web;
 
 import java.io.IOException;
+import java.net.URI;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -95,8 +96,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     log.info("[Success Handler] Saved frontend origin: {}", frontendOrigin);
 
     // 프론트엔드 출처가 localhost인 경우
-    if (frontendOrigin != null
-        && (frontendOrigin.contains("localhost") || frontendOrigin.contains("127.0.0.1"))) {
+    if (isLocalhost(frontendOrigin)) {
       log.info(
           "[Success Handler] Detected localhost origin - using localClientBaseUrl: {}",
           localClientBaseUrl);
@@ -106,5 +106,31 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     // 그 외의 경우 배포된 사이트로 리다이렉트
     log.info("[Success Handler] Using default clientBaseUrl: {}", clientBaseUrl);
     return clientBaseUrl;
+  }
+
+  /**
+   * URL의 호스트가 localhost인지 정확하게 판단
+   *
+   * @param url 검사할 URL 또는 origin
+   * @return localhost 또는 127.0.0.1이면 true
+   */
+  private boolean isLocalhost(String url) {
+    if (url == null || url.isEmpty()) {
+      return false;
+    }
+
+    try {
+      URI uri = new URI(url);
+      String host = uri.getHost();
+
+      if (host == null) {
+        return false;
+      }
+
+      return "localhost".equalsIgnoreCase(host) || "127.0.0.1".equals(host);
+    } catch (Exception e) {
+      log.warn("[Success Handler] Failed to parse URL: {}", url, e);
+      return false;
+    }
   }
 }

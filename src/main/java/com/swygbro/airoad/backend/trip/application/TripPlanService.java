@@ -178,7 +178,7 @@ public class TripPlanService implements TripPlanUseCase {
     TripPlan tripPlan =
         TripPlan.builder()
             .member(member)
-            .title(title) // 초기 제목은 비어있음
+            .title(title)
             .startDate(request.startDate())
             .endDate(endDate)
             .isCompleted(false)

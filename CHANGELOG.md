@@ -1,3 +1,10 @@
+# [0.15.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.14.0...v0.15.0) (2025-11-08)
+
+
+### Features
+
+* 관광 데이터 동기화를 위한 인프라 개선 ([e193a27](https://github.com/swyp-web-11-team-4/airoad-backend/commit/e193a2723582460b07d419e1a8d1e9f97657cad4))
+
 # [0.14.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.13.0...v0.14.0) (2025-11-07)
 
 

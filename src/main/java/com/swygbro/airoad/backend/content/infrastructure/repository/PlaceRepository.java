@@ -54,6 +54,5 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
    * @param pageable 페이지 정보 (limit 포함)
    * @return description이 null인 Place 목록 (최대 limit개)
    */
-  List<Place> findByDescriptionIsNullOrderByIdAsc(
-      Pageable pageable);
+  List<Place> findByDescriptionIsNullOrderByIdAsc(Pageable pageable);
 }

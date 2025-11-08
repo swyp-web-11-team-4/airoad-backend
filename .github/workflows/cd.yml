@@ -52,9 +52,9 @@ jobs:
                   script: |
                       cd /root/airoad-backend
                       echo "🔐 Logging into NCR..."
-                      echo "${{ secrets.NCR_SECRET_KEY }}" | docker login dvkbv060.kr.private-ncr.ntruss.com -u ${{ secrets.NCR_ACCESS_KEY_ID }} --password-stdin
+                      echo "${{ secrets.NCR_SECRET_KEY }}" | docker login airoad-container-registry.kr.ncr.ntruss.com -u ${{ secrets.NCR_ACCESS_KEY_ID }} --password-stdin
                       docker-compose down || true
-                      docker pull dvkbv060.kr.private-ncr.ntruss.com/airoad-backend:latest                    
+                      docker pull airoad-container-registry.kr.ncr.ntruss.com/airoad-backend:latest                    
                       docker container prune -f
                       docker image prune -f
                       docker-compose up -d                  

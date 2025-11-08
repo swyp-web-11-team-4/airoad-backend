@@ -5,6 +5,7 @@ import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanUpdateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.response.ChannelIdResponse;
+import com.swygbro.airoad.backend.trip.domain.dto.response.TripPlanDetailResponse;
 import com.swygbro.airoad.backend.trip.domain.dto.response.TripPlanResponse;
 
 /**
@@ -25,6 +26,17 @@ public interface TripPlanUseCase {
    */
   CursorPageResponse<TripPlanResponse> getUserTripPlans(
       Long memberId, int size, Long cursor, String sort);
+
+  /**
+   * 여행 일정 상세 정보를 조회합니다.
+   *
+   * @param tripPlanId 조회할 여행 일정 ID
+   * @param memberId 요청한 사용자 ID
+   * @return 여행 일정 상세 정보
+   * @throws BusinessException TRIP_PLAN_NOT_FOUND - 여행 일정을 찾을 수 없음
+   * @throws BusinessException TRIP_PLAN_FORBIDDEN - 소유자가 아님
+   */
+  TripPlanDetailResponse getTripPlanDetail(Long tripPlanId, Long memberId);
 
   /**
    * 여행 일정을 삭제합니다. 소유자만 삭제할 수 있습니다.

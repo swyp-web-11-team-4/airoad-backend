@@ -29,6 +29,7 @@ import com.swygbro.airoad.backend.trip.application.TripPlanUseCase;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanUpdateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.response.ChannelIdResponse;
+import com.swygbro.airoad.backend.trip.domain.dto.response.TripPlanDetailResponse;
 import com.swygbro.airoad.backend.trip.domain.dto.response.TripPlanResponse;
 
 import io.swagger.v3.oas.annotations.Parameter;
@@ -61,6 +62,15 @@ public class TripPlanController implements TripPlanApi {
     CursorPageResponse<TripPlanResponse> response =
         tripPlanUseCase.getUserTripPlans(memberId, size, cursor, sort);
     return ResponseEntity.ok(CommonResponse.success(HttpStatus.OK, response));
+  }
+
+  @Override
+  @GetMapping("/{tripPlanId}")
+  public ResponseEntity<CommonResponse<TripPlanDetailResponse>> getTripPlanDetail(
+      @AuthenticationPrincipal UserPrincipal userPrincipal, @PathVariable Long tripPlanId) {
+    TripPlanDetailResponse detailResponse =
+        tripPlanUseCase.getTripPlanDetail(tripPlanId, userPrincipal.getId());
+    return ResponseEntity.ok(CommonResponse.success(HttpStatus.OK, detailResponse));
   }
 
   @Override

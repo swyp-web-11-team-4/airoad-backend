@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Positive;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,6 +19,7 @@ import com.swygbro.airoad.backend.common.domain.dto.CommonResponse;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanUpdateRequest;
+import com.swygbro.airoad.backend.trip.domain.dto.response.TripPlanDetailResponse;
 import com.swygbro.airoad.backend.trip.domain.dto.response.TripPlanResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -227,6 +229,109 @@ public interface TripPlanApi {
               message = "정렬 형식은 'field:direction' 형태여야 합니다.")
           @RequestParam(required = false, defaultValue = "createdAt:desc")
           String sort);
+
+  @Operation(
+      summary = "여행 일정 상세 조회",
+      description = "여행 일정 ID로 상세 정보를 조회합니다. 제목, 지역, 시작일, 기간, 인원, 테마 정보를 포함합니다.",
+      security = @SecurityRequirement(name = "bearerAuth"))
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "조회 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = CommonResponse.class),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "success": true,
+                              "status": 200,
+                              "data": {
+                                "tripPlanId": 123,
+                                "title": "제주도 힐링 여행",
+                                "region": "제주",
+                                "startDate": "2025-03-01",
+                                "duration": 3,
+                                "peopleCount": 2,
+                                "themes": ["HEALING", "FAMOUS_SPOT", "RESTAURANT"]
+                              }
+                            }
+                            """))),
+    @ApiResponse(
+        responseCode = "401",
+        description = "인증되지 않은 사용자",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "success": false,
+                              "status": 401,
+                              "data": {
+                                "timestamp": "2025-10-30T10:00:00",
+                                "code": "AUTH001",
+                                "message": "인증이 필요합니다.",
+                                "path": "/api/v1/trips/detail/123",
+                                "errors": null
+                              }
+                            }
+                            """))),
+    @ApiResponse(
+        responseCode = "403",
+        description = "접근 권한 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "success": false,
+                              "status": 403,
+                              "data": {
+                                "timestamp": "2025-10-30T10:00:00",
+                                "code": "TRIP102",
+                                "message": "여행 일정에 대한 접근 권한이 없습니다.",
+                                "path": "/api/v1/trips/detail/123",
+                                "errors": null
+                              }
+                            }
+                            """))),
+    @ApiResponse(
+        responseCode = "404",
+        description = "여행 일정을 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "success": false,
+                              "status": 404,
+                              "data": {
+                                "timestamp": "2025-10-30T10:00:00",
+                                "code": "TRIP101",
+                                "message": "여행 일정을 찾을 수 없습니다.",
+                                "path": "/api/v1/trips/detail/123",
+                                "errors": null
+                              }
+                            }
+                            """)))
+  })
+  @GetMapping("/detail/{tripPlanId}")
+  ResponseEntity<CommonResponse<TripPlanDetailResponse>> getTripPlanDetail(
+      @AuthenticationPrincipal UserPrincipal userPrincipal,
+      @Parameter(description = "조회할 여행 일정 ID", required = true, example = "123") @PathVariable
+          Long tripPlanId);
 
   @Operation(
       summary = "여행 일정 제목 수정",

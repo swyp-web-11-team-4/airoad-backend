@@ -26,14 +26,13 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
+  private static final String LOCAL_CLIENT_BASE_URL = "http://localhost:5173";
+
   private final AuthUseCase authUseCase;
   private final CustomOAuth2AuthorizationRequestRepository authorizationRequestRepository;
 
   @Value("${spring.security.oauth2.client.redirect.base-url}")
   private String clientBaseUrl;
-
-  @Value("${spring.security.oauth2.client.redirect.local-base-url}")
-  private String localClientBaseUrl;
 
   @Value("${spring.security.oauth2.client.redirect.callback-path}")
   private String clientCallbackPath;
@@ -99,8 +98,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     if (isLocalhost(frontendOrigin)) {
       log.info(
           "[Success Handler] Detected localhost origin - using localClientBaseUrl: {}",
-          localClientBaseUrl);
-      return localClientBaseUrl;
+          LOCAL_CLIENT_BASE_URL);
+      return LOCAL_CLIENT_BASE_URL;
     }
 
     // 그 외의 경우 배포된 사이트로 리다이렉트

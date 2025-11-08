@@ -1,7 +1,6 @@
 package com.swygbro.airoad.backend.auth.presentation.web;
 
 import java.io.IOException;
-import java.net.URI;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,6 +15,7 @@ import com.swygbro.airoad.backend.auth.application.AuthUseCase;
 import com.swygbro.airoad.backend.auth.domain.dto.UserPrincipal;
 import com.swygbro.airoad.backend.auth.domain.dto.response.TokenResponse;
 import com.swygbro.airoad.backend.auth.infrastructure.CustomOAuth2AuthorizationRequestRepository;
+import com.swygbro.airoad.backend.auth.infrastructure.OAuth2RedirectUrlResolver;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,13 +26,9 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-  private static final String LOCAL_CLIENT_BASE_URL = "http://localhost:5173";
-
   private final AuthUseCase authUseCase;
   private final CustomOAuth2AuthorizationRequestRepository authorizationRequestRepository;
-
-  @Value("${spring.security.oauth2.client.redirect.base-url}")
-  private String clientBaseUrl;
+  private final OAuth2RedirectUrlResolver redirectUrlResolver;
 
   @Value("${spring.security.oauth2.client.redirect.callback-path}")
   private String clientCallbackPath;
@@ -50,7 +46,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     log.debug("OAuth2User attributes: {}", userPrincipal.getAttributes());
     log.debug("Email from OAuth2User: {}", email);
 
-    String baseUrl = getBaseUrl(request);
+    String baseUrl = redirectUrlResolver.resolveBaseUrl(request, "Success Handler");
 
     if (email == null) {
       log.error("Email not found in OAuth2User attributes");
@@ -85,51 +81,6 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     } finally {
       // 세션에서 프론트엔드 출처 정보 제거
       authorizationRequestRepository.removeFrontendOrigin(request);
-    }
-  }
-
-  private String getBaseUrl(HttpServletRequest request) {
-    String frontendOrigin = authorizationRequestRepository.getFrontendOrigin(request);
-
-    log.info("=== OAuth2 Authentication Success - Redirect Base URL Detection ===");
-    log.info("[Success Handler] Saved frontend origin: {}", frontendOrigin);
-
-    // 프론트엔드 출처가 localhost인 경우
-    if (isLocalhost(frontendOrigin)) {
-      log.info(
-          "[Success Handler] Detected localhost origin - using localClientBaseUrl: {}",
-          LOCAL_CLIENT_BASE_URL);
-      return LOCAL_CLIENT_BASE_URL;
-    }
-
-    // 그 외의 경우 배포된 사이트로 리다이렉트
-    log.info("[Success Handler] Using default clientBaseUrl: {}", clientBaseUrl);
-    return clientBaseUrl;
-  }
-
-  /**
-   * URL의 호스트가 localhost인지 정확하게 판단
-   *
-   * @param url 검사할 URL 또는 origin
-   * @return localhost 또는 127.0.0.1이면 true
-   */
-  private boolean isLocalhost(String url) {
-    if (url == null || url.isEmpty()) {
-      return false;
-    }
-
-    try {
-      URI uri = new URI(url);
-      String host = uri.getHost();
-
-      if (host == null) {
-        return false;
-      }
-
-      return "localhost".equalsIgnoreCase(host) || "127.0.0.1".equals(host);
-    } catch (Exception e) {
-      log.warn("[Success Handler] Failed to parse URL: {}", url, e);
-      return false;
     }
   }
 }

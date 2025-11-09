@@ -1,3 +1,10 @@
+# [0.17.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.16.0...v0.17.0) (2025-11-09)
+
+
+### Features
+
+* STOMP SUBSCRIBE 응답 최적화 및 여행 일정 상세 조회 API 추가 ([689665b](https://github.com/swyp-web-11-team-4/airoad-backend/commit/689665b39ca090580362b402c3eec0526653bece))
+
 # [0.16.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.15.0...v0.16.0) (2025-11-08)
 
 

@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.swygbro.airoad.backend.auth.domain.dto.UserPrincipal;
 import com.swygbro.airoad.backend.common.domain.dto.CommonResponse;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
-import com.swygbro.airoad.backend.trip.application.DailyPlanUseCase;
+import com.swygbro.airoad.backend.trip.application.DailyPlanCommandUseCase;
 import com.swygbro.airoad.backend.trip.application.TripPlanUseCase;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanUpdateRequest;
@@ -45,7 +45,7 @@ import lombok.RequiredArgsConstructor;
 public class TripPlanController implements TripPlanApi {
 
   private final TripPlanUseCase tripPlanUseCase;
-  private final DailyPlanUseCase dailyPlanUseCase;
+  private final DailyPlanCommandUseCase dailyPlanUseCase;
 
   @Override
   @GetMapping

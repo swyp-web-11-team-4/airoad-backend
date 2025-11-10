@@ -32,7 +32,7 @@ import com.swygbro.airoad.backend.member.domain.entity.Member;
 import com.swygbro.airoad.backend.member.domain.entity.MemberRole;
 import com.swygbro.airoad.backend.member.domain.entity.ProviderType;
 import com.swygbro.airoad.backend.member.exception.MemberErrorCode;
-import com.swygbro.airoad.backend.trip.application.DailyPlanUseCase;
+import com.swygbro.airoad.backend.trip.application.DailyPlanCommandUseCase;
 import com.swygbro.airoad.backend.trip.application.TripPlanUseCase;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanUpdateRequest;
@@ -57,7 +57,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class TripPlanControllerTest {
 
   @Mock private TripPlanUseCase tripPlanUseCase;
-  @Mock private DailyPlanUseCase dailyPlanUseCase;
+  @Mock private DailyPlanCommandUseCase dailyPlanUseCase;
   @InjectMocks private TripPlanController tripPlanController;
 
   private MockMvc mockMvc;

@@ -140,7 +140,6 @@ public class DailyPlanCommandService implements DailyPlanCommandUseCase {
         .toList();
   }
 
-
   private DailyPlanResponse toDailyPlanResponse(DailyPlan dailyPlan, Integer dayNumber) {
     List<ScheduledPlaceResponse> scheduledPlaceResponses =
         dailyPlan.getScheduledPlaces().stream().map(ScheduledPlaceResponse::of).toList();

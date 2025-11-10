@@ -1,6 +1,6 @@
 services:
     app:
-        image: airoad-container-registry.kr.ncr.ntruss.com/airoad-backend:latest
+        image: ghcr.io/swyp-web-11-team-4/airoad-backend:${IMAGE_TAG:-latest}
         container_name: airoad-backend
         restart: on-failure:3
         ports:

@@ -39,10 +39,9 @@ import com.swygbro.airoad.backend.trip.infrastructure.TripPlanRepository;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.never;
-import static org.mockito.BDDMockito.times;
 import static org.mockito.BDDMockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,7 +56,7 @@ class DailyPlanServiceTest {
 
   @Mock private DailyPlanRepository dailyPlanRepository;
 
-  @InjectMocks private DailyPlanService dailyPlanService;
+  @InjectMocks private DailyPlanCommandService dailyPlanService;
 
   @Nested
   @DisplayName("saveDailyPlan 메서드는")
@@ -92,7 +91,7 @@ class DailyPlanServiceTest {
               .build();
 
       given(tripPlanRepository.findById(tripPlanId)).willReturn(Optional.of(tripPlan));
-      given(placeRepository.findById(1L)).willReturn(Optional.of(place));
+      given(placeRepository.findAllByIdsWithThemes(anyList())).willReturn(List.of(place));
       given(tripPlanRepository.save(any(TripPlan.class))).willReturn(tripPlan);
 
       // when
@@ -100,7 +99,7 @@ class DailyPlanServiceTest {
 
       // then
       verify(tripPlanRepository).findById(tripPlanId);
-      verify(placeRepository).findById(1L);
+      verify(placeRepository).findAllByIdsWithThemes(List.of(1L));
       verify(tripPlanRepository).save(any(TripPlan.class));
 
       ArgumentCaptor<DailyPlanSavedEvent> eventCaptor =
@@ -138,7 +137,7 @@ class DailyPlanServiceTest {
           .hasFieldOrPropertyWithValue("errorCode", TripErrorCode.TRIP_PLAN_NOT_FOUND);
 
       verify(tripPlanRepository).findById(tripPlanId);
-      verify(placeRepository, never()).findById(anyLong());
+      verify(placeRepository, never()).findAllByIdsWithThemes(anyList());
       verify(tripPlanRepository, never()).save(any(TripPlan.class));
       verify(eventPublisher, never()).publishEvent(any());
     }
@@ -171,7 +170,7 @@ class DailyPlanServiceTest {
               .build();
 
       given(tripPlanRepository.findById(tripPlanId)).willReturn(Optional.of(tripPlan));
-      given(placeRepository.findById(999L)).willReturn(Optional.empty());
+      given(placeRepository.findAllByIdsWithThemes(anyList())).willReturn(List.of());
 
       // when & then
       assertThatThrownBy(
@@ -180,7 +179,7 @@ class DailyPlanServiceTest {
           .hasFieldOrPropertyWithValue("errorCode", TripErrorCode.PLACE_NOT_FOUND);
 
       verify(tripPlanRepository).findById(tripPlanId);
-      verify(placeRepository).findById(999L);
+      verify(placeRepository).findAllByIdsWithThemes(List.of(999L));
       verify(tripPlanRepository, never()).save(any(TripPlan.class));
       verify(eventPublisher, never()).publishEvent(any());
     }
@@ -226,16 +225,14 @@ class DailyPlanServiceTest {
               .build();
 
       given(tripPlanRepository.findById(tripPlanId)).willReturn(Optional.of(tripPlan));
-      given(placeRepository.findById(1L)).willReturn(Optional.of(place1));
-      given(placeRepository.findById(2L)).willReturn(Optional.of(place2));
+      given(placeRepository.findAllByIdsWithThemes(anyList())).willReturn(List.of(place1, place2));
       given(tripPlanRepository.save(any(TripPlan.class))).willReturn(tripPlan);
 
       // when
       dailyPlanService.saveDailyPlan(chatRoomId, tripPlanId, username, request);
 
       // then
-      verify(placeRepository).findById(1L);
-      verify(placeRepository).findById(2L);
+      verify(placeRepository).findAllByIdsWithThemes(List.of(1L, 2L));
       verify(tripPlanRepository).save(any(TripPlan.class));
       verify(eventPublisher).publishEvent(any(DailyPlanSavedEvent.class));
     }
@@ -264,7 +261,7 @@ class DailyPlanServiceTest {
 
       // then
       verify(tripPlanRepository).findById(tripPlanId);
-      verify(placeRepository, never()).findById(anyLong());
+      verify(placeRepository, never()).findAllByIdsWithThemes(anyList());
       verify(tripPlanRepository).save(any(TripPlan.class));
       verify(eventPublisher).publishEvent(any(DailyPlanSavedEvent.class));
     }
@@ -322,16 +319,15 @@ class DailyPlanServiceTest {
               .build();
 
       given(tripPlanRepository.findById(tripPlanId)).willReturn(Optional.of(tripPlan));
-      given(placeRepository.findById(1L)).willReturn(Optional.of(place1));
-      given(placeRepository.findById(2L)).willReturn(Optional.of(place2));
-      given(placeRepository.findById(3L)).willReturn(Optional.of(place3));
+      given(placeRepository.findAllByIdsWithThemes(anyList()))
+          .willReturn(List.of(place1, place2, place3));
       given(tripPlanRepository.save(any(TripPlan.class))).willReturn(tripPlan);
 
       // when
       dailyPlanService.saveDailyPlan(chatRoomId, tripPlanId, username, request);
 
       // then
-      verify(placeRepository, times(3)).findById(anyLong());
+      verify(placeRepository).findAllByIdsWithThemes(List.of(1L, 2L, 3L));
       verify(tripPlanRepository).save(any(TripPlan.class));
       verify(eventPublisher).publishEvent(any(DailyPlanSavedEvent.class));
     }

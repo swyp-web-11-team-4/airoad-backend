@@ -4,7 +4,13 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 
 import com.swygbro.airoad.backend.common.domain.entity.BaseEntity;
 
@@ -36,11 +42,21 @@ public class DailyPlan extends BaseEntity {
   @Column(nullable = false)
   private Integer dayNumber;
 
+  /** 일정 제목 */
+  @Column private String title;
+
+  /** 일정 설명 */
+  @Column(columnDefinition = "TEXT")
+  private String description;
+
   @Builder
-  private DailyPlan(TripPlan tripPlan, LocalDate date, Integer dayNumber) {
+  private DailyPlan(
+      TripPlan tripPlan, LocalDate date, Integer dayNumber, String title, String description) {
     this.tripPlan = tripPlan;
     this.date = date;
     this.dayNumber = dayNumber;
+    this.title = title;
+    this.description = description;
   }
 
   /**

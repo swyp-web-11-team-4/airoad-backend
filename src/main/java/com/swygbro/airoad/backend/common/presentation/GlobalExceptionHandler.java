@@ -9,6 +9,7 @@ import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -183,6 +184,29 @@ public class GlobalExceptionHandler {
         CommonResponse.error(HttpStatus.BAD_REQUEST, errorResponse);
 
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+  }
+
+  /**
+   * AuthorizationDeniedException을 처리합니다.
+   *
+   * <p>Spring Security에서 접근이 거부되었을 때 발생합니다.
+   *
+   * @param e AuthorizationDeniedException
+   * @param request HttpServletRequest
+   * @return 에러 응답
+   */
+  @ExceptionHandler(AuthorizationDeniedException.class)
+  public ResponseEntity<CommonResponse<ErrorResponse>> handleAuthorizationDeniedException(
+      AuthorizationDeniedException e, HttpServletRequest request) {
+    log.warn("Authorization denied: {}", e.getMessage());
+
+    ErrorResponse errorResponse =
+        createErrorResponse(CommonErrorCode.FORBIDDEN, request.getRequestURI());
+
+    CommonResponse<ErrorResponse> response =
+        CommonResponse.error(HttpStatus.FORBIDDEN, errorResponse);
+
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
   }
 
   @ExceptionHandler(NoResourceFoundException.class)

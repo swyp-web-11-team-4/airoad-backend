@@ -3,6 +3,7 @@ package com.swygbro.airoad.backend.auth.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -16,7 +17,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import com.swygbro.airoad.backend.auth.application.CustomOAuth2UserService;
 import com.swygbro.airoad.backend.auth.filter.JwtAuthenticationFilter;
 import com.swygbro.airoad.backend.auth.infrastructure.CustomOAuth2AuthorizationRequestRepository;
-import com.swygbro.airoad.backend.auth.presentation.web.JwtAuthenticationEntryPoint;
+import com.swygbro.airoad.backend.auth.presentation.web.JwtAccessDeniedHandler;
+import com.swygbro.airoad.backend.auth.presentation.web.JwtAuthenticationEntryPointHandler;
 import com.swygbro.airoad.backend.auth.presentation.web.OAuth2AuthenticationFailureHandler;
 import com.swygbro.airoad.backend.auth.presentation.web.OAuth2AuthenticationSuccessHandler;
 import com.swygbro.airoad.backend.member.domain.entity.MemberRole;
@@ -28,6 +30,7 @@ import static java.util.Arrays.asList;
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
   @Value("${cors.allowed-origins}")
@@ -35,7 +38,8 @@ public class SecurityConfig {
 
   private final CustomOAuth2UserService customOAuth2UserService;
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
-  private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+  private final JwtAuthenticationEntryPointHandler jwtAuthenticationEntryPointHandler;
+  private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
   private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
   private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
   private final CustomOAuth2AuthorizationRequestRepository
@@ -54,14 +58,16 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**")
                     .permitAll()
-                    .requestMatchers("/oauth2/**", "/login/oauth2/**")
+                    .requestMatchers("/oauth2/**", "/login/oauth2/**", "/error")
                     .permitAll()
                     .requestMatchers("/api/v1/auth/**")
                     .permitAll()
                     .requestMatchers("/api/admin/tourdata/**")
                     .permitAll()
+                    .requestMatchers("/api/v1/admin/**")
+                    .hasRole(MemberRole.ADMIN.getRole())
                     .requestMatchers("/api/v1/**")
-                    .hasRole(MemberRole.MEMBER.getRole())
+                    .hasAnyRole(MemberRole.MEMBER.getRole(), MemberRole.ADMIN.getRole())
                     .anyRequest()
                     .authenticated())
         .oauth2Login(
@@ -75,7 +81,10 @@ public class SecurityConfig {
                     .failureHandler(oAuth2AuthenticationFailureHandler)
                     .userInfoEndpoint(config -> config.userService(customOAuth2UserService)))
         .exceptionHandling(
-            exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))
+            exception ->
+                exception
+                    .authenticationEntryPoint(jwtAuthenticationEntryPointHandler)
+                    .accessDeniedHandler(jwtAccessDeniedHandler))
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();

@@ -151,6 +151,7 @@ public class TripPlanService implements TripPlanUseCase {
       }
     }
 
+    aiConversationRepository.deleteByTripPlanId(tripPlanId);
     scheduledPlaceRepository.deleteByTripPlanId(tripPlanId);
     dailyPlanRepository.deleteByTripPlanId(tripPlanId);
     tripPlanRepository.deleteById(tripPlanId);

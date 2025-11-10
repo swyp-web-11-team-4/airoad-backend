@@ -3,6 +3,7 @@ package com.swygbro.airoad.backend.ai.agent.trip.dto.request;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
 import com.swygbro.airoad.backend.trip.domain.entity.Transportation;
 
 import lombok.Builder;
@@ -27,7 +28,7 @@ public record AiDailyPlanRequest(
     Long chatRoomId,
     Long tripPlanId,
     String username,
-    List<String> themes,
+    List<PlaceThemeType> themes,
     LocalDate startDate,
     Integer duration,
     String region,

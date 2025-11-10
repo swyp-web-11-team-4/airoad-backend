@@ -69,7 +69,8 @@ class TripPlanGenerationListenerTest {
       AiDailyPlanRequest capturedRequest = requestCaptor.getValue();
       assertThat(capturedRequest.chatRoomId()).isEqualTo(chatRoomId);
       assertThat(capturedRequest.tripPlanId()).isEqualTo(tripPlanId);
-      assertThat(capturedRequest.themes()).containsExactly("HEALING", "CULTURE_ART");
+      assertThat(capturedRequest.themes())
+          .containsExactly(PlaceThemeType.HEALING, PlaceThemeType.CULTURE_ART);
       assertThat(capturedRequest.startDate()).isEqualTo(LocalDate.of(2025, 12, 1));
       assertThat(capturedRequest.duration()).isEqualTo(3);
       assertThat(capturedRequest.region()).isEqualTo("제주");
@@ -112,7 +113,11 @@ class TripPlanGenerationListenerTest {
       AiDailyPlanRequest capturedRequest = requestCaptor.getValue();
       assertThat(capturedRequest.themes()).hasSize(4);
       assertThat(capturedRequest.themes())
-          .containsExactly("HEALING", "CULTURE_ART", "EXPERIENCE_ACTIVITY", "RESTAURANT");
+          .containsExactly(
+              PlaceThemeType.HEALING,
+              PlaceThemeType.CULTURE_ART,
+              PlaceThemeType.EXPERIENCE_ACTIVITY,
+              PlaceThemeType.RESTAURANT);
     }
 
     @Test

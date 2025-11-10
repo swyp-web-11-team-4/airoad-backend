@@ -1,3 +1,10 @@
+## [0.17.2](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.17.1...v0.17.2) (2025-11-10)
+
+
+### Bug Fixes
+
+* 여행 일정 삭제 로직 개선 및 RAG topK 값 수정 ([#57](https://github.com/swyp-web-11-team-4/airoad-backend/issues/57)) ([b1ca242](https://github.com/swyp-web-11-team-4/airoad-backend/commit/b1ca24209969fa3d5a136d5c1f3de417f94aa981))
+
 ## [0.17.1](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.17.0...v0.17.1) (2025-11-10)
 
 

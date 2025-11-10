@@ -2,6 +2,8 @@ package com.swygbro.airoad.backend.content.domain.event;
 
 import java.util.List;
 
+import lombok.Builder;
+
 /**
  * Place 요약 요청 이벤트
  *
@@ -13,5 +15,6 @@ import java.util.List;
  * @param description 장소 설명
  * @param themes 테마 목록
  */
+@Builder
 public record PlaceSummaryRequestedEvent(
     Long placeId, String name, String address, String description, List<String> themes) {}

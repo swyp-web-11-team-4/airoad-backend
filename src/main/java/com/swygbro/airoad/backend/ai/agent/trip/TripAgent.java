@@ -46,6 +46,7 @@ public class TripAgent implements AiroadAgent {
           - 주어진 여행 정보를 바탕으로 여행 일정 계획을 구성하세요.
           - 여행의 시작지와 도착지는 반드시 공항, 기차역, 버스터미널 등 대중교통을 이용하기 편한 곳으로 해주세요.
           - 프롬프트로 주어진 정보 외의 내용은 응답할 수 없습니다.
+          - 사용자가 방문하고자 하는 지역에 맞는 정보만 선택해서 구성하세요.
 
           ## 출력 형식: NDJSON (Newline Delimited JSON)
           **중요**: 반드시 NDJSON 형식으로 응답해야 합니다.
@@ -83,6 +84,8 @@ public class TripAgent implements AiroadAgent {
             - 일정 카테고리 별로 일정에 대한 소개 내용 작성, 카테고리는 반드시 한글로 변환
               - [오전 일정, 점심 식사, 오후 일정, 카페, 저녁 식사, 저녁 일정]
             - 마크다운 문법 사용
+            - 쌍따옴표(")는 절대 사용하지 마세요. 필요 시 작은따옴표(')로 대체하세요.
+            - 모든 내용은 하나의 문자열 안에 포함되어야 합니다.
           - 'places': 방문 장소 배열
             - 'placeId': 장소 ID
             - 'visitOrder': 일정 방문 순서 (1부터 시작)
@@ -331,6 +334,8 @@ public class TripAgent implements AiroadAgent {
     return DailyPlanCreateRequest.builder()
         .dayNumber(aiDailyPlanResponse.dayNumber())
         .date(aiDailyPlanResponse.date())
+        .title(aiDailyPlanResponse.title())
+        .description(aiDailyPlanResponse.description())
         .places(scheduledPlaces)
         .build();
   }

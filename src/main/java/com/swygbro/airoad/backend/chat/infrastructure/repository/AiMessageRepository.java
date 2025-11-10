@@ -1,8 +1,11 @@
 package com.swygbro.airoad.backend.chat.infrastructure.repository;
 
+import jakarta.persistence.GenerationType;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -44,4 +47,8 @@ public interface AiMessageRepository extends JpaRepository<AiMessage, Long> {
           + "WHERE m.id = :messageId AND m.conversation.id = :conversationId")
   boolean existsByIdAndConversationId(
       @Param("messageId") Long messageId, @Param("conversationId") Long conversationId);
+
+  @Modifying
+  @Query("DELETE FROM AiMessage am WHERE am.conversation.id = :conversationId")
+  void deleteByConversationId(@Param("conversationId") Long conversationId);
 }

@@ -1,3 +1,10 @@
+## [0.17.1](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.17.0...v0.17.1) (2025-11-10)
+
+
+### Bug Fixes
+
+* RAG 파이프라인 개선 및 일정 생성 응답 DTO 필드 수정 ([#56](https://github.com/swyp-web-11-team-4/airoad-backend/issues/56)) ([d8f4099](https://github.com/swyp-web-11-team-4/airoad-backend/commit/d8f4099bf07b86aa5c5b9c4abfafc5bfad07eb3d))
+
 # [0.17.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.16.0...v0.17.0) (2025-11-09)
 
 

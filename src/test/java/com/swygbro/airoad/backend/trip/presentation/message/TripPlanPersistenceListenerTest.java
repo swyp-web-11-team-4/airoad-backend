@@ -13,7 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.swygbro.airoad.backend.ai.domain.event.DailyPlanGeneratedEvent;
-import com.swygbro.airoad.backend.trip.application.DailyPlanUseCase;
+import com.swygbro.airoad.backend.trip.application.DailyPlanCommandUseCase;
 import com.swygbro.airoad.backend.trip.domain.dto.request.DailyPlanCreateRequest;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -23,7 +23,7 @@ import static org.mockito.BDDMockito.*;
 @ActiveProfiles("test")
 class TripPlanPersistenceListenerTest {
 
-  @Mock private DailyPlanUseCase dailyPlanUseCase;
+  @Mock private DailyPlanCommandUseCase dailyPlanCommandUseCase;
 
   @InjectMocks private TripPlanPersistenceListener tripPlanPersistenceListener;
 
@@ -56,7 +56,7 @@ class TripPlanPersistenceListenerTest {
       tripPlanPersistenceListener.handleDailyPlanGenerated(event);
 
       // then
-      verify(dailyPlanUseCase).saveDailyPlan(eq(1L), eq(100L), eq(username), eq(dailyPlan));
+      verify(dailyPlanCommandUseCase).saveDailyPlan(eq(1L), eq(100L), eq(username), eq(dailyPlan));
     }
 
     @Test
@@ -100,8 +100,10 @@ class TripPlanPersistenceListenerTest {
       tripPlanPersistenceListener.handleDailyPlanGenerated(event2);
 
       // then
-      verify(dailyPlanUseCase, times(1)).saveDailyPlan(eq(1L), eq(100L), eq(username), eq(day1));
-      verify(dailyPlanUseCase, times(1)).saveDailyPlan(eq(1L), eq(100L), eq(username), eq(day2));
+      verify(dailyPlanCommandUseCase, times(1))
+          .saveDailyPlan(eq(1L), eq(100L), eq(username), eq(day1));
+      verify(dailyPlanCommandUseCase, times(1))
+          .saveDailyPlan(eq(1L), eq(100L), eq(username), eq(day2));
     }
   }
 }

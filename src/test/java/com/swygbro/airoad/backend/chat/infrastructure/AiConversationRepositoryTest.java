@@ -48,7 +48,11 @@ class AiConversationRepositoryTest {
   void setUp() {
     // given: Fixture를 사용하여 테스트 데이터 생성 및 저장
     testMember = memberRepository.save(MemberFixture.create());
-    testTripPlan = tripPlanRepository.save(TripPlanFixture.createWithMember(testMember));
+    testTripPlan =
+        tripPlanRepository.save(
+            TripPlanFixture.createWithMemberAndTheme(
+                testMember,
+                com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType.HEALING));
     testConversation =
         aiConversationRepository.save(
             AiConversationFixture.createWithMemberAndTripPlan(testMember, testTripPlan));
@@ -102,7 +106,10 @@ class AiConversationRepositoryTest {
       Member anotherMember =
           memberRepository.save(MemberFixture.createWithEmail("another@example.com"));
       TripPlan anotherTripPlan =
-          tripPlanRepository.save(TripPlanFixture.createWithMember(anotherMember));
+          tripPlanRepository.save(
+              TripPlanFixture.createWithMemberAndTheme(
+                  anotherMember,
+                  com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType.CULTURE_ART));
       AiConversation anotherConversation =
           aiConversationRepository.save(
               AiConversationFixture.createWithMemberAndTripPlan(anotherMember, anotherTripPlan));

@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.content.infrastructure.interceptor;
+package com.swygbro.airoad.backend.ai.infrastructure.interceptor;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

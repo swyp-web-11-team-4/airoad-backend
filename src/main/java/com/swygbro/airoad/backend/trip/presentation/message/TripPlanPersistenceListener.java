@@ -4,7 +4,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import com.swygbro.airoad.backend.ai.domain.event.DailyPlanGeneratedEvent;
-import com.swygbro.airoad.backend.trip.application.DailyPlanUseCase;
+import com.swygbro.airoad.backend.trip.application.DailyPlanCommandUseCase;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class TripPlanPersistenceListener {
 
-  private final DailyPlanUseCase dailyPlanUseCase;
+  private final DailyPlanCommandUseCase dailyPlanCommandUseCase;
 
   @EventListener
   public void handleDailyPlanGenerated(DailyPlanGeneratedEvent event) {
@@ -25,7 +25,7 @@ public class TripPlanPersistenceListener {
         event.tripPlanId(),
         event.username());
 
-    dailyPlanUseCase.saveDailyPlan(
+    dailyPlanCommandUseCase.saveDailyPlan(
         event.chatRoomId(), event.tripPlanId(), event.username(), event.dailyPlan());
   }
 }

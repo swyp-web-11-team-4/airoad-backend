@@ -5,8 +5,10 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 
 @Schema(name = "PageResponse", description = "페이징 응답")
+@Builder
 public record PageResponse<T>(
     @Schema(description = "데이터 목록", requiredMode = Schema.RequiredMode.REQUIRED) List<T> content,
     @Schema(

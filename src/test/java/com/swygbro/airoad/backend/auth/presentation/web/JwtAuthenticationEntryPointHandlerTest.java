@@ -30,7 +30,7 @@ import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("JwtAuthenticationEntryPoint 클래스는")
-class JwtAuthenticationEntryPointTest {
+class JwtAuthenticationEntryPointHandlerTest {
 
   @Mock private ObjectMapper objectMapper;
 
@@ -38,7 +38,7 @@ class JwtAuthenticationEntryPointTest {
 
   @Mock private HttpServletResponse response;
 
-  @InjectMocks private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+  @InjectMocks private JwtAuthenticationEntryPointHandler jwtAuthenticationEntryPointHandler;
 
   @Nested
   @DisplayName("commence 메서드는")
@@ -57,7 +57,7 @@ class JwtAuthenticationEntryPointTest {
       given(objectMapper.writeValueAsString(any())).willReturn("{}");
 
       // when
-      jwtAuthenticationEntryPoint.commence(request, response, authException);
+      jwtAuthenticationEntryPointHandler.commence(request, response, authException);
 
       // then
       verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
@@ -76,7 +76,7 @@ class JwtAuthenticationEntryPointTest {
       given(objectMapper.writeValueAsString(any())).willReturn("{}");
 
       // when
-      jwtAuthenticationEntryPoint.commence(request, response, authException);
+      jwtAuthenticationEntryPointHandler.commence(request, response, authException);
 
       // then
       verify(response).setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -95,7 +95,7 @@ class JwtAuthenticationEntryPointTest {
       given(objectMapper.writeValueAsString(any())).willReturn("{}");
 
       // when
-      jwtAuthenticationEntryPoint.commence(request, response, authException);
+      jwtAuthenticationEntryPointHandler.commence(request, response, authException);
 
       // then
       verify(response).setCharacterEncoding("UTF-8");
@@ -115,7 +115,8 @@ class JwtAuthenticationEntryPointTest {
 
       ObjectMapper realObjectMapper = new ObjectMapper();
       realObjectMapper.findAndRegisterModules();
-      JwtAuthenticationEntryPoint entryPoint = new JwtAuthenticationEntryPoint(realObjectMapper);
+      JwtAuthenticationEntryPointHandler entryPoint =
+          new JwtAuthenticationEntryPointHandler(realObjectMapper);
 
       // when
       entryPoint.commence(request, response, authException);
@@ -140,7 +141,8 @@ class JwtAuthenticationEntryPointTest {
 
       ObjectMapper realObjectMapper = new ObjectMapper();
       realObjectMapper.findAndRegisterModules();
-      JwtAuthenticationEntryPoint entryPoint = new JwtAuthenticationEntryPoint(realObjectMapper);
+      JwtAuthenticationEntryPointHandler entryPoint =
+          new JwtAuthenticationEntryPointHandler(realObjectMapper);
 
       // when
       entryPoint.commence(request, response, authException);
@@ -165,7 +167,8 @@ class JwtAuthenticationEntryPointTest {
 
       ObjectMapper realObjectMapper = new ObjectMapper();
       realObjectMapper.findAndRegisterModules();
-      JwtAuthenticationEntryPoint entryPoint = new JwtAuthenticationEntryPoint(realObjectMapper);
+      JwtAuthenticationEntryPointHandler entryPoint =
+          new JwtAuthenticationEntryPointHandler(realObjectMapper);
 
       // when
       entryPoint.commence(request, response, authException);
@@ -188,7 +191,8 @@ class JwtAuthenticationEntryPointTest {
 
       ObjectMapper realObjectMapper = new ObjectMapper();
       realObjectMapper.findAndRegisterModules();
-      JwtAuthenticationEntryPoint entryPoint = new JwtAuthenticationEntryPoint(realObjectMapper);
+      JwtAuthenticationEntryPointHandler entryPoint =
+          new JwtAuthenticationEntryPointHandler(realObjectMapper);
 
       AuthErrorCode errorCode = AuthErrorCode.AUTHENTICATION_REQUIRED;
       ErrorResponse errorResponse =

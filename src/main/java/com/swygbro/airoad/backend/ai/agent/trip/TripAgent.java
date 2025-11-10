@@ -5,10 +5,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.converter.BeanOutputConverter;
+import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -18,6 +21,7 @@ import com.swygbro.airoad.backend.ai.agent.trip.dto.request.AiDailyPlanRequest;
 import com.swygbro.airoad.backend.ai.agent.trip.dto.response.AiDailyPlanResponse;
 import com.swygbro.airoad.backend.ai.domain.event.DailyPlanGeneratedEvent;
 import com.swygbro.airoad.backend.ai.exception.AiErrorCode;
+import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
 import com.swygbro.airoad.backend.trip.domain.dto.request.DailyPlanCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.request.ScheduledPlaceCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.entity.Transportation;
@@ -32,17 +36,17 @@ import reactor.core.publisher.Flux;
 @Component
 public class TripAgent implements AiroadAgent {
 
-  private static final String name = "tripAgent";
+  private static final String NAME = "tripAgent";
 
-  private final String SYSTEM_PROMPT_TEMPLATE =
+  private static final String SYSTEM_PROMPT_TEMPLATE =
       """
           당신은 국내 여행 일정 계획 전문가입니다. 다음의 지침을 반드시 지켜서 여행 일정을 생성해주세요.
 
           ## 지침
           - 주어진 여행 정보를 바탕으로 여행 일정 계획을 구성하세요.
           - 여행의 시작지와 도착지는 반드시 공항, 기차역, 버스터미널 등 대중교통을 이용하기 편한 곳으로 해주세요.
-          - 반드시 테마에 일치하는 장소를 조회한 후 응답해야 합니다.
           - 프롬프트로 주어진 정보 외의 내용은 응답할 수 없습니다.
+          - 사용자가 방문하고자 하는 지역에 맞는 정보만 선택해서 구성하세요.
 
           ## 출력 형식: NDJSON (Newline Delimited JSON)
           **중요**: 반드시 NDJSON 형식으로 응답해야 합니다.
@@ -80,10 +84,12 @@ public class TripAgent implements AiroadAgent {
             - 일정 카테고리 별로 일정에 대한 소개 내용 작성, 카테고리는 반드시 한글로 변환
               - [오전 일정, 점심 식사, 오후 일정, 카페, 저녁 식사, 저녁 일정]
             - 마크다운 문법 사용
+            - 쌍따옴표(")는 절대 사용하지 마세요. 필요 시 작은따옴표(')로 대체하세요.
+            - 모든 내용은 하나의 문자열 안에 포함되어야 합니다.
           - 'places': 방문 장소 배열
             - 'placeId': 장소 ID
-            - 'visitOrder': 방문 순서 (1부터 시작)
-            - 'category': 반드시 [MORNING, LUNCH, AFTERNOON, CAFE, DINNER, EVENING] 중 하나
+            - 'visitOrder': 일정 방문 순서 (1부터 시작)
+            - 'category': 일정 카테고리, 반드시 [MORNING, LUNCH, AFTERNOON, CAFE, DINNER, EVENING] 중 하나
             - 'startTime': 일정 시작 시간, 'HH:mm' 형식 (예: 09:00, 13:30)
             - 'endTime': 일정 종료 시간, 'HH:mm' 형식 (예: 11:00, 15:30)
             - 'travelTime': 이전 장소로부터의 이동 시간(분)
@@ -94,7 +100,7 @@ public class TripAgent implements AiroadAgent {
           ## 일정 날짜
           {daysDescription}
 
-          **중요**: 위의 모든 일차({days}일)에 대한 JSON 객체를 반드시 생성해야 합니다.
+          **중요**: 위의 모든 일차({days}일)에 대한 JSON 객체를 모든 필드를 반드시 포함해서 생성해야 합니다.
 
           여행 일정을 1일차부터 {days}일차까지 순서대로 생성해주세요.
           """;
@@ -106,9 +112,12 @@ public class TripAgent implements AiroadAgent {
 
   private final ApplicationEventPublisher eventPublisher;
 
+  private final VectorStore vectorStore;
+
   public TripAgent(
       ApplicationEventPublisher eventPublisher, ChatModel chatModel, VectorStore vectorStore) {
     this.eventPublisher = eventPublisher;
+    this.vectorStore = vectorStore;
     String jsonSchema = outputConverter.getFormat();
 
     this.chatClient =
@@ -118,23 +127,12 @@ public class TripAgent implements AiroadAgent {
                     promptSystemSpec
                         .text(SYSTEM_PROMPT_TEMPLATE)
                         .params(Map.of("jsonSchema", jsonSchema)))
-            .defaultAdvisors(
-                //            TODO: RAG 파이프라인 개선 필요, 개선 후 주석 해제
-                //            QuestionAnswerAdvisor.builder(vectorStore)
-                //                .searchRequest(
-                //                  SearchRequest.builder()
-                //                      .similarityThreshold(0.8d)
-                //                      .topK(5)
-                //                      .build()
-                //                )
-                //                .build()
-                )
             .build();
   }
 
   @Override
   public boolean supports(String agentName) {
-    return name.equals(agentName);
+    return NAME.equals(agentName);
   }
 
   @Override
@@ -143,9 +141,20 @@ public class TripAgent implements AiroadAgent {
 
     val params = convertParams(request);
 
+    String filterExpression = buildFilterExpression(request);
+
     chatClient
         .prompt()
         .user(promptUserSpec -> promptUserSpec.text(USER_PROMPT_TEMPLATE).params(params))
+        .advisors(
+            QuestionAnswerAdvisor.builder(vectorStore)
+                .searchRequest(
+                    SearchRequest.builder()
+                        .topK(15)
+                        .similarityThreshold(0.3d)
+                        .filterExpression(filterExpression)
+                        .build())
+                .build())
         .stream()
         .content()
         .doOnSubscribe(subscription -> log.debug("AI 일정 생성 스트림 구독 시작됨."))
@@ -216,6 +225,25 @@ public class TripAgent implements AiroadAgent {
   }
 
   /**
+   * 필터 표현식 생성: themes in ['테마1', '테마2', ...]
+   *
+   * <p>메타데이터 구조: - themes: 문자열 배열 (예: ["음식점", "유명 관광지"])
+   *
+   * @param request 여행 일정 요청
+   * @return 문자열 형태의 필터 표현식
+   */
+  private String buildFilterExpression(AiDailyPlanRequest request) {
+    List<PlaceThemeType> themes = request.themes();
+
+    String themeList =
+        themes.stream()
+            .map(theme -> String.format("'%s'", theme.getDescription()))
+            .collect(Collectors.joining(", ", "[", "]"));
+
+    return String.format("themes in %s", themeList);
+  }
+
+  /**
    * 여행 일정 생성 요청 Dto를 프롬프트 템플릿에 맞게 Map으로 변환합니다.
    *
    * @param request 유저에게 받은 요청 Dto
@@ -235,7 +263,9 @@ public class TripAgent implements AiroadAgent {
     params.put("days", days);
     params.put("startDate", request.startDate());
     params.put("endDate", request.startDate().plusDays(days - 1));
-    params.put("themes", String.join("|", request.themes()));
+    params.put(
+        "themes",
+        String.join("|", request.themes().stream().map(PlaceThemeType::getDescription).toList()));
     params.put("peopleCount", request.peopleCount());
     params.put("transportation", Transportation.PUBLIC_TRANSIT); // 이번 MVP에서는 대중 교통으로 고정
     params.put("daysDescription", daysDescription.toString());
@@ -304,6 +334,8 @@ public class TripAgent implements AiroadAgent {
     return DailyPlanCreateRequest.builder()
         .dayNumber(aiDailyPlanResponse.dayNumber())
         .date(aiDailyPlanResponse.date())
+        .title(aiDailyPlanResponse.title())
+        .description(aiDailyPlanResponse.description())
         .places(scheduledPlaces)
         .build();
   }

@@ -1,6 +1,7 @@
 package com.swygbro.airoad.backend.ai.presentation.message;
 
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import com.swygbro.airoad.backend.ai.agent.trip.dto.request.AiDailyPlanRequest;
@@ -23,6 +24,7 @@ public class TripPlanGenerationListener {
    *
    * @param event 여행 일정 생성 요청 이벤트
    */
+  @Async
   @EventListener
   public void handleTripPlanGenerationRequested(TripPlanGenerationRequestedEvent event) {
     log.info(
@@ -35,7 +37,7 @@ public class TripPlanGenerationListener {
             .chatRoomId(event.chatRoomId())
             .tripPlanId(event.tripPlanId())
             .username(event.username())
-            .themes(event.request().themes().stream().map(Enum::name).toList())
+            .themes(event.request().themes())
             .startDate(event.request().startDate())
             .duration(event.request().duration())
             .region(event.request().region())

@@ -1,6 +1,7 @@
 package com.swygbro.airoad.backend.ai.presentation.message;
 
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import com.swygbro.airoad.backend.ai.agent.chat.dto.request.AiChatRequest;
@@ -27,6 +28,7 @@ public class AiChatGenerationListener {
    *
    * @param event AI 채팅 요청 이벤트
    */
+  @Async
   @EventListener
   public void handleAiChatRequest(AiChatGenerationRequestedEvent event) {
     log.info(

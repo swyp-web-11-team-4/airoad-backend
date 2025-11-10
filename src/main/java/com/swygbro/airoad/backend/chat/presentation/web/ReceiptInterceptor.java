@@ -1,9 +1,9 @@
 package com.swygbro.airoad.backend.chat.presentation.web;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
  *
  * <p>SimpleBroker는 RECEIPT를 지원하지 않으므로, SUBSCRIBE 시 receipt 헤더가 있으면 수동으로 RECEIPT 프레임을 전송합니다.
  *
- * <p>이 인터셉터는 clientInboundChannel에 등록되어 SUBSCRIBE 메시지를 감지하고, SimpMessagingTemplate을 통해 RECEIPT 프레임을
+ * <p>이 인터셉터는 clientInboundChannel에 등록되어 SUBSCRIBE 메시지를 감지하고, clientOutboundChannel을 통해 RECEIPT 프레임을
  * 전송합니다.
  *
  * @see <a href="https://github.com/spring-projects/spring-framework/issues/21848">SPR-17315</a>
@@ -27,10 +27,11 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class ReceiptInterceptor implements ChannelInterceptor {
 
-  private final SimpMessagingTemplate messagingTemplate;
+  private final MessageChannel clientOutboundChannel;
 
-  public ReceiptInterceptor(@Lazy SimpMessagingTemplate messagingTemplate) {
-    this.messagingTemplate = messagingTemplate;
+  public ReceiptInterceptor(
+      @Lazy @Qualifier("clientOutboundChannel") MessageChannel clientOutboundChannel) {
+    this.clientOutboundChannel = clientOutboundChannel;
   }
 
   @Override
@@ -55,8 +56,8 @@ public class ReceiptInterceptor implements ChannelInterceptor {
         Message<byte[]> receiptMessage =
             MessageBuilder.createMessage(new byte[0], receiptAccessor.getMessageHeaders());
 
-        // SimpMessagingTemplate의 메시지 채널을 통해 RECEIPT 전송
-        messagingTemplate.getMessageChannel().send(receiptMessage);
+        // clientOutboundChannel을 통해 RECEIPT 전송
+        clientOutboundChannel.send(receiptMessage);
         log.debug(
             "[WebSocket] RECEIPT 전송 완료 - receiptId: {}, sessionId: {}",
             receipt,

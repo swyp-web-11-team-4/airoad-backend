@@ -19,5 +19,5 @@ public interface DailyPlanRepository extends JpaRepository<DailyPlan, Long> {
 
   @Query(
       "SELECT DISTINCT dp FROM DailyPlan dp LEFT JOIN FETCH dp.scheduledPlaces WHERE dp.tripPlan.id = :tripPlanId ORDER BY dp.dayNumber asc")
-  List<DailyPlan> findAllByTripPlanId(Long tripPlanId);
+  List<DailyPlan> findAllByTripPlanId(@Param("tripPlanId") Long tripPlanId);
 }

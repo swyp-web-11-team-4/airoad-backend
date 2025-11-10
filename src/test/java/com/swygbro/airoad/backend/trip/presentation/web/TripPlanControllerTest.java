@@ -33,6 +33,7 @@ import com.swygbro.airoad.backend.member.domain.entity.MemberRole;
 import com.swygbro.airoad.backend.member.domain.entity.ProviderType;
 import com.swygbro.airoad.backend.member.exception.MemberErrorCode;
 import com.swygbro.airoad.backend.trip.application.DailyPlanCommandUseCase;
+import com.swygbro.airoad.backend.trip.application.DailyPlanQueryUseCase;
 import com.swygbro.airoad.backend.trip.application.TripPlanUseCase;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanUpdateRequest;
@@ -58,6 +59,7 @@ class TripPlanControllerTest {
 
   @Mock private TripPlanUseCase tripPlanUseCase;
   @Mock private DailyPlanCommandUseCase dailyPlanUseCase;
+  @Mock private DailyPlanQueryUseCase dailyPlanQueryUseCase;
   @InjectMocks private TripPlanController tripPlanController;
 
   private MockMvc mockMvc;
@@ -572,7 +574,7 @@ class TripPlanControllerTest {
 
       List<DailyPlanResponse> dailyPlans = List.of(dailyPlan1, dailyPlan2);
 
-      given(dailyPlanUseCase.getDailyPlanListByTripPlanId(eq(tripPlanId), anyLong()))
+      given(dailyPlanQueryUseCase.getDailyPlanListByTripPlanId(eq(tripPlanId), anyLong()))
           .willReturn(dailyPlans);
 
       // when & then
@@ -589,7 +591,7 @@ class TripPlanControllerTest {
           .andExpect(jsonPath("$.data[1].dayNumber").value(2))
           .andExpect(jsonPath("$.data[1].date").value("2025-12-02"));
 
-      verify(dailyPlanUseCase).getDailyPlanListByTripPlanId(eq(tripPlanId), anyLong());
+      verify(dailyPlanQueryUseCase).getDailyPlanListByTripPlanId(eq(tripPlanId), anyLong());
     }
 
     @Test
@@ -599,7 +601,7 @@ class TripPlanControllerTest {
       mockUserPrincipal();
       Long tripPlanId = 1L;
 
-      given(dailyPlanUseCase.getDailyPlanListByTripPlanId(eq(tripPlanId), anyLong()))
+      given(dailyPlanQueryUseCase.getDailyPlanListByTripPlanId(eq(tripPlanId), anyLong()))
           .willReturn(Collections.emptyList());
 
       // when & then
@@ -612,7 +614,7 @@ class TripPlanControllerTest {
           .andExpect(jsonPath("$.data").isArray())
           .andExpect(jsonPath("$.data.length()").value(0));
 
-      verify(dailyPlanUseCase).getDailyPlanListByTripPlanId(eq(tripPlanId), anyLong());
+      verify(dailyPlanQueryUseCase).getDailyPlanListByTripPlanId(eq(tripPlanId), anyLong());
     }
 
     @Test
@@ -622,7 +624,9 @@ class TripPlanControllerTest {
       mockUserPrincipal();
       Long nonExistentTripPlanId = 999L;
 
-      given(dailyPlanUseCase.getDailyPlanListByTripPlanId(eq(nonExistentTripPlanId), anyLong()))
+      given(
+              dailyPlanQueryUseCase.getDailyPlanListByTripPlanId(
+                  eq(nonExistentTripPlanId), anyLong()))
           .willThrow(new BusinessException(TripErrorCode.TRIP_PLAN_NOT_FOUND));
 
       // when & then
@@ -634,7 +638,8 @@ class TripPlanControllerTest {
           .andExpect(jsonPath("$.status").value(404))
           .andExpect(jsonPath("$.data.code").value("TRIP101"));
 
-      verify(dailyPlanUseCase).getDailyPlanListByTripPlanId(eq(nonExistentTripPlanId), anyLong());
+      verify(dailyPlanQueryUseCase)
+          .getDailyPlanListByTripPlanId(eq(nonExistentTripPlanId), anyLong());
     }
 
     @Test
@@ -644,7 +649,7 @@ class TripPlanControllerTest {
       mockUserPrincipal();
       Long tripPlanId = 1L;
 
-      given(dailyPlanUseCase.getDailyPlanListByTripPlanId(eq(tripPlanId), anyLong()))
+      given(dailyPlanQueryUseCase.getDailyPlanListByTripPlanId(eq(tripPlanId), anyLong()))
           .willThrow(new BusinessException(TripErrorCode.TRIP_PLAN_FORBIDDEN));
 
       // when & then
@@ -656,7 +661,7 @@ class TripPlanControllerTest {
           .andExpect(jsonPath("$.status").value(403))
           .andExpect(jsonPath("$.data.code").value("TRIP102"));
 
-      verify(dailyPlanUseCase).getDailyPlanListByTripPlanId(eq(tripPlanId), anyLong());
+      verify(dailyPlanQueryUseCase).getDailyPlanListByTripPlanId(eq(tripPlanId), anyLong());
     }
 
     @Test
@@ -693,7 +698,7 @@ class TripPlanControllerTest {
                   .scheduledPlaces(Collections.emptyList())
                   .build());
 
-      given(dailyPlanUseCase.getDailyPlanListByTripPlanId(eq(tripPlanId), anyLong()))
+      given(dailyPlanQueryUseCase.getDailyPlanListByTripPlanId(eq(tripPlanId), anyLong()))
           .willReturn(dailyPlans);
 
       // when & then
@@ -707,7 +712,7 @@ class TripPlanControllerTest {
           .andExpect(jsonPath("$.data[1].dayNumber").value(2))
           .andExpect(jsonPath("$.data[2].dayNumber").value(3));
 
-      verify(dailyPlanUseCase).getDailyPlanListByTripPlanId(eq(tripPlanId), anyLong());
+      verify(dailyPlanQueryUseCase).getDailyPlanListByTripPlanId(eq(tripPlanId), anyLong());
     }
   }
 }

@@ -27,6 +27,7 @@ import com.swygbro.airoad.backend.auth.domain.dto.UserPrincipal;
 import com.swygbro.airoad.backend.common.domain.dto.CommonResponse;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
 import com.swygbro.airoad.backend.trip.application.DailyPlanCommandUseCase;
+import com.swygbro.airoad.backend.trip.application.DailyPlanQueryUseCase;
 import com.swygbro.airoad.backend.trip.application.TripPlanUseCase;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanUpdateRequest;
@@ -45,6 +46,7 @@ import lombok.RequiredArgsConstructor;
 public class TripPlanController implements TripPlanApi {
 
   private final TripPlanUseCase tripPlanUseCase;
+  private final DailyPlanQueryUseCase dailyPlanQueryUseCase;
   private final DailyPlanCommandUseCase dailyPlanUseCase;
 
   @Override
@@ -127,7 +129,7 @@ public class TripPlanController implements TripPlanApi {
       @AuthenticationPrincipal UserPrincipal userPrincipal, @PathVariable Long tripPlanId) {
 
     List<DailyPlanResponse> dailyPlanResponseList =
-        dailyPlanUseCase.getDailyPlanListByTripPlanId(tripPlanId, userPrincipal.getId());
+        dailyPlanQueryUseCase.getDailyPlanListByTripPlanId(tripPlanId, userPrincipal.getId());
 
     return ResponseEntity.ok(CommonResponse.success(HttpStatus.OK, dailyPlanResponseList));
   }

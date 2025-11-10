@@ -1,9 +1,6 @@
 package com.swygbro.airoad.backend.trip.application;
 
-import java.util.List;
-
 import com.swygbro.airoad.backend.trip.domain.dto.request.DailyPlanCreateRequest;
-import com.swygbro.airoad.backend.trip.domain.dto.response.DailyPlanResponse;
 
 public interface DailyPlanCommandUseCase {
 
@@ -20,9 +17,4 @@ public interface DailyPlanCommandUseCase {
       Long tripPlanId,
       String username,
       DailyPlanCreateRequest dailyPlanCreateRequest);
-
-  /**
-   * @param tripPlanId 전체 여행 계획 ID
-   */
-  List<DailyPlanResponse> getDailyPlanListByTripPlanId(Long tripPlanId, Long memberId);
 }

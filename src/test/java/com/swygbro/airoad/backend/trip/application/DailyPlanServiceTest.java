@@ -57,6 +57,8 @@ class DailyPlanServiceTest {
 
   @InjectMocks private DailyPlanCommandService dailyPlanService;
 
+  @InjectMocks private DailyPlanQueryService dailyPlanQueryService;
+
   @Nested
   @DisplayName("saveDailyPlan 메서드는")
   class SaveDailyPlan {
@@ -357,7 +359,7 @@ class DailyPlanServiceTest {
 
       // when
       List<DailyPlanResponse> result =
-          dailyPlanService.getDailyPlanListByTripPlanId(tripPlanId, memberId);
+          dailyPlanQueryService.getDailyPlanListByTripPlanId(tripPlanId, memberId);
 
       // then
       assertThat(result).hasSize(2);
@@ -377,7 +379,8 @@ class DailyPlanServiceTest {
       given(tripPlanRepository.findByIdWithMember(tripPlanId)).willReturn(Optional.empty());
 
       // when & then
-      assertThatThrownBy(() -> dailyPlanService.getDailyPlanListByTripPlanId(tripPlanId, memberId))
+      assertThatThrownBy(
+              () -> dailyPlanQueryService.getDailyPlanListByTripPlanId(tripPlanId, memberId))
           .isInstanceOf(BusinessException.class)
           .hasFieldOrPropertyWithValue("errorCode", TripErrorCode.TRIP_PLAN_NOT_FOUND);
 
@@ -400,7 +403,7 @@ class DailyPlanServiceTest {
 
       // when & then
       assertThatThrownBy(
-              () -> dailyPlanService.getDailyPlanListByTripPlanId(tripPlanId, requestMemberId))
+              () -> dailyPlanQueryService.getDailyPlanListByTripPlanId(tripPlanId, requestMemberId))
           .isInstanceOf(BusinessException.class)
           .hasFieldOrPropertyWithValue("errorCode", TripErrorCode.TRIP_PLAN_FORBIDDEN);
 
@@ -422,7 +425,7 @@ class DailyPlanServiceTest {
 
       // when
       List<DailyPlanResponse> result =
-          dailyPlanService.getDailyPlanListByTripPlanId(tripPlanId, memberId);
+          dailyPlanQueryService.getDailyPlanListByTripPlanId(tripPlanId, memberId);
 
       // then
       assertThat(result).isEmpty();
@@ -453,7 +456,7 @@ class DailyPlanServiceTest {
 
       // when
       List<DailyPlanResponse> result =
-          dailyPlanService.getDailyPlanListByTripPlanId(tripPlanId, memberId);
+          dailyPlanQueryService.getDailyPlanListByTripPlanId(tripPlanId, memberId);
 
       // then
       assertThat(result).hasSize(3);

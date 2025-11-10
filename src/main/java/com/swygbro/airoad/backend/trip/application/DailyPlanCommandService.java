@@ -15,7 +15,6 @@ import com.swygbro.airoad.backend.content.infrastructure.repository.PlaceReposit
 import com.swygbro.airoad.backend.trip.domain.dto.request.DailyPlanCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.request.ScheduledPlaceCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.response.DailyPlanResponse;
-import com.swygbro.airoad.backend.trip.domain.dto.response.ScheduledPlaceResponse;
 import com.swygbro.airoad.backend.trip.domain.embeddable.TravelSegment;
 import com.swygbro.airoad.backend.trip.domain.entity.DailyPlan;
 import com.swygbro.airoad.backend.trip.domain.entity.ScheduledPlace;
@@ -106,7 +105,7 @@ public class DailyPlanCommandService implements DailyPlanCommandUseCase {
     DailyPlan savedDailyPlan =
         savedTripPlan.getDailyPlans().get(savedTripPlan.getDailyPlans().size() - 1);
 
-    DailyPlanResponse response = toDailyPlanResponse(savedDailyPlan, request.dayNumber());
+    DailyPlanResponse response = DailyPlanResponse.of(savedDailyPlan);
 
     DailyPlanSavedEvent event =
         DailyPlanSavedEvent.builder()
@@ -123,34 +122,5 @@ public class DailyPlanCommandService implements DailyPlanCommandUseCase {
         tripPlanId,
         request.dayNumber(),
         savedTripPlan.getIsCompleted());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<DailyPlanResponse> getDailyPlanListByTripPlanId(Long tripPlanId, Long memberId) {
-    TripPlan tripPlan =
-        tripPlanRepository
-            .findByIdWithMember(tripPlanId)
-            .orElseThrow(() -> new BusinessException(TripErrorCode.TRIP_PLAN_NOT_FOUND));
-    if (!tripPlan.getMember().getId().equals(memberId)) {
-      throw new BusinessException(TripErrorCode.TRIP_PLAN_FORBIDDEN);
-    }
-    return dailyPlanRepository.findAllByTripPlanId(tripPlanId).stream()
-        .map(dailyPlan -> toDailyPlanResponse(dailyPlan, dailyPlan.getDayNumber()))
-        .toList();
-  }
-
-  private DailyPlanResponse toDailyPlanResponse(DailyPlan dailyPlan, Integer dayNumber) {
-    List<ScheduledPlaceResponse> scheduledPlaceResponses =
-        dailyPlan.getScheduledPlaces().stream().map(ScheduledPlaceResponse::of).toList();
-
-    return DailyPlanResponse.builder()
-        .id(dailyPlan.getId())
-        .dayNumber(dayNumber)
-        .date(dailyPlan.getDate().toString())
-        .title(dailyPlan.getTitle())
-        .description(dailyPlan.getDescription())
-        .scheduledPlaces(scheduledPlaceResponses)
-        .build();
   }
 }

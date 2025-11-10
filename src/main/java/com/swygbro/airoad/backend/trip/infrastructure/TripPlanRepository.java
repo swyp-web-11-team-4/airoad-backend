@@ -12,7 +12,8 @@ import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
 public interface TripPlanRepository
     extends JpaRepository<TripPlan, Long>, JpaSpecificationExecutor<TripPlan> {
 
-  @Query("SELECT tp FROM TripPlan tp JOIN FETCH tp.member WHERE tp.id = :tripPlanId")
+  @Query(
+      "SELECT tp FROM TripPlan tp JOIN FETCH tp.member JOIN FETCH tp.tripThemes WHERE tp.id = :tripPlanId")
   Optional<TripPlan> findByIdWithMember(@Param("tripPlanId") Long tripPlanId);
 
   boolean existsByIdAndMemberId(Long id, Long memberId);

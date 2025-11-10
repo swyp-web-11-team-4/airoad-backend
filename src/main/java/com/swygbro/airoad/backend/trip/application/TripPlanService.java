@@ -28,6 +28,7 @@ import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanSortField;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanUpdateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.response.ChannelIdResponse;
+import com.swygbro.airoad.backend.trip.domain.dto.response.TripPlanDetailResponse;
 import com.swygbro.airoad.backend.trip.domain.dto.response.TripPlanResponse;
 import com.swygbro.airoad.backend.trip.domain.entity.Transportation;
 import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
@@ -121,6 +122,23 @@ public class TripPlanService implements TripPlanUseCase {
   }
 
   @Override
+  @Transactional(readOnly = true)
+  public TripPlanDetailResponse getTripPlanDetail(Long tripPlanId, Long memberId) {
+    log.info("여행 일정 상세 조회 - tripPlanId: {}, memberId: {}", tripPlanId, memberId);
+
+    TripPlan tripPlan =
+        tripPlanRepository
+            .findByIdWithMember(tripPlanId)
+            .orElseThrow(() -> new BusinessException(TripErrorCode.TRIP_PLAN_NOT_FOUND));
+
+    if (!tripPlan.getMember().getId().equals(memberId)) {
+      throw new BusinessException(TripErrorCode.TRIP_PLAN_FORBIDDEN);
+    }
+
+    return TripPlanDetailResponse.from(tripPlan);
+  }
+
+  @Override
   @Transactional
   public void deleteTripPlan(Long tripPlanId, Long memberId) {
     log.info("여행 일정 삭제 요청 - tripPlanId: {}, memberId: {}", tripPlanId, memberId);
@@ -153,11 +171,14 @@ public class TripPlanService implements TripPlanUseCase {
     // 여행 종료일 계산
     LocalDate endDate = request.startDate().plusDays(request.duration() - 1);
 
+    // TripPlanTitle
+    String title =
+        request.region() + " " + request.duration() + "박 " + (request.duration() + 1) + "일 여행";
     // TripPlan 생성
     TripPlan tripPlan =
         TripPlan.builder()
             .member(member)
-            .title("") // 초기 제목은 비어있음
+            .title(title)
             .startDate(request.startDate())
             .endDate(endDate)
             .isCompleted(false)

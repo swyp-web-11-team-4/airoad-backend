@@ -12,6 +12,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration;
 
 import com.swygbro.airoad.backend.chat.presentation.web.JwtWebSocketInterceptor;
+import com.swygbro.airoad.backend.chat.presentation.web.ReceiptInterceptor;
 import com.swygbro.airoad.backend.chat.presentation.web.WebSocketPayloadTypeInterceptor;
 
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
   private final JwtWebSocketInterceptor jwtWebSocketInterceptor;
   private final WebSocketPayloadTypeInterceptor webSocketPayloadTypeInterceptor;
+  private final ReceiptInterceptor receiptInterceptor;
 
   private static final int MESSAGE_SIZE_LIMIT = 2 * 1024 * 1024; // 2MB
   private static final int SEND_BUFFER_SIZE_LIMIT = 2 * 1024 * 1024; // 2MB
@@ -73,5 +75,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
   @Override
   public void configureClientInboundChannel(ChannelRegistration registration) {
     registration.interceptors(jwtWebSocketInterceptor, webSocketPayloadTypeInterceptor);
+  }
+
+  @Override
+  public void configureClientOutboundChannel(ChannelRegistration registration) {
+    registration.interceptors(receiptInterceptor);
   }
 }

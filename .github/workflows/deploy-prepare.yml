@@ -1,0 +1,78 @@
+name: Deployment Preparation
+
+on:
+    workflow_call:
+        inputs:
+            image_version:
+                description: 'Docker image version to deploy'
+                required: true
+                type: string
+        outputs:
+            status:
+                description: "Preparation status"
+                value: ${{ jobs.prepare.outputs.status }}
+
+jobs:
+    prepare:
+        name: Prepare Deployment
+        runs-on: ubuntu-latest
+
+        outputs:
+            status: ${{ steps.set-result.outputs.status }}
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v5
+
+            - name: Generate .env file from secrets
+              run: |
+                  cat > .env << 'EOF'
+                  ${{ secrets.ENV_FILE }}
+                  EOF
+                  echo "✅ Generated .env file from GitHub Secrets"
+
+            - name: Copy docker-compose.yml and .env to server
+              uses: appleboy/scp-action@v0.1.7
+              with:
+                  host: ${{ secrets.SSH_HOST }}
+                  username: ${{ secrets.SSH_USER }}
+                  key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  port: ${{ secrets.SSH_PORT }}
+                  source: "docker/docker-compose.yml,.env"
+                  target: "/root/airoad-backend"
+                  overwrite: true
+                  strip_components: 1
+
+            - name: Backup current deployment
+              id: backup
+              uses: appleboy/ssh-action@v1.2.0
+              with:
+                  host: ${{ secrets.SSH_HOST }}
+                  username: ${{ secrets.SSH_USER }}
+                  key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  port: ${{ secrets.SSH_PORT }}
+                  script: |
+                      cd /root/airoad-backend
+                      CURRENT_IMAGE=$(docker inspect airoad-backend --format='{{.Config.Image}}' 2>/dev/null || echo "none")
+                      echo "Current image: ${CURRENT_IMAGE}"
+                      echo "${CURRENT_IMAGE}" > .previous_image
+                      if [ -f .env ]; then
+                        cp .env .env.backup
+                        echo "✅ Backed up .env file"
+                      fi
+                      if [ -f docker-compose.yml ]; then
+                        cp docker-compose.yml docker-compose.yml.backup
+                        echo "✅ Backed up docker-compose.yml"
+                      fi
+
+            - name: Set result
+              id: set-result
+              if: always()
+              run: |
+                  if [[ "${{ steps.backup.outcome }}" == "success" ]]; then
+                    echo "status=success" >> $GITHUB_OUTPUT
+                    echo "✅ Deployment preparation completed"
+                  else
+                    echo "status=failure" >> $GITHUB_OUTPUT
+                    echo "❌ Deployment preparation failed"
+                  fi

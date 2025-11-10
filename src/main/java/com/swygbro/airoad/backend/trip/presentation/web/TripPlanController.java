@@ -1,5 +1,6 @@
 package com.swygbro.airoad.backend.trip.presentation.web;
 
+import java.util.List;
 import java.util.Map;
 
 import jakarta.validation.Valid;
@@ -25,10 +26,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.swygbro.airoad.backend.auth.domain.dto.UserPrincipal;
 import com.swygbro.airoad.backend.common.domain.dto.CommonResponse;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
+import com.swygbro.airoad.backend.trip.application.DailyPlanUseCase;
 import com.swygbro.airoad.backend.trip.application.TripPlanUseCase;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanUpdateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.response.ChannelIdResponse;
+import com.swygbro.airoad.backend.trip.domain.dto.response.DailyPlanResponse;
 import com.swygbro.airoad.backend.trip.domain.dto.response.TripPlanDetailResponse;
 import com.swygbro.airoad.backend.trip.domain.dto.response.TripPlanResponse;
 
@@ -42,6 +45,7 @@ import lombok.RequiredArgsConstructor;
 public class TripPlanController implements TripPlanApi {
 
   private final TripPlanUseCase tripPlanUseCase;
+  private final DailyPlanUseCase dailyPlanUseCase;
 
   @Override
   @GetMapping
@@ -115,5 +119,16 @@ public class TripPlanController implements TripPlanApi {
 
     return ResponseEntity.ok()
         .body(CommonResponse.success(HttpStatus.OK.value(), Map.of("message", "여행 일정 생성을 시작합니다.")));
+  }
+
+  @Override
+  @GetMapping("/daily-plans/{tripPlanId}")
+  public ResponseEntity<CommonResponse<Object>> getDailyPlans(
+      @AuthenticationPrincipal UserPrincipal userPrincipal, @PathVariable Long tripPlanId) {
+
+    List<DailyPlanResponse> dailyPlanResponseList =
+        dailyPlanUseCase.getDailyPlanListByTripPlanId(tripPlanId, userPrincipal.getId());
+
+    return ResponseEntity.ok(CommonResponse.success(HttpStatus.OK, dailyPlanResponseList));
   }
 }

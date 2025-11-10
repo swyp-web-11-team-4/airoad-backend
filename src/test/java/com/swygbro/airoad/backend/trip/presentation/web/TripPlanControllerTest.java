@@ -32,11 +32,14 @@ import com.swygbro.airoad.backend.member.domain.entity.Member;
 import com.swygbro.airoad.backend.member.domain.entity.MemberRole;
 import com.swygbro.airoad.backend.member.domain.entity.ProviderType;
 import com.swygbro.airoad.backend.member.exception.MemberErrorCode;
+import com.swygbro.airoad.backend.trip.application.DailyPlanUseCase;
 import com.swygbro.airoad.backend.trip.application.TripPlanUseCase;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanUpdateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.response.ChannelIdResponse;
+import com.swygbro.airoad.backend.trip.domain.dto.response.DailyPlanResponse;
 import com.swygbro.airoad.backend.trip.domain.dto.response.TripPlanResponse;
+import com.swygbro.airoad.backend.trip.exception.TripErrorCode;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -54,6 +57,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class TripPlanControllerTest {
 
   @Mock private TripPlanUseCase tripPlanUseCase;
+  @Mock private DailyPlanUseCase dailyPlanUseCase;
   @InjectMocks private TripPlanController tripPlanController;
 
   private MockMvc mockMvc;
@@ -532,6 +536,178 @@ class TripPlanControllerTest {
           .andExpect(jsonPath("$.success").value(false))
           .andExpect(jsonPath("$.data.errors[0].field").value("title"))
           .andExpect(jsonPath("$.data.errors[0].message").value("여행 제목은 비워둘 수 없습니다."));
+    }
+  }
+
+  @Nested
+  @DisplayName("getDailyPlans 메서드는")
+  class GetDailyPlans {
+
+    @Test
+    @DisplayName("유효한 tripPlanId로 일차별 일정 목록을 조회한다")
+    void shouldReturnDailyPlans() throws Exception {
+      // given
+      mockUserPrincipal();
+      Long tripPlanId = 1L;
+
+      DailyPlanResponse dailyPlan1 =
+          DailyPlanResponse.builder()
+              .id(1L)
+              .dayNumber(1)
+              .date("2025-12-01")
+              .title("1일차 여행")
+              .description("AI가 생성한 1일차 여행 일정입니다.")
+              .scheduledPlaces(Collections.emptyList())
+              .build();
+
+      DailyPlanResponse dailyPlan2 =
+          DailyPlanResponse.builder()
+              .id(2L)
+              .dayNumber(2)
+              .date("2025-12-02")
+              .title("2일차 여행")
+              .description("AI가 생성한 2일차 여행 일정입니다.")
+              .scheduledPlaces(Collections.emptyList())
+              .build();
+
+      List<DailyPlanResponse> dailyPlans = List.of(dailyPlan1, dailyPlan2);
+
+      given(dailyPlanUseCase.getDailyPlanListByTripPlanId(eq(tripPlanId), anyLong()))
+          .willReturn(dailyPlans);
+
+      // when & then
+      mockMvc
+          .perform(get("/api/v1/trips/daily-plans/{tripPlanId}", tripPlanId))
+          .andDo(print())
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.success").value(true))
+          .andExpect(jsonPath("$.status").value(200))
+          .andExpect(jsonPath("$.data").isArray())
+          .andExpect(jsonPath("$.data.length()").value(2))
+          .andExpect(jsonPath("$.data[0].dayNumber").value(1))
+          .andExpect(jsonPath("$.data[0].date").value("2025-12-01"))
+          .andExpect(jsonPath("$.data[1].dayNumber").value(2))
+          .andExpect(jsonPath("$.data[1].date").value("2025-12-02"));
+
+      verify(dailyPlanUseCase).getDailyPlanListByTripPlanId(eq(tripPlanId), anyLong());
+    }
+
+    @Test
+    @DisplayName("DailyPlan이 없는 TripPlan을 조회하면 빈 배열을 반환한다")
+    void shouldReturnEmptyArrayWhenNoDailyPlans() throws Exception {
+      // given
+      mockUserPrincipal();
+      Long tripPlanId = 1L;
+
+      given(dailyPlanUseCase.getDailyPlanListByTripPlanId(eq(tripPlanId), anyLong()))
+          .willReturn(Collections.emptyList());
+
+      // when & then
+      mockMvc
+          .perform(get("/api/v1/trips/daily-plans/{tripPlanId}", tripPlanId))
+          .andDo(print())
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.success").value(true))
+          .andExpect(jsonPath("$.status").value(200))
+          .andExpect(jsonPath("$.data").isArray())
+          .andExpect(jsonPath("$.data.length()").value(0));
+
+      verify(dailyPlanUseCase).getDailyPlanListByTripPlanId(eq(tripPlanId), anyLong());
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 TripPlan ID로 조회하면 404 에러를 반환한다")
+    void shouldReturn404WhenTripPlanNotFound() throws Exception {
+      // given
+      mockUserPrincipal();
+      Long nonExistentTripPlanId = 999L;
+
+      given(dailyPlanUseCase.getDailyPlanListByTripPlanId(eq(nonExistentTripPlanId), anyLong()))
+          .willThrow(new BusinessException(TripErrorCode.TRIP_PLAN_NOT_FOUND));
+
+      // when & then
+      mockMvc
+          .perform(get("/api/v1/trips/daily-plans/{tripPlanId}", nonExistentTripPlanId))
+          .andDo(print())
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.success").value(false))
+          .andExpect(jsonPath("$.status").value(404))
+          .andExpect(jsonPath("$.data.code").value("TRIP101"));
+
+      verify(dailyPlanUseCase).getDailyPlanListByTripPlanId(eq(nonExistentTripPlanId), anyLong());
+    }
+
+    @Test
+    @DisplayName("다른 사용자의 TripPlan을 조회하면 403 에러를 반환한다")
+    void shouldReturn403WhenForbidden() throws Exception {
+      // given
+      mockUserPrincipal();
+      Long tripPlanId = 1L;
+
+      given(dailyPlanUseCase.getDailyPlanListByTripPlanId(eq(tripPlanId), anyLong()))
+          .willThrow(new BusinessException(TripErrorCode.TRIP_PLAN_FORBIDDEN));
+
+      // when & then
+      mockMvc
+          .perform(get("/api/v1/trips/daily-plans/{tripPlanId}", tripPlanId))
+          .andDo(print())
+          .andExpect(status().isForbidden())
+          .andExpect(jsonPath("$.success").value(false))
+          .andExpect(jsonPath("$.status").value(403))
+          .andExpect(jsonPath("$.data.code").value("TRIP102"));
+
+      verify(dailyPlanUseCase).getDailyPlanListByTripPlanId(eq(tripPlanId), anyLong());
+    }
+
+    @Test
+    @DisplayName("여러 일차의 DailyPlan을 순서대로 조회한다")
+    void shouldReturnMultipleDailyPlansInOrder() throws Exception {
+      // given
+      mockUserPrincipal();
+      Long tripPlanId = 1L;
+
+      List<DailyPlanResponse> dailyPlans =
+          List.of(
+              DailyPlanResponse.builder()
+                  .id(1L)
+                  .dayNumber(1)
+                  .date("2025-12-01")
+                  .title("1일차 여행")
+                  .description("AI가 생성한 1일차 여행 일정입니다.")
+                  .scheduledPlaces(Collections.emptyList())
+                  .build(),
+              DailyPlanResponse.builder()
+                  .id(2L)
+                  .dayNumber(2)
+                  .date("2025-12-02")
+                  .title("2일차 여행")
+                  .description("AI가 생성한 2일차 여행 일정입니다.")
+                  .scheduledPlaces(Collections.emptyList())
+                  .build(),
+              DailyPlanResponse.builder()
+                  .id(3L)
+                  .dayNumber(3)
+                  .date("2025-12-03")
+                  .title("3일차 여행")
+                  .description("AI가 생성한 3일차 여행 일정입니다.")
+                  .scheduledPlaces(Collections.emptyList())
+                  .build());
+
+      given(dailyPlanUseCase.getDailyPlanListByTripPlanId(eq(tripPlanId), anyLong()))
+          .willReturn(dailyPlans);
+
+      // when & then
+      mockMvc
+          .perform(get("/api/v1/trips/daily-plans/{tripPlanId}", tripPlanId))
+          .andDo(print())
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.success").value(true))
+          .andExpect(jsonPath("$.data.length()").value(3))
+          .andExpect(jsonPath("$.data[0].dayNumber").value(1))
+          .andExpect(jsonPath("$.data[1].dayNumber").value(2))
+          .andExpect(jsonPath("$.data[2].dayNumber").value(3));
+
+      verify(dailyPlanUseCase).getDailyPlanListByTripPlanId(eq(tripPlanId), anyLong());
     }
   }
 }

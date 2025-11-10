@@ -19,6 +19,7 @@ import com.swygbro.airoad.backend.trip.domain.entity.ScheduledPlace;
 import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
 import com.swygbro.airoad.backend.trip.domain.event.DailyPlanSavedEvent;
 import com.swygbro.airoad.backend.trip.exception.TripErrorCode;
+import com.swygbro.airoad.backend.trip.infrastructure.DailyPlanRepository;
 import com.swygbro.airoad.backend.trip.infrastructure.TripPlanRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class DailyPlanService implements DailyPlanUseCase {
   private final TripPlanRepository tripPlanRepository;
   private final PlaceRepository placeRepository;
   private final ApplicationEventPublisher eventPublisher;
+  private final DailyPlanRepository dailyPlanRepository;
 
   @Override
   @Transactional
@@ -77,6 +79,21 @@ public class DailyPlanService implements DailyPlanUseCase {
         tripPlanId,
         request.dayNumber(),
         savedTripPlan.getIsCompleted());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<DailyPlanResponse> getDailyPlanListByTripPlanId(Long tripPlanId, Long memberId) {
+    TripPlan tripPlan =
+        tripPlanRepository
+            .findByIdWithMember(tripPlanId)
+            .orElseThrow(() -> new BusinessException(TripErrorCode.TRIP_PLAN_NOT_FOUND));
+    if (!tripPlan.getMember().getId().equals(memberId)) {
+      throw new BusinessException(TripErrorCode.TRIP_PLAN_FORBIDDEN);
+    }
+    return dailyPlanRepository.findAllByTripPlanId(tripPlanId).stream()
+        .map(dailyPlan -> toDailyPlanResponse(dailyPlan, dailyPlan.getDayNumber()))
+        .toList();
   }
 
   /**

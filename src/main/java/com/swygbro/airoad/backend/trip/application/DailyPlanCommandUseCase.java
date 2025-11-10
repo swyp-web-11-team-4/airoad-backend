@@ -2,7 +2,7 @@ package com.swygbro.airoad.backend.trip.application;
 
 import com.swygbro.airoad.backend.trip.domain.dto.request.DailyPlanCreateRequest;
 
-public interface DailyPlanUseCase {
+public interface DailyPlanCommandUseCase {
 
   /**
    * 일일 여행 계획을 데이터베이스에 저장합니다.

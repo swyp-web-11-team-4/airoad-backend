@@ -14,6 +14,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.swygbro.airoad.backend.chat.application.AiConversationCommandUseCase;
 import com.swygbro.airoad.backend.chat.domain.entity.AiConversation;
 import com.swygbro.airoad.backend.chat.exception.ChatErrorCode;
 import com.swygbro.airoad.backend.chat.infrastructure.repository.AiConversationRepository;
@@ -34,8 +35,6 @@ import com.swygbro.airoad.backend.trip.domain.entity.Transportation;
 import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationRequestedEvent;
 import com.swygbro.airoad.backend.trip.exception.TripErrorCode;
-import com.swygbro.airoad.backend.trip.infrastructure.DailyPlanRepository;
-import com.swygbro.airoad.backend.trip.infrastructure.ScheduledPlaceRepository;
 import com.swygbro.airoad.backend.trip.infrastructure.TripPlanRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -48,14 +47,13 @@ public class TripPlanService implements TripPlanUseCase {
 
   // Trip 도메인 관련 레포지토리
   private final TripPlanRepository tripPlanRepository;
-  private final DailyPlanRepository dailyPlanRepository;
-  private final ScheduledPlaceRepository scheduledPlaceRepository;
 
   // 회원 관련 레포지토리
   private final MemberRepository memberRepository;
 
-  // 채팅 관련 레포지토리
+  // 채팅 관련 레포지토리 및 유스케이스
   private final AiConversationRepository aiConversationRepository;
+  private final AiConversationCommandUseCase aiConversationCommandUseCase;
 
   private final ApplicationEventPublisher eventPublisher;
 
@@ -143,17 +141,21 @@ public class TripPlanService implements TripPlanUseCase {
   public void deleteTripPlan(Long tripPlanId, Long memberId) {
     log.info("여행 일정 삭제 요청 - tripPlanId: {}, memberId: {}", tripPlanId, memberId);
 
-    if (!tripPlanRepository.existsByIdAndMemberId(tripPlanId, memberId)) {
-      if (!tripPlanRepository.existsById(tripPlanId)) {
-        throw new BusinessException(TripErrorCode.TRIP_PLAN_NOT_FOUND);
-      } else {
-        throw new BusinessException(TripErrorCode.TRIP_PLAN_FORBIDDEN);
-      }
+    TripPlan tripPlan =
+        tripPlanRepository
+            .findByIdWithMember(tripPlanId)
+            .orElseThrow(() -> new BusinessException(TripErrorCode.TRIP_PLAN_NOT_FOUND));
+
+    if (!tripPlan.getMember().getId().equals(memberId)) {
+      throw new BusinessException(TripErrorCode.TRIP_PLAN_FORBIDDEN);
     }
 
-    scheduledPlaceRepository.deleteByTripPlanId(tripPlanId);
-    dailyPlanRepository.deleteByTripPlanId(tripPlanId);
-    tripPlanRepository.deleteById(tripPlanId);
+    aiConversationRepository
+        .findByTripPlanId(tripPlanId)
+        .ifPresent(
+            conversation -> aiConversationCommandUseCase.deleteConversation(conversation.getId()));
+
+    tripPlanRepository.delete(tripPlan);
 
     log.info("여행 일정 삭제 완료 - tripPlanId: {}, memberId: {}", tripPlanId, memberId);
   }

@@ -19,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.ActiveProfiles;
 
+import com.swygbro.airoad.backend.chat.application.AiConversationCommandUseCase;
 import com.swygbro.airoad.backend.chat.domain.entity.AiConversation;
 import com.swygbro.airoad.backend.chat.infrastructure.repository.AiConversationRepository;
 import com.swygbro.airoad.backend.chat.infrastructure.repository.ConversationIdProjection;
@@ -39,8 +40,6 @@ import com.swygbro.airoad.backend.trip.domain.entity.Transportation;
 import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationRequestedEvent;
 import com.swygbro.airoad.backend.trip.exception.TripErrorCode;
-import com.swygbro.airoad.backend.trip.infrastructure.DailyPlanRepository;
-import com.swygbro.airoad.backend.trip.infrastructure.ScheduledPlaceRepository;
 import com.swygbro.airoad.backend.trip.infrastructure.TripPlanRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,10 +53,9 @@ import static org.mockito.BDDMockito.*;
 class TripPlanServiceTest {
 
   @Mock private TripPlanRepository tripPlanRepository;
-  @Mock private DailyPlanRepository dailyPlanRepository;
-  @Mock private ScheduledPlaceRepository scheduledPlaceRepository;
   @Mock private MemberRepository memberRepository;
   @Mock private AiConversationRepository aiConversationRepository;
+  @Mock private AiConversationCommandUseCase aiConversationCommandUseCase;
   @Mock private ApplicationEventPublisher eventPublisher;
 
   @InjectMocks private TripPlanService tripPlanService;
@@ -151,20 +149,34 @@ class TripPlanServiceTest {
 
     @Test
     @DisplayName("자신의 여행 일정을 성공적으로 삭제한다")
-    void deletesOwnTripPlanSuccessfully() {
+    void deletesOwnTripPlanSuccessfully() throws Exception {
       // given
       Long tripPlanId = 1L;
       Long memberId = 1L;
-      given(tripPlanRepository.existsByIdAndMemberId(tripPlanId, memberId)).willReturn(true);
-      willDoNothing().given(scheduledPlaceRepository).deleteByTripPlanId(tripPlanId);
-      willDoNothing().given(dailyPlanRepository).deleteByTripPlanId(tripPlanId);
-      willDoNothing().given(tripPlanRepository).deleteById(tripPlanId);
+      Long conversationId = 10L;
+
+      Member member = MemberFixture.withId(memberId, MemberFixture.create());
+      TripPlan tripPlan = TripPlanFixture.createWithMember(member);
+      AiConversation conversation =
+          AiConversationFixture.createWithMemberAndTripPlan(member, tripPlan);
+      var field = conversation.getClass().getSuperclass().getDeclaredField("id");
+      field.setAccessible(true);
+      field.set(conversation, conversationId);
+
+      given(tripPlanRepository.findByIdWithMember(tripPlanId)).willReturn(Optional.of(tripPlan));
+      given(aiConversationRepository.findByTripPlanId(tripPlanId))
+          .willReturn(Optional.of(conversation));
+      willDoNothing().given(aiConversationCommandUseCase).deleteConversation(conversationId);
+      willDoNothing().given(tripPlanRepository).delete(tripPlan);
 
       // when
       tripPlanService.deleteTripPlan(tripPlanId, memberId);
 
       // then
-      verify(tripPlanRepository).deleteById(tripPlanId);
+      verify(tripPlanRepository).findByIdWithMember(tripPlanId);
+      verify(aiConversationRepository).findByTripPlanId(tripPlanId);
+      verify(aiConversationCommandUseCase).deleteConversation(conversationId);
+      verify(tripPlanRepository).delete(tripPlan);
     }
 
     @Test
@@ -173,13 +185,15 @@ class TripPlanServiceTest {
       // given
       Long tripPlanId = 99L;
       Long memberId = 1L;
-      given(tripPlanRepository.existsByIdAndMemberId(tripPlanId, memberId)).willReturn(false);
-      given(tripPlanRepository.existsById(tripPlanId)).willReturn(false);
+      given(tripPlanRepository.findByIdWithMember(tripPlanId)).willReturn(Optional.empty());
 
       // when & then
       assertThatThrownBy(() -> tripPlanService.deleteTripPlan(tripPlanId, memberId))
           .isInstanceOf(BusinessException.class)
           .hasFieldOrPropertyWithValue("errorCode", TripErrorCode.TRIP_PLAN_NOT_FOUND);
+
+      verify(aiConversationCommandUseCase, never()).deleteConversation(anyLong());
+      verify(tripPlanRepository, never()).delete(any(TripPlan.class));
     }
 
     @Test
@@ -188,13 +202,20 @@ class TripPlanServiceTest {
       // given
       Long tripPlanId = 2L;
       Long memberId = 1L;
-      given(tripPlanRepository.existsByIdAndMemberId(tripPlanId, memberId)).willReturn(false);
-      given(tripPlanRepository.existsById(tripPlanId)).willReturn(true);
+      Long otherMemberId = 2L;
+      Member otherMember = MemberFixture.withId(otherMemberId, MemberFixture.create());
+      TripPlan othersTripPlan = TripPlanFixture.createWithMember(otherMember);
+
+      given(tripPlanRepository.findByIdWithMember(tripPlanId))
+          .willReturn(Optional.of(othersTripPlan));
 
       // when & then
       assertThatThrownBy(() -> tripPlanService.deleteTripPlan(tripPlanId, memberId))
           .isInstanceOf(BusinessException.class)
           .hasFieldOrPropertyWithValue("errorCode", TripErrorCode.TRIP_PLAN_FORBIDDEN);
+
+      verify(aiConversationCommandUseCase, never()).deleteConversation(anyLong());
+      verify(tripPlanRepository, never()).delete(any(TripPlan.class));
     }
   }
 

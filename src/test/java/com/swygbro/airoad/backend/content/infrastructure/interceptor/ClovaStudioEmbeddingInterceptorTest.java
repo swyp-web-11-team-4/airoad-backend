@@ -16,6 +16,8 @@ import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.context.ActiveProfiles;
 
+import com.swygbro.airoad.backend.ai.infrastructure.interceptor.ClovaStudioEmbeddingInterceptor;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;

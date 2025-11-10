@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.client.RestClient;
 
-import com.swygbro.airoad.backend.content.infrastructure.interceptor.ClovaStudioEmbeddingInterceptor;
+import com.swygbro.airoad.backend.ai.infrastructure.interceptor.ClovaStudioEmbeddingInterceptor;
 
 @Configuration
 public class RestClientConfig {

@@ -7,11 +7,20 @@ import java.util.stream.Stream;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.swygbro.airoad.backend.content.domain.entity.Place;
+import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
 
 /** Place 엔티티의 JPA Repository */
 public interface PlaceRepository extends JpaRepository<Place, Long> {
+
+  @Query("SELECT p FROM Place p JOIN FETCH p.themes WHERE p.id = :id")
+  Optional<Place> findByIdWithThemes(Long id);
+
+  @Query("SELECT p FROM Place p JOIN FETCH p.themes WHERE p.id IN :ids")
+  List<Place> findAllByIdsWithThemes(@Param("ids") List<Long> ids);
 
   /**
    * 모든 Place를 Stream으로 조회
@@ -21,6 +30,7 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
    *
    * @return Place Stream
    */
+  @Query("SELECT p FROM Place p JOIN FETCH p.themes")
   Stream<Place> streamAllBy();
 
   /**
@@ -31,7 +41,8 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
    * @param dateTime 기준 시각
    * @return 기준 시각 이후 수정된 Place Stream
    */
-  Stream<Place> streamByUpdatedAtAfter(LocalDateTime dateTime);
+  @Query("SELECT p FROM Place p JOIN FETCH p.themes WHERE p.updatedAt > :dateTime")
+  Stream<Place> streamByUpdatedAtAfter(@Param("dateTime") LocalDateTime dateTime);
 
   /**
    * TourAPI 장소 ID로 Place 조회
@@ -55,4 +66,20 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
    * @return description이 null인 Place 목록 (최대 limit개)
    */
   List<Place> findByDescriptionIsNullOrderByIdAsc(Pageable pageable);
+
+  /**
+   * 주소 패턴과 테마로 필터링된 장소의 ID 목록만 조회 (커버링 인덱스 활용)
+   *
+   * @param addressPrefix 주소 시작 패턴 (예: "강원도", "서울특별시")
+   * @param themes 테마 목록
+   * @return 필터링된 장소의 ID 목록
+   */
+  @Query(
+      "SELECT p.id FROM Place p "
+          + "JOIN p.themes t "
+          + "WHERE p.location.address LIKE CONCAT(:addressPrefix, '%') "
+          + "AND t IN :themes "
+          + "AND p.isMustVisit = true")
+  List<Long> findIdsByAddressStartingWithAndThemes(
+      @Param("addressPrefix") String addressPrefix, @Param("themes") List<PlaceThemeType> themes);
 }

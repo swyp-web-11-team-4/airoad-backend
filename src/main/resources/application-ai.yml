@@ -1,5 +1,11 @@
 spring:
   ai:
+    retry:
+      max-attempts: 5
+      backoff:
+        initial-interval: 15000
+        multiplier: 2
+        max-interval: 60000
     openai:
       api-key: ${OPENAI_API_KEY}
       base-url: ${OPENAI_BASE_URL:https://api.openai.com}
@@ -13,6 +19,12 @@ spring:
           model: ${EMBEDDING_MODEL:text-embedding-3-small}
           dimensions: ${EMBEDDING_DIMENSIONS:768}
           encoding-format: float
+    upstage:
+      api-key: ${UPSTAGE_API_KEY:}
+      base-url: ${UPSTAGE_BASE_URL:https://api.upstage.ai}
+      chat:
+        options:
+          model: ${UPSTAGE_CHAT_MODEL:solar-pro2}
     chat:
       memory:
         repository:
@@ -25,4 +37,3 @@ spring:
         distance-type: COSINE_DISTANCE
         index-type: HNSW
         initialize-schema: true
-        schema-validation: true

@@ -71,4 +71,5 @@ tour-api:
 
 logging:
   level:
-    com.swygbro.airoad.backend.tourdata: DEBUG
+    com.swygbro.airoad.backend: DEBUG
+    org.springframework.ai.chat.client.advisor: DEBUG

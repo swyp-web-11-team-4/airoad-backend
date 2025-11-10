@@ -1,120 +1,138 @@
 name: CD Pipeline
 
 on:
-    workflow_run:
-        workflows: ["CI/CD Pipeline"]
-        types:
-            - completed
-        branches:
-            - main
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types:
+      - completed
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      image_version:
+        description: 'Docker image version to deploy (e.g., v1.0.0, latest)'
+        required: true
+        default: 'latest'
+        type: string
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
 
 permissions:
-    contents: read
-    packages: read
+  contents: read
+  packages: read
 
 jobs:
-    deploy:
-        name: Deploy to NCP Server
-        runs-on: ubuntu-latest
-        if: ${{ github.event.workflow_run.conclusion == 'success' }}
-        environment: production
+  determine-version:
+    name: Determine Deployment Version
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      deployment_type: ${{ steps.version.outputs.deployment_type }}
 
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
 
-            - name: Get latest version
-              id: version
-              run: |
-                  VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "latest")
-                  echo "version=${VERSION}" >> $GITHUB_OUTPUT
-                  echo "📦 Deploying version: ${VERSION}"
+      - name: Determine deployment version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.image_version }}"
+            DEPLOYMENT_TYPE="manual"
+            echo "📦 Manual deployment - Version: ${VERSION}"
+          else
+            VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "latest")
+            DEPLOYMENT_TYPE="automatic"
+            echo "📦 Automated deployment - Version: ${VERSION}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "deployment_type=${DEPLOYMENT_TYPE}" >> $GITHUB_OUTPUT
+          echo "Deploying version: ${VERSION}"
 
-            - name: Copy docker-compose.yml to server
-              uses: appleboy/scp-action@v0.1.7
-              with:
-                  host: ${{ secrets.SSH_HOST }}
-                  username: ${{ secrets.SSH_USER }}
-                  key: ${{ secrets.SSH_PRIVATE_KEY }}
-                  port: ${{ secrets.SSH_PORT }}
-                  source: "docker/docker-compose.yml"
-                  target: "/root/airoad-backend"
-                  overwrite: true
-                  strip_components: 1
+  prepare:
+    name: Prepare Deployment
+    needs: determine-version
+    uses: ./.github/workflows/deploy-prepare.yml
+    secrets: inherit
+    with:
+      image_version: ${{ needs.determine-version.outputs.version }}
 
-            - name: Deploy to NCP server
-              uses: appleboy/ssh-action@v1.2.0
-              with:
-                  host: ${{ secrets.SSH_HOST }}
-                  username: ${{ secrets.SSH_USER }}
-                  key: ${{ secrets.SSH_PRIVATE_KEY }}
-                  port: ${{ secrets.SSH_PORT }}
-                  script: |
-                      cd /root/airoad-backend
-                      echo "🔐 Logging into NCR..."
-                      echo "${{ secrets.NCR_SECRET_KEY }}" | docker login airoad-container-registry.kr.ncr.ntruss.com -u ${{ secrets.NCR_ACCESS_KEY_ID }} --password-stdin
-                      docker-compose down || true
-                      docker pull airoad-container-registry.kr.ncr.ntruss.com/airoad-backend:latest                    
-                      docker container prune -f
-                      docker image prune -f
-                      docker-compose up -d                  
-                      docker-compose ps
-                      docker-compose logs --tail=50 app
+  deploy:
+    name: Execute Deployment
+    needs: [determine-version, prepare]
+    if: needs.prepare.outputs.status == 'success'
+    uses: ./.github/workflows/deploy-execute.yml
+    secrets: inherit
+    with:
+      image_version: ${{ needs.determine-version.outputs.version }}
 
-            - name: Health check
-              uses: appleboy/ssh-action@v1.2.0
-              with:
-                  host: ${{ secrets.SSH_HOST }}
-                  username: ${{ secrets.SSH_USER }}
-                  key: ${{ secrets.SSH_PRIVATE_KEY }}
-                  port: ${{ secrets.SSH_PORT }}
-                  script: |
-                      cd /root/airoad-backend
+  health-check:
+    name: Health Check
+    needs: [determine-version, deploy]
+    if: needs.deploy.outputs.status == 'success'
+    uses: ./.github/workflows/deploy-health-check.yml
+    secrets: inherit
+    with:
+      image_version: ${{ needs.determine-version.outputs.version }}
 
-                      # Wait for container to start
-                      echo "⏳ Waiting for container to start..."
-                      sleep 10
+  rollback:
+    name: Rollback on Failure
+    needs: [prepare, deploy, health-check]
+    if: failure() && (needs.deploy.outputs.status == 'failure' || needs.health-check.outputs.status == 'failure')
+    uses: ./.github/workflows/deploy-rollback.yml
+    secrets: inherit
 
-                      # Check container status
-                      if ! docker-compose ps | grep -q "Up"; then
-                        echo "❌ Container is not running!"
-                        docker-compose logs --tail=100 app
-                        exit 1
-                      fi
+  cleanup:
+    name: Cleanup Resources
+    needs: [health-check]
+    if: needs.health-check.outputs.status == 'success'
+    uses: ./.github/workflows/deploy-cleanup.yml
+    secrets: inherit
 
-                      # Health check with retry
-                      echo "🏥 Performing health check..."
-                      MAX_RETRIES=10
-                      RETRY_COUNT=0
+  summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [determine-version, prepare, deploy, health-check, rollback, cleanup]
+    if: always()
+    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'production' }}
 
-                      while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-                        HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health || echo "000")
+    steps:
+      - name: Generate deployment summary
+        run: |
+          echo "# 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Preparation | ${{ needs.prepare.outputs.status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deployment | ${{ needs.deploy.outputs.status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Health Check | ${{ needs.health-check.outputs.status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Rollback | ${{ needs.rollback.outputs.status || 'not-needed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Cleanup | ${{ needs.cleanup.outputs.status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** \`${{ needs.determine-version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Type:** ${{ needs.determine-version.outputs.deployment_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'production' }}" >> $GITHUB_STEP_SUMMARY
 
-                        if [ "$HEALTH_STATUS" = "200" ]; then
-                          echo "✅ Application is healthy!"
-                          echo "🎉 Deployment successful - Version: ${{ steps.version.outputs.version }}"
-                          exit 0
-                        fi
-
-                        RETRY_COUNT=$((RETRY_COUNT + 1))
-                        echo "⏳ Retry $RETRY_COUNT/$MAX_RETRIES - Health check status: $HEALTH_STATUS"
-                        sleep 5
-                      done
-
-                      echo "❌ Health check failed after $MAX_RETRIES retries"
-                      echo "📋 Recent logs:"
-                      docker-compose logs --tail=100 app
-                      exit 1
-
-            - name: Deployment summary
-              if: always()
-              run: |
-                  if [ "${{ job.status }}" = "success" ]; then
-                    echo "✅ Deployment succeeded!"
-                    echo "🔗 Server: http://${{ secrets.SSH_HOST }}:8080"
-                    echo "📦 Version: ${{ steps.version.outputs.version }}"
-                    echo "🏥 Health check: Passed"
-                  else
-                    echo "❌ Deployment failed!"
-                    echo "Please check the logs above for details."
-                  fi
+      - name: Final status
+        run: |
+          if [ "${{ needs.health-check.outputs.status }}" = "success" ]; then
+            echo "✅ Deployment succeeded!"
+            echo "📦 Version: ${{ needs.determine-version.outputs.version }}"
+            echo "🏥 Health check: Passed"
+            exit 0
+          elif [ "${{ needs.rollback.outputs.status }}" = "success" ]; then
+            echo "🔄 Deployment failed but rollback succeeded"
+            echo "⚠️  Service restored to previous version"
+            exit 1
+          else
+            echo "❌ Deployment failed!"
+            echo "Please check the logs above for details."
+            exit 1
+          fi

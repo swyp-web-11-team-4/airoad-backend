@@ -1,14 +1,10 @@
 package com.swygbro.airoad.backend.ai.domain.entity;
 
+import com.swygbro.airoad.backend.common.domain.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-
-import org.hibernate.annotations.ColumnDefault;
-
-import com.swygbro.airoad.backend.common.domain.entity.BaseEntity;
-
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,14 +23,14 @@ public class AiPromptTemplate extends BaseEntity {
   @Enumerated(EnumType.STRING)
   private AgentType agentType;
 
-  @Column(nullable = false)
+  @Column(nullable = false, columnDefinition = "TEXT")
   private String prompt;
 
   @Column
-  @ColumnDefault(value = "false")
   private Boolean isActive;
 
-  @Column private String description;
+  @Column(columnDefinition = "TEXT")
+  private String description;
 
   @Builder
   private AiPromptTemplate(

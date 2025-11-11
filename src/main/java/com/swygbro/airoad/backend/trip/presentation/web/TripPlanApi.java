@@ -1,5 +1,7 @@
 package com.swygbro.airoad.backend.trip.presentation.web;
 
+import java.util.List;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -19,6 +21,7 @@ import com.swygbro.airoad.backend.common.domain.dto.CommonResponse;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanUpdateRequest;
+import com.swygbro.airoad.backend.trip.domain.dto.response.DailyPlanResponse;
 import com.swygbro.airoad.backend.trip.domain.dto.response.TripPlanDetailResponse;
 import com.swygbro.airoad.backend.trip.domain.dto.response.TripPlanResponse;
 
@@ -642,7 +645,7 @@ public interface TripPlanApi {
           Long tripPlanId);
 
   @Operation(
-      summary = "여행 일차별 일정 조회",
+      summary = "여행 일차별 일정 목록 조회",
       description = "tripPlanId를 이용하여 해당 여행의 모든 일차별 여행 일정을 조회합니다.",
       security = @SecurityRequirement(name = "bearerAuth"))
   @ApiResponses({
@@ -652,7 +655,45 @@ public interface TripPlanApi {
         content =
             @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = CommonResponse.class))),
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "success": true,
+                              "status": 200,
+                              "data": [
+                                {
+                                  "id": 1,
+                                  "dayNumber": 1,
+                                  "date": "2025-12-01",
+                                  "title": "첫째 날 일정",
+                                  "description": "서울 주요 관광지 탐방",
+                                  "scheduledPlaces": [
+                                    {
+                                      "id": 1,
+                                      "placeId": 101,
+                                      "placeName": "경복궁",
+                                      "visitOrder": 1,
+                                      "category": "ATTRACTION",
+                                      "startTime": "09:00",
+                                      "endTime": "11:00",
+                                      "travelTime": 30,
+                                      "transportation": "PUBLIC_TRANSIT"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": 2,
+                                  "dayNumber": 2,
+                                  "date": "2025-12-02",
+                                  "title": "둘째 날 일정",
+                                  "description": "강남 지역 탐방",
+                                  "scheduledPlaces": []
+                                }
+                              ]
+                            }
+                            """))),
     @ApiResponse(
         responseCode = "401",
         description = "인증되지 않은 사용자",
@@ -670,7 +711,7 @@ public interface TripPlanApi {
                                 "timestamp": "2025-10-30T10:00:00",
                                 "code": "AUTH001",
                                 "message": "인증이 필요합니다.",
-                                "path": "/api/v1/daily-plans/123",
+                                "path": "/api/v1/trips/daily-plans/123",
                                 "errors": null
                               }
                             }
@@ -692,7 +733,7 @@ public interface TripPlanApi {
                                 "timestamp": "2025-10-30T10:00:00",
                                 "code": "TRIP102",
                                 "message": "여행 일정에 대한 접근 권한이 없습니다.",
-                                "path": "/api/v1/daily-plans/123",
+                                "path": "/api/v1/trips/daily-plans/123",
                                 "errors": null
                               }
                             }
@@ -714,14 +755,14 @@ public interface TripPlanApi {
                                 "timestamp": "2025-10-30T10:00:00",
                                 "code": "TRIP101",
                                 "message": "여행 일정을 찾을 수 없습니다.",
-                                "path": "/api/v1/daily-plans/123",
+                                "path": "/api/v1/trips/daily-plans/123",
                                 "errors": null
                               }
                             }
                             """)))
   })
   @GetMapping("/daily-plans/{tripPlanId}")
-  ResponseEntity<CommonResponse<Object>> getDailyPlans(
+  ResponseEntity<CommonResponse<List<DailyPlanResponse>>> getDailyPlans(
       @AuthenticationPrincipal UserPrincipal userPrincipal,
       @Parameter(description = "여행 계획 ID", required = true, example = "123") @PathVariable
           Long tripPlanId);

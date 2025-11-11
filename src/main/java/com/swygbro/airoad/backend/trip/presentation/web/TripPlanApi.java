@@ -640,4 +640,89 @@ public interface TripPlanApi {
       @Parameter(description = "여행 계획 ID (tripPlanId)", example = "123", required = true)
           @PathVariable
           Long tripPlanId);
+
+  @Operation(
+      summary = "여행 일차별 일정 조회",
+      description = "tripPlanId를 이용하여 해당 여행의 모든 일차별 여행 일정을 조회합니다.",
+      security = @SecurityRequirement(name = "bearerAuth"))
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "조회 성공",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = CommonResponse.class))),
+    @ApiResponse(
+        responseCode = "401",
+        description = "인증되지 않은 사용자",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "success": false,
+                              "status": 401,
+                              "data": {
+                                "timestamp": "2025-10-30T10:00:00",
+                                "code": "AUTH001",
+                                "message": "인증이 필요합니다.",
+                                "path": "/api/v1/daily-plans/123",
+                                "errors": null
+                              }
+                            }
+                            """))),
+    @ApiResponse(
+        responseCode = "403",
+        description = "접근 권한 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "success": false,
+                              "status": 403,
+                              "data": {
+                                "timestamp": "2025-10-30T10:00:00",
+                                "code": "TRIP102",
+                                "message": "여행 일정에 대한 접근 권한이 없습니다.",
+                                "path": "/api/v1/daily-plans/123",
+                                "errors": null
+                              }
+                            }
+                            """))),
+    @ApiResponse(
+        responseCode = "404",
+        description = "여행 일정을 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "success": false,
+                              "status": 404,
+                              "data": {
+                                "timestamp": "2025-10-30T10:00:00",
+                                "code": "TRIP101",
+                                "message": "여행 일정을 찾을 수 없습니다.",
+                                "path": "/api/v1/daily-plans/123",
+                                "errors": null
+                              }
+                            }
+                            """)))
+  })
+  @GetMapping("/daily-plans/{tripPlanId}")
+  ResponseEntity<CommonResponse<Object>> getDailyPlans(
+      @AuthenticationPrincipal UserPrincipal userPrincipal,
+      @Parameter(description = "여행 계획 ID", required = true, example = "123") @PathVariable
+          Long tripPlanId);
 }

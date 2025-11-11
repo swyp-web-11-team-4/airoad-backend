@@ -1,5 +1,7 @@
 package com.swygbro.airoad.backend.chat.presentation.web;
 
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -9,7 +11,6 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.stereotype.Component;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -17,12 +18,21 @@ import lombok.extern.slf4j.Slf4j;
  *
  * <p>SimpleBroker는 RECEIPT를 지원하지 않으므로, SUBSCRIBE 시 receipt 헤더가 있으면 수동으로 RECEIPT 프레임을 전송합니다.
  *
+ * <p>이 인터셉터는 clientInboundChannel에 등록되어 SUBSCRIBE 메시지를 감지하고, clientOutboundChannel을 통해 RECEIPT 프레임을
+ * 전송합니다.
+ *
  * @see <a href="https://github.com/spring-projects/spring-framework/issues/21848">SPR-17315</a>
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class ReceiptInterceptor implements ChannelInterceptor {
+
+  private final MessageChannel clientOutboundChannel;
+
+  public ReceiptInterceptor(
+      @Lazy @Qualifier("clientOutboundChannel") MessageChannel clientOutboundChannel) {
+    this.clientOutboundChannel = clientOutboundChannel;
+  }
 
   @Override
   public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
@@ -46,9 +56,8 @@ public class ReceiptInterceptor implements ChannelInterceptor {
         Message<byte[]> receiptMessage =
             MessageBuilder.createMessage(new byte[0], receiptAccessor.getMessageHeaders());
 
-        // 클라이언트로 RECEIPT 전송
-        channel.send(receiptMessage);
-
+        // clientOutboundChannel을 통해 RECEIPT 전송
+        clientOutboundChannel.send(receiptMessage);
         log.debug(
             "[WebSocket] RECEIPT 전송 완료 - receiptId: {}, sessionId: {}",
             receipt,

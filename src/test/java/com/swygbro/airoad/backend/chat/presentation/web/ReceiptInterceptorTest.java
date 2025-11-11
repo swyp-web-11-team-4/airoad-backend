@@ -1,11 +1,11 @@
 package com.swygbro.airoad.backend.chat.presentation.web;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.Message;
@@ -24,9 +24,14 @@ import static org.mockito.Mockito.times;
 @DisplayName("ReceiptInterceptor 클래스")
 class ReceiptInterceptorTest {
 
-  @Mock private MessageChannel mockChannel;
+  @Mock private MessageChannel mockClientOutboundChannel;
 
-  @InjectMocks private ReceiptInterceptor receiptInterceptor;
+  private ReceiptInterceptor receiptInterceptor;
+
+  @BeforeEach
+  void setUp() {
+    receiptInterceptor = new ReceiptInterceptor(mockClientOutboundChannel);
+  }
 
   @Nested
   @DisplayName("postSend 메서드는")
@@ -50,10 +55,10 @@ class ReceiptInterceptorTest {
       ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
 
       // when
-      receiptInterceptor.postSend(subscribeMessage, mockChannel, true);
+      receiptInterceptor.postSend(subscribeMessage, mockClientOutboundChannel, true);
 
       // then
-      then(mockChannel).should(times(1)).send(messageCaptor.capture());
+      then(mockClientOutboundChannel).should(times(1)).send(messageCaptor.capture());
 
       Message<?> sentMessage = messageCaptor.getValue();
       StompHeaderAccessor sentAccessor = StompHeaderAccessor.wrap(sentMessage);
@@ -76,10 +81,10 @@ class ReceiptInterceptorTest {
           MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
 
       // when
-      receiptInterceptor.postSend(subscribeMessage, mockChannel, true);
+      receiptInterceptor.postSend(subscribeMessage, mockClientOutboundChannel, true);
 
       // then
-      then(mockChannel).should(never()).send(any());
+      then(mockClientOutboundChannel).should(never()).send(any());
     }
 
     @Test
@@ -94,10 +99,11 @@ class ReceiptInterceptorTest {
           MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
 
       // when
-      receiptInterceptor.postSend(subscribeMessage, mockChannel, false); // sent = false
+      receiptInterceptor.postSend(
+          subscribeMessage, mockClientOutboundChannel, false); // sent = false
 
       // then
-      then(mockChannel).should(never()).send(any());
+      then(mockClientOutboundChannel).should(never()).send(any());
     }
 
     @Test
@@ -112,10 +118,10 @@ class ReceiptInterceptorTest {
           MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
 
       // when
-      receiptInterceptor.postSend(messageCommand, mockChannel, true);
+      receiptInterceptor.postSend(messageCommand, mockClientOutboundChannel, true);
 
       // then
-      then(mockChannel).should(never()).send(any());
+      then(mockClientOutboundChannel).should(never()).send(any());
     }
 
     @Test
@@ -130,10 +136,10 @@ class ReceiptInterceptorTest {
           MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
 
       // when
-      receiptInterceptor.postSend(connectMessage, mockChannel, true);
+      receiptInterceptor.postSend(connectMessage, mockClientOutboundChannel, true);
 
       // then
-      then(mockChannel).should(never()).send(any());
+      then(mockClientOutboundChannel).should(never()).send(any());
     }
 
     @Test
@@ -148,10 +154,10 @@ class ReceiptInterceptorTest {
           MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
 
       // when
-      receiptInterceptor.postSend(sendMessage, mockChannel, true);
+      receiptInterceptor.postSend(sendMessage, mockClientOutboundChannel, true);
 
       // then
-      then(mockChannel).should(never()).send(any());
+      then(mockClientOutboundChannel).should(never()).send(any());
     }
 
     @Test
@@ -161,10 +167,10 @@ class ReceiptInterceptorTest {
       Message<?> nonStompMessage = MessageBuilder.withPayload("plain text").build();
 
       // when
-      receiptInterceptor.postSend(nonStompMessage, mockChannel, true);
+      receiptInterceptor.postSend(nonStompMessage, mockClientOutboundChannel, true);
 
       // then
-      then(mockChannel).should(never()).send(any());
+      then(mockClientOutboundChannel).should(never()).send(any());
     }
 
     @Test
@@ -181,10 +187,10 @@ class ReceiptInterceptorTest {
       ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
 
       // when
-      receiptInterceptor.postSend(subscribeMessage, mockChannel, true);
+      receiptInterceptor.postSend(subscribeMessage, mockClientOutboundChannel, true);
 
       // then
-      then(mockChannel).should().send(messageCaptor.capture());
+      then(mockClientOutboundChannel).should().send(messageCaptor.capture());
 
       Message<?> sentMessage = messageCaptor.getValue();
       byte[] payload = (byte[]) sentMessage.getPayload();
@@ -222,12 +228,12 @@ class ReceiptInterceptorTest {
       ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
 
       // when
-      receiptInterceptor.postSend(subscribe1, mockChannel, true);
-      receiptInterceptor.postSend(subscribe2, mockChannel, true);
-      receiptInterceptor.postSend(subscribe3, mockChannel, true);
+      receiptInterceptor.postSend(subscribe1, mockClientOutboundChannel, true);
+      receiptInterceptor.postSend(subscribe2, mockClientOutboundChannel, true);
+      receiptInterceptor.postSend(subscribe3, mockClientOutboundChannel, true);
 
       // then
-      then(mockChannel).should(times(3)).send(messageCaptor.capture());
+      then(mockClientOutboundChannel).should(times(3)).send(messageCaptor.capture());
 
       var sentMessages = messageCaptor.getAllValues();
       assertThat(sentMessages).hasSize(3);
@@ -263,11 +269,11 @@ class ReceiptInterceptorTest {
       ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
 
       // when
-      receiptInterceptor.postSend(subscribe1, mockChannel, true);
-      receiptInterceptor.postSend(subscribe2, mockChannel, true);
+      receiptInterceptor.postSend(subscribe1, mockClientOutboundChannel, true);
+      receiptInterceptor.postSend(subscribe2, mockClientOutboundChannel, true);
 
       // then
-      then(mockChannel).should(times(2)).send(messageCaptor.capture());
+      then(mockClientOutboundChannel).should(times(2)).send(messageCaptor.capture());
 
       var sentMessages = messageCaptor.getAllValues();
 

@@ -1,10 +1,12 @@
 package com.swygbro.airoad.backend.ai.domain.entity;
 
-import com.swygbro.airoad.backend.common.domain.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+
+import com.swygbro.airoad.backend.common.domain.entity.BaseEntity;
+
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,8 +28,7 @@ public class AiPromptTemplate extends BaseEntity {
   @Column(nullable = false, columnDefinition = "TEXT")
   private String prompt;
 
-  @Column
-  private Boolean isActive;
+  @Column private Boolean isActive;
 
   @Column(columnDefinition = "TEXT")
   private String description;

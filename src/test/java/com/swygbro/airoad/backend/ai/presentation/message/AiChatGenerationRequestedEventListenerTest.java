@@ -12,6 +12,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.swygbro.airoad.backend.ai.agent.chat.dto.request.AiChatRequest;
 import com.swygbro.airoad.backend.ai.application.AiUseCase;
+import com.swygbro.airoad.backend.ai.domain.entity.AgentType;
 import com.swygbro.airoad.backend.chat.domain.event.AiChatGenerationRequestedEvent;
 
 import static org.assertj.core.api.Assertions.*;
@@ -53,7 +54,7 @@ class AiChatGenerationRequestedEventListenerTest {
 
       // then
       ArgumentCaptor<AiChatRequest> requestCaptor = ArgumentCaptor.forClass(AiChatRequest.class);
-      verify(aiUseCase).agentCall(eq("chatAgent"), requestCaptor.capture());
+      verify(aiUseCase).agentCall(eq(AgentType.CHAT_AGENT), requestCaptor.capture());
 
       AiChatRequest capturedRequest = requestCaptor.getValue();
       assertThat(capturedRequest.chatRoomId()).isEqualTo(chatRoomId);
@@ -78,7 +79,7 @@ class AiChatGenerationRequestedEventListenerTest {
       aiChatGenerationListener.handleAiChatRequest(event);
 
       // then
-      verify(aiUseCase, times(1)).agentCall(eq("chatAgent"), any(AiChatRequest.class));
+      verify(aiUseCase, times(1)).agentCall(eq(AgentType.CHAT_AGENT), any(AiChatRequest.class));
     }
   }
 }

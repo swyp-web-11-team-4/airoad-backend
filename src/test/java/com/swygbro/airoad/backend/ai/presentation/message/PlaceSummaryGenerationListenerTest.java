@@ -14,6 +14,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.swygbro.airoad.backend.ai.agent.summary.dto.request.AiPlaceSummaryRequest;
 import com.swygbro.airoad.backend.ai.application.AiUseCase;
+import com.swygbro.airoad.backend.ai.domain.entity.AgentType;
 import com.swygbro.airoad.backend.content.domain.event.PlaceSummaryRequestedEvent;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,7 +53,9 @@ class PlaceSummaryGenerationListenerTest {
       // then: placeSummaryAgent가 호출됨
       ArgumentCaptor<AiPlaceSummaryRequest> requestCaptor =
           ArgumentCaptor.forClass(AiPlaceSummaryRequest.class);
-      then(aiUseCase).should(times(1)).agentCall(eq("placeSummaryAgent"), requestCaptor.capture());
+      then(aiUseCase)
+          .should(times(1))
+          .agentCall(eq(AgentType.PLACE_SUMMARY_AGENT), requestCaptor.capture());
 
       // then: 이벤트 정보가 요청에 매핑됨
       AiPlaceSummaryRequest capturedRequest = requestCaptor.getValue();
@@ -82,7 +85,9 @@ class PlaceSummaryGenerationListenerTest {
       // then: placeSummaryAgent가 호출됨
       ArgumentCaptor<AiPlaceSummaryRequest> requestCaptor =
           ArgumentCaptor.forClass(AiPlaceSummaryRequest.class);
-      then(aiUseCase).should(times(1)).agentCall(eq("placeSummaryAgent"), requestCaptor.capture());
+      then(aiUseCase)
+          .should(times(1))
+          .agentCall(eq(AgentType.PLACE_SUMMARY_AGENT), requestCaptor.capture());
 
       // then: 설명이 null로 전달됨
       AiPlaceSummaryRequest capturedRequest = requestCaptor.getValue();

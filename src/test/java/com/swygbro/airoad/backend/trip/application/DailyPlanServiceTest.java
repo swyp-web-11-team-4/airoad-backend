@@ -211,7 +211,7 @@ class DailyPlanServiceTest {
           ScheduledPlaceCreateRequest.builder()
               .placeId(2L)
               .visitOrder(2)
-              .category(ScheduledCategory.LUNCH)
+              .category(ScheduledCategory.AFTERNOON)
               .startTime(LocalTime.of(12, 0))
               .endTime(LocalTime.of(13, 0))
               .travelTime(30)
@@ -290,18 +290,18 @@ class DailyPlanServiceTest {
               .transportation(Transportation.WALKING)
               .build();
 
-      ScheduledPlaceCreateRequest lunch =
+      ScheduledPlaceCreateRequest afternoon1 =
           ScheduledPlaceCreateRequest.builder()
               .placeId(2L)
               .visitOrder(2)
-              .category(ScheduledCategory.LUNCH)
+              .category(ScheduledCategory.AFTERNOON)
               .startTime(LocalTime.of(12, 0))
               .endTime(LocalTime.of(13, 0))
               .travelTime(30)
               .transportation(Transportation.PUBLIC_TRANSIT)
               .build();
 
-      ScheduledPlaceCreateRequest afternoon =
+      ScheduledPlaceCreateRequest afternoon2 =
           ScheduledPlaceCreateRequest.builder()
               .placeId(3L)
               .visitOrder(3)
@@ -316,7 +316,7 @@ class DailyPlanServiceTest {
           DailyPlanCreateRequest.builder()
               .dayNumber(1)
               .date(LocalDate.of(2025, 12, 1))
-              .places(List.of(morning, lunch, afternoon))
+              .places(List.of(morning, afternoon1, afternoon2))
               .build();
 
       given(tripPlanRepository.findById(tripPlanId)).willReturn(Optional.of(tripPlan));

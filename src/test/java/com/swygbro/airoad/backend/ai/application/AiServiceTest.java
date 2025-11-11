@@ -11,7 +11,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
 
-import com.swygbro.airoad.backend.ai.agent.AiroadAgent;
+import com.swygbro.airoad.backend.ai.agent.common.AiroadAgent;
+import com.swygbro.airoad.backend.ai.domain.entity.AgentType;
 import com.swygbro.airoad.backend.ai.exception.AiErrorCode;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 
@@ -33,19 +34,19 @@ class AiServiceTest {
   class AgentCall {
 
     @Test
-    @DisplayName("올바른 에이전트 이름으로 호출하면 해당 에이전트를 실행한다")
-    void shouldExecuteAgentWithCorrectName() {
+    @DisplayName("올바른 에이전트 타입으로 호출하면 해당 에이전트를 실행한다")
+    void shouldExecuteAgentWithCorrectType() {
       // given
-      String agentName = "testAgent";
+      AgentType agentType = AgentType.CHAT_AGENT;
       Object request = new Object();
       List<AiroadAgent> agents = List.of(mockAgent1, mockAgent2);
 
-      given(mockAgent1.supports(agentName)).willReturn(true);
+      given(mockAgent1.supports(agentType)).willReturn(true);
 
       aiService = new AiService(agents);
 
       // when
-      aiService.agentCall(agentName, request);
+      aiService.agentCall(agentType, request);
 
       // then
       verify(mockAgent1).execute(request);
@@ -53,20 +54,20 @@ class AiServiceTest {
     }
 
     @Test
-    @DisplayName("존재하지 않는 에이전트 이름으로 호출하면 AGENT_NOT_FOUND 예외를 발생시킨다")
+    @DisplayName("존재하지 않는 에이전트 타입으로 호출하면 AGENT_NOT_FOUND 예외를 발생시킨다")
     void shouldThrowExceptionWhenAgentNotFound() {
       // given
-      String nonExistentAgentName = "nonExistentAgent";
+      AgentType agentType = AgentType.TRIP_AGENT;
       Object request = new Object();
       List<AiroadAgent> agents = List.of(mockAgent1, mockAgent2);
 
-      given(mockAgent1.supports(nonExistentAgentName)).willReturn(false);
-      given(mockAgent2.supports(nonExistentAgentName)).willReturn(false);
+      given(mockAgent1.supports(agentType)).willReturn(false);
+      given(mockAgent2.supports(agentType)).willReturn(false);
 
       aiService = new AiService(agents);
 
       // when & then
-      assertThatThrownBy(() -> aiService.agentCall(nonExistentAgentName, request))
+      assertThatThrownBy(() -> aiService.agentCall(agentType, request))
           .isInstanceOf(BusinessException.class)
           .hasFieldOrPropertyWithValue("errorCode", AiErrorCode.AGENT_NOT_FOUND);
 
@@ -75,21 +76,21 @@ class AiServiceTest {
     }
 
     @Test
-    @DisplayName("여러 에이전트 중 이름이 일치하는 첫 번째 에이전트를 실행한다")
+    @DisplayName("여러 에이전트 중 타입이 일치하는 첫 번째 에이전트를 실행한다")
     void shouldExecuteFirstMatchingAgent() {
       // given
-      String agentName = "targetAgent";
+      AgentType agentType = AgentType.PLACE_SUMMARY_AGENT;
       Object request = new Object();
       AiroadAgent mockAgent3 = mock(AiroadAgent.class);
       List<AiroadAgent> agents = List.of(mockAgent1, mockAgent2, mockAgent3);
 
-      given(mockAgent1.supports(agentName)).willReturn(false);
-      given(mockAgent2.supports(agentName)).willReturn(true);
+      given(mockAgent1.supports(agentType)).willReturn(false);
+      given(mockAgent2.supports(agentType)).willReturn(true);
 
       aiService = new AiService(agents);
 
       // when
-      aiService.agentCall(agentName, request);
+      aiService.agentCall(agentType, request);
 
       // then
       verify(mockAgent1, never()).execute(any());
@@ -101,14 +102,14 @@ class AiServiceTest {
     @DisplayName("에이전트 리스트가 비어있으면 AGENT_NOT_FOUND 예외를 발생시킨다")
     void shouldThrowExceptionWhenAgentListIsEmpty() {
       // given
-      String agentName = "testAgent";
+      AgentType agentType = AgentType.CHAT_AGENT;
       Object request = new Object();
       List<AiroadAgent> emptyAgents = List.of();
 
       aiService = new AiService(emptyAgents);
 
       // when & then
-      assertThatThrownBy(() -> aiService.agentCall(agentName, request))
+      assertThatThrownBy(() -> aiService.agentCall(agentType, request))
           .isInstanceOf(BusinessException.class)
           .hasFieldOrPropertyWithValue("errorCode", AiErrorCode.AGENT_NOT_FOUND);
     }
@@ -117,16 +118,16 @@ class AiServiceTest {
     @DisplayName("요청 객체를 에이전트에 정확히 전달한다")
     void shouldPassRequestObjectToAgent() {
       // given
-      String agentName = "testAgent";
+      AgentType agentType = AgentType.CHAT_AGENT;
       String request = "test request data";
       List<AiroadAgent> agents = List.of(mockAgent1);
 
-      given(mockAgent1.supports(agentName)).willReturn(true);
+      given(mockAgent1.supports(agentType)).willReturn(true);
 
       aiService = new AiService(agents);
 
       // when
-      aiService.agentCall(agentName, request);
+      aiService.agentCall(agentType, request);
 
       // then
       verify(mockAgent1).execute(request);

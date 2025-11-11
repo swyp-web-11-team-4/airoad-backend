@@ -1,5 +1,7 @@
 package com.swygbro.airoad.backend.ai.domain.entity;
 
+import java.util.Objects;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -53,7 +55,7 @@ public class AiPromptTemplate extends BaseEntity {
    * @param prompt 새롭게 업데이트할 프롬프트
    */
   public void updatePrompt(String prompt) {
-    this.prompt = prompt;
+    this.prompt = Objects.requireNonNull(prompt);
   }
 
   /**
@@ -62,7 +64,7 @@ public class AiPromptTemplate extends BaseEntity {
    * @param isActive 업데이트할 활성 상태 (true: 활성화, false: 비활성화)
    */
   public void updatePromptStatus(Boolean isActive) {
-    this.isActive = isActive;
+    this.isActive = Objects.requireNonNull(isActive);
   }
 
   /**

@@ -35,18 +35,6 @@ public class ScheduledPlaceFixture {
         .build();
   }
 
-  public static ScheduledPlace createLunch() {
-    return ScheduledPlace.builder()
-        .dailyPlan(DailyPlanFixture.create())
-        .place(PlaceFixture.createRestaurant())
-        .visitOrder(2)
-        .category(ScheduledCategory.LUNCH)
-        .startTime(LocalTime.of(12, 0))
-        .endTime(LocalTime.of(13, 0))
-        .travelSegment(TravelSegmentFixture.create())
-        .build();
-  }
-
   public static ScheduledPlace createAfternoon() {
     return ScheduledPlace.builder()
         .dailyPlan(DailyPlanFixture.create())
@@ -56,18 +44,6 @@ public class ScheduledPlaceFixture {
         .startTime(LocalTime.of(14, 0))
         .endTime(LocalTime.of(16, 0))
         .travelSegment(TravelSegmentFixture.createByCar())
-        .build();
-  }
-
-  public static ScheduledPlace createDinner() {
-    return ScheduledPlace.builder()
-        .dailyPlan(DailyPlanFixture.create())
-        .place(PlaceFixture.createRestaurant())
-        .visitOrder(4)
-        .category(ScheduledCategory.DINNER)
-        .startTime(LocalTime.of(18, 30))
-        .endTime(LocalTime.of(20, 0))
-        .travelSegment(TravelSegmentFixture.create())
         .build();
   }
 

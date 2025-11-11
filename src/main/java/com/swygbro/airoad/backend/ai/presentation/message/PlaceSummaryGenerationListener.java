@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import com.swygbro.airoad.backend.ai.agent.summary.dto.request.AiPlaceSummaryRequest;
 import com.swygbro.airoad.backend.ai.application.AiUseCase;
+import com.swygbro.airoad.backend.ai.domain.entity.AgentType;
 import com.swygbro.airoad.backend.content.domain.event.PlaceSummaryRequestedEvent;
 
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,6 @@ public class PlaceSummaryGenerationListener {
             .themes(event.themes())
             .build();
 
-    aiUseCase.agentCall("placeSummaryAgent", request);
+    aiUseCase.agentCall(AgentType.PLACE_SUMMARY_AGENT, request);
   }
 }

@@ -4,7 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.swygbro.airoad.backend.ai.agent.AiroadAgent;
+import com.swygbro.airoad.backend.ai.agent.common.AiroadAgent;
+import com.swygbro.airoad.backend.ai.domain.entity.AgentType;
 import com.swygbro.airoad.backend.ai.exception.AiErrorCode;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 
@@ -19,11 +20,11 @@ public class AiService implements AiUseCase {
   private final List<AiroadAgent> agents;
 
   @Override
-  public void agentCall(String agentName, Object request) {
-    log.debug("{} called with request {}", agentName, request);
+  public void agentCall(AgentType agentType, Object request) {
+    log.debug("{} called with request {}", agentType, request);
 
     agents.stream()
-        .filter(it -> it.supports(agentName))
+        .filter(it -> it.supports(agentType))
         .findFirst()
         .orElseThrow(() -> new BusinessException(AiErrorCode.AGENT_NOT_FOUND))
         .execute(request);

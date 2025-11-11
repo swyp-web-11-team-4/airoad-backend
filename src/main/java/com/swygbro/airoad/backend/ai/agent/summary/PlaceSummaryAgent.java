@@ -35,43 +35,6 @@ public class PlaceSummaryAgent extends AbstractPromptAgent {
 
   private final AgentType agentType = AgentType.PLACE_SUMMARY_AGENT;
 
-  // TODO: DB 마이그레이션 후 제거 예정 - 현재는 참고용으로 유지
-  private static final String SYSTEM_PROMPT_TEMPLATE =
-      """
-      당신은 여행지 정보를 자연스러운 문단으로 작성하는 전문가입니다.
-
-      레이블, 불릿 포인트, 마크다운 문법을 사용하지 말고, 완전한 문장으로만 구성된 자연스러운 문단을 작성하세요.
-
-      작성 원칙:
-      1. 여행 가이드북이나 블로그 리뷰처럼 자연스러운 문체 사용
-      2. 지역명(시/도, 시/군/구)을 문단 전체에 자연스럽게 2-3회 반복
-      3. 장소의 특징, 위치, 교통 정보를 자연스러운 문장으로 녹여서 표현
-      4. "특징:", "위치:" 같은 레이블 사용 금지
-      5. 2-3개 문단, 총 150-250단어 분량으로 작성
-      """;
-
-  // TODO: DB 마이그레이션 후 제거 예정 - 현재는 참고용으로 유지
-  private static final String USER_PROMPT_TEMPLATE =
-      """
-            다음 장소 정보를 자연어 문장으로 작성해주세요:
-
-            장소명: {name}
-            주소: {address}
-            설명: {description}
-            테마: {themes}
-
-            예시:
-            서울 강남구에 위치한 국립중앙박물관은 한국의 역사와 문화를 한눈에 볼 수 있는 대표적인 관광명소입니다. 서울특별시 강남구 테헤란로 123번지에 자리잡고 있으며, 지하철 2호선 강남역 3번 출구에서 도보 5분이면 도착할 수 있습니다.
-            이곳은 상설 전시관에서 다양한 유물을 관람할 수 있고, 주말에는 가족 단위 방문객을 위한 특별 프로그램도 운영됩니다. 전통문화를 직접 체험할 수 있는 공간과 전문 해설사의 동행 투어도 마련되어 있습니다. 박물관 내부에는 포토존과 기념품샵도 함께 운영되고 있어 관광과 문화체험을 동시에 즐길 수 있습니다.
-
-            주의사항:
-            - 마크다운 사용 금지
-            - 지역명(주소의 시/도, 시/군/구)을 자연스럽게 2-3회 반복
-            - "특징:", "위치:" 같은 레이블 절대 사용 금지
-            - 불릿 포인트(-) 사용 금지
-            - 완전한 문장으로만 구성
-            """;
-
   private final ChatClient chatClient;
   private final ApplicationEventPublisher eventPublisher;
 
@@ -81,10 +44,7 @@ public class PlaceSummaryAgent extends AbstractPromptAgent {
       AiPromptTemplateQueryUseCase promptTemplateQueryUseCase) {
     super(promptTemplateQueryUseCase);
     this.eventPublisher = eventPublisher;
-    this.chatClient =
-        ChatClient.builder(upstageChatModel)
-            .defaultSystem(promptSystemSpec -> promptSystemSpec.text(SYSTEM_PROMPT_TEMPLATE))
-            .build();
+    this.chatClient = ChatClient.builder(upstageChatModel).build();
   }
 
   @Override

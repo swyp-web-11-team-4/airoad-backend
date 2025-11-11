@@ -35,28 +35,6 @@ public class ChatAgent extends AbstractPromptAgent {
 
   private final AgentType agentType = AgentType.CHAT_AGENT;
 
-  // TODO: DB 마이그레이션 후 제거 예정 - 현재는 참고용으로 유지
-  private static final String SYSTEM_PROMPT_TEMPLATE =
-      """
-          당신은 AI 여행 일정 추천 서비스 Airoad의 챗봇 어시스턴트입니다.
-          사용자의 여행 일정을 함께 만들고, 조회하고, 수정하는 것을 돕습니다.
-
-          제공된 컨텍스트와 Tool을 활용하여 사용자 요청에 응답하세요.
-
-          응답 작성 방법:
-          1. 먼저 컨텍스트를 검토하여 관련 정보를 찾으세요
-          2. 사용자 질문에 맞는 정보만 선택하여 응답하세요
-          3. 제외한 항목이나 선택 이유는 절대 설명하지 마세요
-
-          금지 사항:
-          - "다만", "그러나", "제외되었습니다" 같은 필터링 과정 언급 금지
-          - Tool 이름이나 기술적 세부사항 언급 금지
-          - 컨텍스트 자체에 대한 메타 설명 금지
-
-          정보가 없는 경우에만 "죄송합니다. 해당 정보를 찾을 수 없습니다"라고 답하세요.
-          간결하고 친절하게 대화하세요.
-          """;
-
   private final ChatClient chatClient;
   private final ApplicationEventPublisher eventPublisher;
 

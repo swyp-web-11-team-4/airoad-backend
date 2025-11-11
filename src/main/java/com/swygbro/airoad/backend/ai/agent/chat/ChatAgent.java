@@ -11,8 +11,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import com.swygbro.airoad.backend.ai.agent.AiroadAgent;
 import com.swygbro.airoad.backend.ai.agent.chat.dto.request.AiChatRequest;
+import com.swygbro.airoad.backend.ai.agent.common.AbstractPromptAgent;
+import com.swygbro.airoad.backend.ai.application.query.AiPromptTemplateQueryUseCase;
+import com.swygbro.airoad.backend.ai.domain.entity.AgentType;
 import com.swygbro.airoad.backend.ai.domain.event.AiMessageGeneratedEvent;
 import com.swygbro.airoad.backend.ai.exception.AiErrorCode;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
@@ -29,10 +31,11 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Component
-public class ChatAgent implements AiroadAgent {
+public class ChatAgent extends AbstractPromptAgent {
 
-  private static final String NAME = "chatAgent";
+  private final AgentType agentType = AgentType.CHAT_AGENT;
 
+  // TODO: DB 마이그레이션 후 제거 예정 - 현재는 참고용으로 유지
   private static final String SYSTEM_PROMPT_TEMPLATE =
       """
           당신은 AI 여행 일정 추천 서비스 Airoad의 챗봇 어시스턴트입니다.
@@ -62,11 +65,12 @@ public class ChatAgent implements AiroadAgent {
       VectorStore vectorStore,
       ChatMemory chatMemory,
       ApplicationEventPublisher eventPublisher,
-      PlaceQueryUseCase placeQueryUseCase) {
+      PlaceQueryUseCase placeQueryUseCase,
+      AiPromptTemplateQueryUseCase promptTemplateQueryUseCase) {
+    super(promptTemplateQueryUseCase);
     this.eventPublisher = eventPublisher;
     this.chatClient =
         ChatClient.builder(chatModel)
-            .defaultSystem(SYSTEM_PROMPT_TEMPLATE)
             .defaultAdvisors(
                 MessageChatMemoryAdvisor.builder(chatMemory).build(),
                 QuestionAnswerAdvisor.builder(vectorStore)
@@ -78,8 +82,8 @@ public class ChatAgent implements AiroadAgent {
   }
 
   @Override
-  public boolean supports(String agentName) {
-    return NAME.equals(agentName);
+  public boolean supports(AgentType agentType) {
+    return this.agentType == agentType;
   }
 
   @Override
@@ -92,9 +96,12 @@ public class ChatAgent implements AiroadAgent {
           request.chatRoomId(),
           request.tripPlanId());
 
+      String systemPrompt = findActiveSystemPrompt(agentType);
+
       String response =
           chatClient
               .prompt()
+              .system(systemPrompt)
               .user(request.userPrompt())
               .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, request.chatRoomId().toString()))
               .call()
@@ -114,6 +121,8 @@ public class ChatAgent implements AiroadAgent {
 
       log.debug("ChatAgent 실행 완료 - chatRoomId: {}", request.chatRoomId());
 
+    } catch (BusinessException e) {
+      throw e;
     } catch (Exception e) {
       log.debug(e.getMessage(), e);
       throw new BusinessException(

@@ -5,9 +5,11 @@ import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import com.swygbro.airoad.backend.ai.agent.AiroadAgent;
+import com.swygbro.airoad.backend.ai.agent.common.AbstractPromptAgent;
 import com.swygbro.airoad.backend.ai.agent.summary.dto.PlaceSummaryAiResponse;
 import com.swygbro.airoad.backend.ai.agent.summary.dto.request.AiPlaceSummaryRequest;
+import com.swygbro.airoad.backend.ai.application.query.AiPromptTemplateQueryUseCase;
+import com.swygbro.airoad.backend.ai.domain.entity.AgentType;
 import com.swygbro.airoad.backend.ai.domain.event.PlaceSummaryGeneratedEvent;
 import com.swygbro.airoad.backend.ai.exception.AiErrorCode;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
@@ -29,10 +31,11 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Component
-public class PlaceSummaryAgent implements AiroadAgent {
+public class PlaceSummaryAgent extends AbstractPromptAgent {
 
-  private static final String NAME = "placeSummaryAgent";
+  private final AgentType agentType = AgentType.PLACE_SUMMARY_AGENT;
 
+  // TODO: DB 마이그레이션 후 제거 예정 - 현재는 참고용으로 유지
   private static final String SYSTEM_PROMPT_TEMPLATE =
       """
       당신은 여행지 정보를 자연스러운 문단으로 작성하는 전문가입니다.
@@ -47,6 +50,7 @@ public class PlaceSummaryAgent implements AiroadAgent {
       5. 2-3개 문단, 총 150-250단어 분량으로 작성
       """;
 
+  // TODO: DB 마이그레이션 후 제거 예정 - 현재는 참고용으로 유지
   private static final String USER_PROMPT_TEMPLATE =
       """
             다음 장소 정보를 자연어 문장으로 작성해주세요:
@@ -72,7 +76,10 @@ public class PlaceSummaryAgent implements AiroadAgent {
   private final ApplicationEventPublisher eventPublisher;
 
   public PlaceSummaryAgent(
-      ApplicationEventPublisher eventPublisher, OpenAiChatModel upstageChatModel) {
+      ApplicationEventPublisher eventPublisher,
+      OpenAiChatModel upstageChatModel,
+      AiPromptTemplateQueryUseCase promptTemplateQueryUseCase) {
+    super(promptTemplateQueryUseCase);
     this.eventPublisher = eventPublisher;
     this.chatClient =
         ChatClient.builder(upstageChatModel)
@@ -81,8 +88,8 @@ public class PlaceSummaryAgent implements AiroadAgent {
   }
 
   @Override
-  public boolean supports(String agentName) {
-    return NAME.equals(agentName);
+  public boolean supports(AgentType agentType) {
+    return this.agentType == agentType;
   }
 
   @Override
@@ -115,15 +122,23 @@ public class PlaceSummaryAgent implements AiroadAgent {
   }
 
   private PlaceSummaryAiResponse generateSummary(AiPlaceSummaryRequest request) {
+    PromptPair prompts = findActivePromptPair(agentType);
+
     String userPrompt =
-        USER_PROMPT_TEMPLATE
+        prompts
+            .userPrompt()
             .replace("{name}", request.name())
             .replace("{address}", request.address())
             .replace("{description}", request.description() != null ? request.description() : "")
             .replace("{themes}", String.join(", ", request.themes()));
 
     PlaceSummaryAiResponse response =
-        chatClient.prompt().user(userPrompt).call().entity(PlaceSummaryAiResponse.class);
+        chatClient
+            .prompt()
+            .system(prompts.systemPrompt())
+            .user(userPrompt)
+            .call()
+            .entity(PlaceSummaryAiResponse.class);
 
     log.debug(
         "AI 자연어 content 생성 완료 - placeId: {}, content length: {}",

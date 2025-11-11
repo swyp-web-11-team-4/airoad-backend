@@ -74,11 +74,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
   @Override
   public void configureClientInboundChannel(ChannelRegistration registration) {
-    registration.interceptors(jwtWebSocketInterceptor, webSocketPayloadTypeInterceptor);
+    registration.interceptors(
+        jwtWebSocketInterceptor, webSocketPayloadTypeInterceptor, receiptInterceptor);
   }
 
   @Override
   public void configureClientOutboundChannel(ChannelRegistration registration) {
-    registration.interceptors(receiptInterceptor);
+    // Outbound channel interceptors if needed
   }
 }

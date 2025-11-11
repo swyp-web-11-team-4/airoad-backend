@@ -20,20 +20,25 @@ import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.content.domain.entity.Place;
 import com.swygbro.airoad.backend.content.infrastructure.repository.PlaceRepository;
 import com.swygbro.airoad.backend.fixture.content.PlaceFixture;
+import com.swygbro.airoad.backend.fixture.member.MemberFixture;
+import com.swygbro.airoad.backend.fixture.trip.DailyPlanFixture;
 import com.swygbro.airoad.backend.fixture.trip.TripPlanFixture;
+import com.swygbro.airoad.backend.member.domain.entity.Member;
 import com.swygbro.airoad.backend.trip.domain.dto.request.DailyPlanCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.request.ScheduledPlaceCreateRequest;
+import com.swygbro.airoad.backend.trip.domain.dto.response.DailyPlanResponse;
+import com.swygbro.airoad.backend.trip.domain.entity.DailyPlan;
 import com.swygbro.airoad.backend.trip.domain.entity.ScheduledCategory;
 import com.swygbro.airoad.backend.trip.domain.entity.Transportation;
 import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
 import com.swygbro.airoad.backend.trip.domain.event.DailyPlanSavedEvent;
 import com.swygbro.airoad.backend.trip.exception.TripErrorCode;
+import com.swygbro.airoad.backend.trip.infrastructure.DailyPlanRepository;
 import com.swygbro.airoad.backend.trip.infrastructure.TripPlanRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.never;
 import static org.mockito.BDDMockito.verify;
@@ -48,7 +53,11 @@ class DailyPlanServiceTest {
 
   @Mock private ApplicationEventPublisher eventPublisher;
 
+  @Mock private DailyPlanRepository dailyPlanRepository;
+
   @InjectMocks private DailyPlanCommandService dailyPlanService;
+
+  @InjectMocks private DailyPlanQueryService dailyPlanQueryService;
 
   @Nested
   @DisplayName("saveDailyPlan 메서드는")
@@ -322,6 +331,143 @@ class DailyPlanServiceTest {
       verify(placeRepository).findAllByIdsWithThemes(List.of(1L, 2L, 3L));
       verify(tripPlanRepository).save(any(TripPlan.class));
       verify(eventPublisher).publishEvent(any(DailyPlanSavedEvent.class));
+    }
+  }
+
+  @Nested
+  @DisplayName("getDailyPlanListByTripPlanId 메서드는")
+  class GetDailyPlanListByTripPlanId {
+
+    @Test
+    @DisplayName("유효한 tripPlanId와 memberId로 일차별 일정 목록을 조회한다")
+    void shouldReturnDailyPlanList() {
+      // given
+      Long tripPlanId = 1L;
+      Long memberId = 1L;
+      Member member = MemberFixture.withId(memberId, MemberFixture.create());
+      TripPlan tripPlan = TripPlanFixture.createWithMember(member);
+
+      DailyPlan dailyPlan1 =
+          DailyPlanFixture.builder().dayNumber(1).date(LocalDate.of(2025, 12, 1)).build();
+      DailyPlan dailyPlan2 =
+          DailyPlanFixture.builder().dayNumber(2).date(LocalDate.of(2025, 12, 2)).build();
+
+      List<DailyPlan> dailyPlans = List.of(dailyPlan1, dailyPlan2);
+
+      given(tripPlanRepository.findByIdWithMember(tripPlanId)).willReturn(Optional.of(tripPlan));
+      given(dailyPlanRepository.findAllByTripPlanId(tripPlanId)).willReturn(dailyPlans);
+
+      // when
+      List<DailyPlanResponse> result =
+          dailyPlanQueryService.getDailyPlanListByTripPlanId(tripPlanId, memberId);
+
+      // then
+      assertThat(result).hasSize(2);
+      assertThat(result.get(0).dayNumber()).isEqualTo(1);
+      assertThat(result.get(1).dayNumber()).isEqualTo(2);
+      verify(tripPlanRepository).findByIdWithMember(tripPlanId);
+      verify(dailyPlanRepository).findAllByTripPlanId(tripPlanId);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 TripPlan ID로 조회하면 TRIP_PLAN_NOT_FOUND 예외를 발생시킨다")
+    void shouldThrowExceptionWhenTripPlanNotFound() {
+      // given
+      Long tripPlanId = 999L;
+      Long memberId = 1L;
+
+      given(tripPlanRepository.findByIdWithMember(tripPlanId)).willReturn(Optional.empty());
+
+      // when & then
+      assertThatThrownBy(
+              () -> dailyPlanQueryService.getDailyPlanListByTripPlanId(tripPlanId, memberId))
+          .isInstanceOf(BusinessException.class)
+          .hasFieldOrPropertyWithValue("errorCode", TripErrorCode.TRIP_PLAN_NOT_FOUND);
+
+      verify(tripPlanRepository).findByIdWithMember(tripPlanId);
+      verify(dailyPlanRepository, never()).findAllByTripPlanId(anyLong());
+    }
+
+    @Test
+    @DisplayName("다른 사용자의 TripPlan을 조회하면 TRIP_PLAN_FORBIDDEN 예외를 발생시킨다")
+    void shouldThrowExceptionWhenForbidden() {
+      // given
+      Long tripPlanId = 1L;
+      Long requestMemberId = 2L;
+      Long ownerMemberId = 1L;
+
+      Member owner = MemberFixture.withId(ownerMemberId, MemberFixture.createWithEmail("owner"));
+      TripPlan tripPlan = TripPlanFixture.createWithMember(owner);
+
+      given(tripPlanRepository.findByIdWithMember(tripPlanId)).willReturn(Optional.of(tripPlan));
+
+      // when & then
+      assertThatThrownBy(
+              () -> dailyPlanQueryService.getDailyPlanListByTripPlanId(tripPlanId, requestMemberId))
+          .isInstanceOf(BusinessException.class)
+          .hasFieldOrPropertyWithValue("errorCode", TripErrorCode.TRIP_PLAN_FORBIDDEN);
+
+      verify(tripPlanRepository).findByIdWithMember(tripPlanId);
+      verify(dailyPlanRepository, never()).findAllByTripPlanId(anyLong());
+    }
+
+    @Test
+    @DisplayName("DailyPlan이 없는 TripPlan을 조회하면 빈 리스트를 반환한다")
+    void shouldReturnEmptyListWhenNoDailyPlans() {
+      // given
+      Long tripPlanId = 1L;
+      Long memberId = 1L;
+      Member member = MemberFixture.withId(memberId, MemberFixture.create());
+      TripPlan tripPlan = TripPlanFixture.createWithMember(member);
+
+      given(tripPlanRepository.findByIdWithMember(tripPlanId)).willReturn(Optional.of(tripPlan));
+      given(dailyPlanRepository.findAllByTripPlanId(tripPlanId)).willReturn(List.of());
+
+      // when
+      List<DailyPlanResponse> result =
+          dailyPlanQueryService.getDailyPlanListByTripPlanId(tripPlanId, memberId);
+
+      // then
+      assertThat(result).isEmpty();
+      verify(tripPlanRepository).findByIdWithMember(tripPlanId);
+      verify(dailyPlanRepository).findAllByTripPlanId(tripPlanId);
+    }
+
+    @Test
+    @DisplayName("여러 일차의 DailyPlan을 일차 순서대로 조회한다")
+    void shouldReturnDailyPlansInOrder() {
+      // given
+      Long tripPlanId = 1L;
+      Long memberId = 1L;
+      Member member = MemberFixture.withId(memberId, MemberFixture.create());
+      TripPlan tripPlan = TripPlanFixture.createWithMember(member);
+
+      DailyPlan dailyPlan1 =
+          DailyPlanFixture.builder().dayNumber(1).date(LocalDate.of(2025, 12, 1)).build();
+      DailyPlan dailyPlan2 =
+          DailyPlanFixture.builder().dayNumber(2).date(LocalDate.of(2025, 12, 2)).build();
+      DailyPlan dailyPlan3 =
+          DailyPlanFixture.builder().dayNumber(3).date(LocalDate.of(2025, 12, 3)).build();
+
+      List<DailyPlan> dailyPlans = List.of(dailyPlan1, dailyPlan2, dailyPlan3);
+
+      given(tripPlanRepository.findByIdWithMember(tripPlanId)).willReturn(Optional.of(tripPlan));
+      given(dailyPlanRepository.findAllByTripPlanId(tripPlanId)).willReturn(dailyPlans);
+
+      // when
+      List<DailyPlanResponse> result =
+          dailyPlanQueryService.getDailyPlanListByTripPlanId(tripPlanId, memberId);
+
+      // then
+      assertThat(result).hasSize(3);
+      assertThat(result.get(0).dayNumber()).isEqualTo(1);
+      assertThat(result.get(1).dayNumber()).isEqualTo(2);
+      assertThat(result.get(2).dayNumber()).isEqualTo(3);
+      assertThat(result.get(0).date()).isEqualTo("2025-12-01");
+      assertThat(result.get(1).date()).isEqualTo("2025-12-02");
+      assertThat(result.get(2).date()).isEqualTo("2025-12-03");
+      verify(tripPlanRepository).findByIdWithMember(tripPlanId);
+      verify(dailyPlanRepository).findAllByTripPlanId(tripPlanId);
     }
   }
 }

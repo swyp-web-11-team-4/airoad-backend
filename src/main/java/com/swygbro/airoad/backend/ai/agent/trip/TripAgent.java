@@ -7,12 +7,14 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.converter.BeanOutputConverter;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
+import com.swygbro.airoad.backend.ai.agent.advisor.PromptMetadataAdvisor;
 import com.swygbro.airoad.backend.ai.agent.common.AbstractPromptAgent;
+import com.swygbro.airoad.backend.ai.agent.trip.converter.NdJsonBeanOutPutConverter;
 import com.swygbro.airoad.backend.ai.agent.trip.dto.request.AiDailyPlanRequest;
 import com.swygbro.airoad.backend.ai.agent.trip.dto.response.AiDailyPlanResponse;
 import com.swygbro.airoad.backend.ai.application.query.AiPromptTemplateQueryUseCase;
@@ -37,8 +39,8 @@ public class TripAgent extends AbstractPromptAgent {
 
   private final AgentType agentType = AgentType.TRIP_AGENT;
 
-  private final BeanOutputConverter<AiDailyPlanResponse> outputConverter =
-      new BeanOutputConverter<>(AiDailyPlanResponse.class);
+  private final NdJsonBeanOutPutConverter<AiDailyPlanResponse> outputConverter =
+      new NdJsonBeanOutPutConverter<>(AiDailyPlanResponse.class);
 
   private final ChatClient chatClient;
   private final ApplicationEventPublisher eventPublisher;
@@ -49,9 +51,17 @@ public class TripAgent extends AbstractPromptAgent {
       PlaceQueryUseCase placeQueryUseCase,
       AiPromptTemplateQueryUseCase promptTemplateQueryUseCase) {
     super(promptTemplateQueryUseCase);
+    String jsonSchema = outputConverter.getFormat();
     this.eventPublisher = eventPublisher;
-
-    this.chatClient = ChatClient.builder(chatModel).defaultTools(placeQueryUseCase).build();
+    this.chatClient =
+        ChatClient.builder(chatModel)
+            .defaultAdvisors(
+                new SimpleLoggerAdvisor(),
+                PromptMetadataAdvisor.builder()
+                    .metadata(PromptMetadataAdvisor.systemMetadata(jsonSchema))
+                    .build())
+            .defaultTools(placeQueryUseCase)
+            .build();
   }
 
   @Override
@@ -65,17 +75,22 @@ public class TripAgent extends AbstractPromptAgent {
 
     PromptPair prompts = findActivePromptPair(agentType);
 
-    String jsonSchema = outputConverter.getFormat();
     val params = convertParams(request);
 
     chatClient
         .prompt()
-        .system(
-            promptSystemSpec ->
-                promptSystemSpec
-                    .text(prompts.systemPrompt())
-                    .params(Map.of("jsonSchema", jsonSchema)))
-        .user(promptUserSpec -> promptUserSpec.text(prompts.userPrompt()).params(params))
+        .system(promptSystemSpec -> promptSystemSpec.text(prompts.systemPrompt()))
+        .advisors(
+            a ->
+                a.param(
+                    PromptMetadataAdvisor.METADATA_KEY,
+                    PromptMetadataAdvisor.userMetadata(
+                        """
+                    ## 유저 여행 정보
+                    %s
+                    """
+                            .formatted(params.toString()))))
+        .user(promptUserSpec -> promptUserSpec.text(prompts.userPrompt()))
         .stream()
         .content()
         .doOnSubscribe(subscription -> log.debug("AI 일정 생성 스트림 구독 시작됨."))
@@ -114,7 +129,7 @@ public class TripAgent extends AbstractPromptAgent {
                       .build();
 
               eventPublisher.publishEvent(event);
-              log.debug("Day {} 일정 생성 완료", dailyPlanCreateRequest.dayNumber());
+              log.info("Day {} 일정 생성 완료", dailyPlanCreateRequest.dayNumber());
             })
         .doOnError(
             error -> {

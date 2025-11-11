@@ -2,9 +2,11 @@ package com.swygbro.airoad.backend.ai.agent.summary;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
+import com.swygbro.airoad.backend.ai.agent.advisor.PromptMetadataAdvisor;
 import com.swygbro.airoad.backend.ai.agent.common.AbstractPromptAgent;
 import com.swygbro.airoad.backend.ai.agent.summary.dto.PlaceSummaryAiResponse;
 import com.swygbro.airoad.backend.ai.agent.summary.dto.request.AiPlaceSummaryRequest;
@@ -40,11 +42,14 @@ public class PlaceSummaryAgent extends AbstractPromptAgent {
 
   public PlaceSummaryAgent(
       ApplicationEventPublisher eventPublisher,
-      OpenAiChatModel upstageChatModel,
+      @Qualifier("upstageChatModel") OpenAiChatModel upstageChatModel,
       AiPromptTemplateQueryUseCase promptTemplateQueryUseCase) {
     super(promptTemplateQueryUseCase);
     this.eventPublisher = eventPublisher;
-    this.chatClient = ChatClient.builder(upstageChatModel).build();
+    this.chatClient =
+        ChatClient.builder(upstageChatModel)
+            .defaultAdvisors(PromptMetadataAdvisor.builder().build())
+            .build();
   }
 
   @Override
@@ -96,7 +101,16 @@ public class PlaceSummaryAgent extends AbstractPromptAgent {
         chatClient
             .prompt()
             .system(prompts.systemPrompt())
-            .user(userPrompt)
+            .advisors(
+                a ->
+                    a.param(
+                        PromptMetadataAdvisor.METADATA_KEY,
+                        PromptMetadataAdvisor.userMetadata(
+                            """
+                        ## 장소 정보
+                        %s
+                        """
+                                .formatted(userPrompt))))
             .call()
             .entity(PlaceSummaryAiResponse.class);
 

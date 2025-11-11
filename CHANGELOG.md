@@ -1,3 +1,10 @@
+# [0.18.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.17.2...v0.18.0) (2025-11-11)
+
+
+### Features
+
+* WebSocket RECEIPT 프레임 수동 전송 및 여행 일차별 일정 조회 API 추가 ([00af57d](https://github.com/swyp-web-11-team-4/airoad-backend/commit/00af57dc5c9baf005d810e4cdb4b8c3f9c39ce26))
+
 ## [0.17.2](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.17.1...v0.17.2) (2025-11-10)
 
 

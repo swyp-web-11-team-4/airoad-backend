@@ -1,0 +1,85 @@
+name: Deployment Rollback
+
+on:
+    workflow_call:
+        outputs:
+            status:
+                description: "Rollback status"
+                value: ${{ jobs.rollback.outputs.status }}
+
+jobs:
+    rollback:
+        name: Rollback to Previous Version
+        runs-on: ubuntu-latest
+
+        outputs:
+            status: ${{ steps.set-result.outputs.status }}
+
+        steps:
+            - name: Execute rollback
+              id: rollback
+              uses: appleboy/ssh-action@v1.2.0
+              with:
+                  host: ${{ secrets.SSH_HOST }}
+                  username: ${{ secrets.SSH_USER }}
+                  key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  port: ${{ secrets.SSH_PORT }}
+                  script: |
+                      cd /root/airoad-backend
+                      docker-compose down || true
+                      if [ -f .env.backup ]; then
+                        mv .env.backup .env
+                        echo "✅ Restored .env file"
+                      fi
+
+                      if [ -f docker-compose.yml.backup ]; then
+                        mv docker-compose.yml.backup docker-compose.yml
+                        echo "✅ Restored docker-compose.yml"
+                      fi
+
+                      if [ -f .previous_image ]; then
+                        PREVIOUS_IMAGE=$(cat .previous_image)
+                        if [ "$PREVIOUS_IMAGE" != "none" ]; then
+                          echo "📦 Rolling back to image: ${PREVIOUS_IMAGE}"
+
+                          # Extract tag from image name
+                          PREVIOUS_TAG=$(echo $PREVIOUS_IMAGE | cut -d':' -f2)
+
+                          # Pull previous image
+                          docker pull $PREVIOUS_IMAGE || echo "⚠️  Previous image not available in registry"
+
+                          # Start with previous version
+                          export IMAGE_TAG=${PREVIOUS_TAG}
+                          docker-compose up -d
+
+                          # Wait and check
+                          sleep 10
+                          if docker-compose ps | grep -q "Up"; then
+                            echo "✅ Rollback successful - Service restored to previous version"
+                            docker-compose ps
+                            exit 0
+                          else
+                            echo "❌ Rollback failed - Manual intervention required"
+                            docker-compose logs --tail=100 app
+                            exit 1
+                          fi
+                        else
+                          echo "⚠️  No previous version available - This was the first deployment"
+                          exit 1
+                        fi
+                      else
+                        echo "⚠️  No previous image information found"
+                        exit 1
+                      fi
+
+            - name: Set result
+              id: set-result
+              if: always()
+              run: |
+                  if [[ "${{ steps.rollback.outcome }}" == "success" ]]; then
+                    echo "status=success" >> $GITHUB_OUTPUT
+                    echo "✅ Rollback completed successfully"
+                  else
+                    echo "status=failure" >> $GITHUB_OUTPUT
+                    echo "❌ Rollback failed - Manual intervention required"
+                  fi

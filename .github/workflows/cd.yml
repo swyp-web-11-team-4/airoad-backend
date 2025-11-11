@@ -1,0 +1,130 @@
+name: CD Pipeline
+
+on:
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types:
+      - completed
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      image_version:
+        description: 'Docker image version to deploy (e.g., v1.0.0, latest)'
+        required: true
+        default: 'latest'
+        type: string
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  determine-version:
+    name: Determine Deployment Version
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      deployment_type: ${{ steps.version.outputs.deployment_type }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Determine deployment version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.image_version }}"
+            DEPLOYMENT_TYPE="manual"
+            echo "📦 Manual deployment - Version: ${VERSION}"
+          else
+            VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "latest")
+            DEPLOYMENT_TYPE="automatic"
+            echo "📦 Automated deployment - Version: ${VERSION}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "deployment_type=${DEPLOYMENT_TYPE}" >> $GITHUB_OUTPUT
+          echo "Deploying version: ${VERSION}"
+
+  prepare:
+    name: Prepare Deployment
+    needs: determine-version
+    uses: ./.github/workflows/deploy-prepare.yml
+    secrets: inherit
+    with:
+      image_version: ${{ needs.determine-version.outputs.version }}
+
+  deploy:
+    name: Execute Deployment
+    needs: [determine-version, prepare]
+    if: needs.prepare.outputs.status == 'success'
+    uses: ./.github/workflows/deploy-execute.yml
+    secrets: inherit
+    with:
+      image_version: ${{ needs.determine-version.outputs.version }}
+
+  health-check:
+    name: Health Check
+    needs: [determine-version, deploy]
+    if: needs.deploy.outputs.status == 'success'
+    uses: ./.github/workflows/deploy-health-check.yml
+    secrets: inherit
+    with:
+      image_version: ${{ needs.determine-version.outputs.version }}
+
+  rollback:
+    name: Rollback on Failure
+    needs: [prepare, deploy, health-check]
+    if: failure() && (needs.deploy.outputs.status == 'failure' || needs.health-check.outputs.status == 'failure')
+    uses: ./.github/workflows/deploy-rollback.yml
+    secrets: inherit
+
+  cleanup:
+    name: Cleanup Resources
+    needs: [health-check]
+    if: needs.health-check.outputs.status == 'success'
+    uses: ./.github/workflows/deploy-cleanup.yml
+    secrets: inherit
+
+  summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [determine-version, prepare, deploy, health-check, rollback, cleanup]
+    if: always()
+    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'production' }}
+
+    steps:
+      - name: Generate deployment summary
+        run: |
+          echo "# 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Preparation | ${{ needs.prepare.outputs.status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deployment | ${{ needs.deploy.outputs.status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Health Check | ${{ needs.health-check.outputs.status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Rollback | ${{ needs.rollback.outputs.status || 'not-needed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Cleanup | ${{ needs.cleanup.outputs.status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** \`${{ needs.determine-version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Type:** ${{ needs.determine-version.outputs.deployment_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'production' }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Final status
+        run: |
+          if [ "${{ needs.health-check.outputs.status }}" = "success" ]; then
+            echo "✅ Deployment succeeded!"
+            echo "📦 Version: ${{ needs.determine-version.outputs.version }}"
+            echo "🏥 Health check: Passed"
+            exit 0
+          elif [ "${{ needs.rollback.outputs.status }}" = "success" ]; then
+            echo "🔄 Deployment failed but rollback succeeded"
+            echo "⚠️  Service restored to previous version"
+            exit 1
+          else
+            echo "❌ Deployment failed!"
+            echo "Please check the logs above for details."
+            exit 1
+          fi

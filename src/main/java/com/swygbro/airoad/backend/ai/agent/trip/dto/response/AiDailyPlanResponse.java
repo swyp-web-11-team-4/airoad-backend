@@ -25,12 +25,13 @@ public record AiDailyPlanResponse(
     @JsonProperty(required = true, value = "places") @JsonPropertyDescription("방문 장소 배열")
         List<AiScheduledPlaceDto> places,
     @JsonProperty(required = true, value = "nextQuestions")
-        @JsonPropertyDescription("유저가 질문하면 좋을 법한 질문 추천 배열")
+        @JsonPropertyDescription("유저가 질문하면 좋을 법한 질문 추천 목록")
         List<NextQuestionDto> nextQuestions) {
 
   /** AI가 생성한 방문 장소 DTO */
   public record AiScheduledPlaceDto(
-      @JsonProperty(required = true, value = "placeId") @JsonPropertyDescription("장소 ID")
+      @JsonProperty(required = true, value = "placeId")
+          @JsonPropertyDescription("DB에 저장된 장소 식별자 ID, null 값을 가질 수 없음")
           Long placeId,
       @JsonProperty(required = true, value = "visitOrder")
           @JsonPropertyDescription("일정 방문 순서 (1부터 시작)")

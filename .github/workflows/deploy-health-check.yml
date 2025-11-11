@@ -1,0 +1,80 @@
+name: Health Check
+
+on:
+    workflow_call:
+        inputs:
+            image_version:
+                description: 'Docker image version being deployed'
+                required: true
+                type: string
+        outputs:
+            status:
+                description: "Health check status"
+                value: ${{ jobs.health_check.outputs.status }}
+
+jobs:
+    health_check:
+        name: Application Health Check
+        runs-on: ubuntu-latest
+
+        outputs:
+            status: ${{ steps.set-result.outputs.status }}
+
+        steps:
+            - name: Perform health check
+              id: health_check
+              uses: appleboy/ssh-action@v1.2.0
+              with:
+                  host: ${{ secrets.SSH_HOST }}
+                  username: ${{ secrets.SSH_USER }}
+                  key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  port: ${{ secrets.SSH_PORT }}
+                  script: |
+                      cd /root/airoad-backend
+
+                      # Wait for container to start
+                      echo "⏳ Waiting for container to start..."
+                      sleep 10
+
+                      # Check container status
+                      if ! docker-compose ps | grep -q "Up"; then
+                        echo "❌ Container is not running!"
+                        docker-compose logs --tail=100 app
+                        exit 1
+                      fi
+
+                      # Health check with retry
+                      echo "🏥 Performing health check..."
+                      MAX_RETRIES=10
+                      RETRY_COUNT=0
+
+                      while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+                        HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health || echo "000")
+
+                        if [ "$HEALTH_STATUS" = "200" ]; then
+                          echo "✅ Application is healthy!"
+                          echo "🎉 Health check passed - Version: ${{ inputs.image_version }}"
+                          exit 0
+                        fi
+
+                        RETRY_COUNT=$((RETRY_COUNT + 1))
+                        echo "⏳ Retry $RETRY_COUNT/$MAX_RETRIES - Health check status: $HEALTH_STATUS"
+                        sleep 5
+                      done
+
+                      echo "❌ Health check failed after $MAX_RETRIES retries"
+                      echo "📋 Recent logs:"
+                      docker-compose logs --tail=100 app
+                      exit 1
+
+            - name: Set result
+              id: set-result
+              if: always()
+              run: |
+                  if [[ "${{ steps.health_check.outcome }}" == "success" ]]; then
+                    echo "status=success" >> $GITHUB_OUTPUT
+                    echo "✅ Health check passed"
+                  else
+                    echo "status=failure" >> $GITHUB_OUTPUT
+                    echo "❌ Health check failed"
+                  fi

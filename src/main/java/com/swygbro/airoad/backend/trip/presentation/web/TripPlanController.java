@@ -125,7 +125,7 @@ public class TripPlanController implements TripPlanApi {
 
   @Override
   @GetMapping("/daily-plans/{tripPlanId}")
-  public ResponseEntity<CommonResponse<Object>> getDailyPlans(
+  public ResponseEntity<CommonResponse<List<DailyPlanResponse>>> getDailyPlans(
       @AuthenticationPrincipal UserPrincipal userPrincipal, @PathVariable Long tripPlanId) {
 
     List<DailyPlanResponse> dailyPlanResponseList =

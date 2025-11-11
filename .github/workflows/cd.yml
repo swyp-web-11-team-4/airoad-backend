@@ -14,14 +14,6 @@ on:
         required: true
         default: 'latest'
         type: string
-      environment:
-        description: 'Deployment environment'
-        required: true
-        default: 'production'
-        type: choice
-        options:
-          - production
-          - staging
 
 permissions:
   contents: read

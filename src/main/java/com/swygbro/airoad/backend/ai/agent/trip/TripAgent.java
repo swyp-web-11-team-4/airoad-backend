@@ -1,5 +1,16 @@
 package com.swygbro.airoad.backend.ai.agent.trip;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Component;
+
 import com.swygbro.airoad.backend.ai.agent.advisor.PromptMetadataAdvisor;
 import com.swygbro.airoad.backend.ai.agent.common.AbstractPromptAgent;
 import com.swygbro.airoad.backend.ai.agent.trip.converter.NdJsonBeanOutPutConverter;
@@ -16,17 +27,9 @@ import com.swygbro.airoad.backend.trip.domain.dto.request.ScheduledPlaceCreateRe
 import com.swygbro.airoad.backend.trip.domain.entity.Transportation;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationCompletedEvent;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationErrorEvent;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
 @Slf4j

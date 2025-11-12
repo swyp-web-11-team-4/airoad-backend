@@ -1,0 +1,44 @@
+name: Deployment Cleanup
+
+on:
+    workflow_call:
+        outputs:
+            status:
+                description: "Cleanup status"
+                value: ${{ jobs.cleanup.outputs.status }}
+
+jobs:
+    cleanup:
+        name: Cleanup Resources
+        runs-on: ubuntu-latest
+
+        outputs:
+            status: ${{ steps.set-result.outputs.status }}
+
+        steps:
+            - name: Cleanup backup files and old images
+              id: cleanup
+              uses: appleboy/ssh-action@v1.2.0
+              with:
+                  host: ${{ secrets.SSH_HOST }}
+                  username: ${{ secrets.SSH_USER }}
+                  password: ${{ secrets.SSH_PASSWORD }}
+                  port: ${{ secrets.SSH_PORT }}
+                  script: |
+                      cd /root/airoad-backend
+                      rm -f .env.backup docker-compose.yml.backup
+                      docker container prune -f
+                      docker image prune -f
+                      echo "✅ Cleanup completed"
+
+            - name: Set result
+              id: set-result
+              if: always()
+              run: |
+                  if [[ "${{ steps.cleanup.outcome }}" == "success" ]]; then
+                    echo "status=success" >> $GITHUB_OUTPUT
+                    echo "✅ Cleanup completed"
+                  else
+                    echo "status=failure" >> $GITHUB_OUTPUT
+                    echo "⚠️  Cleanup had issues (non-critical)"
+                  fi

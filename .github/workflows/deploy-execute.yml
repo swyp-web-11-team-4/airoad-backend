@@ -1,0 +1,64 @@
+name: Deployment Execution
+
+on:
+    workflow_call:
+        inputs:
+            image_version:
+                description: 'Docker image version to deploy'
+                required: true
+                type: string
+        outputs:
+            status:
+                description: "Deployment execution status"
+                value: ${{ jobs.execute.outputs.status }}
+
+jobs:
+    execute:
+        name: Deploy to NCP Server
+        runs-on: ubuntu-latest
+
+        outputs:
+            status: ${{ steps.set-result.outputs.status }}
+
+        steps:
+            - name: Deploy to NCP server
+              id: deploy
+              uses: appleboy/ssh-action@v1.2.0
+              with:
+                host: ${{ secrets.SSH_HOST }}
+                username: ${{ secrets.SSH_USER }}
+                password: ${{ secrets.SSH_PASSWORD }}
+                port: ${{ secrets.SSH_PORT }}
+
+                script: |
+                      cd /root/airoad-backend
+                      set -e  # Exit on any error
+
+                      echo "🔐 Logging into GHCR..."
+                      echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+                      echo "📦 Pulling new image: ghcr.io/swyp-web-11-team-4/airoad-backend:${{ inputs.image_version }}"
+                      docker pull ghcr.io/swyp-web-11-team-4/airoad-backend:${{ inputs.image_version }}
+
+                      echo "🔄 Stopping current container..."
+                      docker-compose down || true
+
+                      echo "🚀 Starting new container with version ${{ inputs.image_version }}..."
+                      export IMAGE_TAG=${{ inputs.image_version }}
+                      docker-compose up -d
+
+                      echo "✅ Container started successfully"
+                      docker-compose ps
+                      docker-compose logs --tail=50 app
+
+            - name: Set result
+              id: set-result
+              if: always()
+              run: |
+                  if [[ "${{ steps.deploy.outcome }}" == "success" ]]; then
+                    echo "status=success" >> $GITHUB_OUTPUT
+                    echo "✅ Deployment executed successfully"
+                  else
+                    echo "status=failure" >> $GITHUB_OUTPUT
+                    echo "❌ Deployment execution failed"
+                  fi

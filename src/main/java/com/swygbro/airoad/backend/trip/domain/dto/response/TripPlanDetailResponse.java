@@ -30,6 +30,7 @@ public record TripPlanDetailResponse(
     @Schema(description = "여행 제목", example = "제주도 힐링 여행") String title,
     @Schema(description = "여행 지역", example = "제주") String region,
     @Schema(description = "여행 시작일", example = "2025-03-01") LocalDate startDate,
+    @Schema(description = "여행 일정 생성 완료 여부", example = "true") Boolean isCompleted,
     @Schema(description = "여행 기간 (일)", example = "3") Integer duration,
     @Schema(description = "여행 인원 수", example = "2") Integer peopleCount,
     @Schema(description = "여행 테마 목록", example = "[\"HEALING\", \"FAMOUS_SPOT\"]")
@@ -50,6 +51,7 @@ public record TripPlanDetailResponse(
         .title(tripPlan.getTitle())
         .region(tripPlan.getRegion())
         .startDate(tripPlan.getStartDate())
+        .isCompleted(tripPlan.getIsCompleted())
         .duration(duration)
         .peopleCount(tripPlan.getPeopleCount())
         .themes(tripPlan.getTripThemes())

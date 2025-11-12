@@ -15,6 +15,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.swygbro.airoad.backend.ai.agent.trip.dto.request.AiDailyPlanRequest;
 import com.swygbro.airoad.backend.ai.application.AiUseCase;
+import com.swygbro.airoad.backend.ai.domain.entity.AgentType;
 import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationRequestedEvent;
@@ -64,7 +65,7 @@ class TripPlanGenerationListenerTest {
       // then
       ArgumentCaptor<AiDailyPlanRequest> requestCaptor =
           ArgumentCaptor.forClass(AiDailyPlanRequest.class);
-      verify(aiUseCase).agentCall(eq("tripAgent"), requestCaptor.capture());
+      verify(aiUseCase).agentCall(eq(AgentType.TRIP_AGENT), requestCaptor.capture());
 
       AiDailyPlanRequest capturedRequest = requestCaptor.getValue();
       assertThat(capturedRequest.chatRoomId()).isEqualTo(chatRoomId);
@@ -108,7 +109,7 @@ class TripPlanGenerationListenerTest {
       // then
       ArgumentCaptor<AiDailyPlanRequest> requestCaptor =
           ArgumentCaptor.forClass(AiDailyPlanRequest.class);
-      verify(aiUseCase).agentCall(eq("tripAgent"), requestCaptor.capture());
+      verify(aiUseCase).agentCall(eq(AgentType.TRIP_AGENT), requestCaptor.capture());
 
       AiDailyPlanRequest capturedRequest = requestCaptor.getValue();
       assertThat(capturedRequest.themes()).hasSize(4);
@@ -144,7 +145,8 @@ class TripPlanGenerationListenerTest {
       tripPlanGenerationListener.handleTripPlanGenerationRequested(event);
 
       // then
-      verify(aiUseCase, times(1)).agentCall(eq("tripAgent"), any(AiDailyPlanRequest.class));
+      verify(aiUseCase, times(1))
+          .agentCall(eq(AgentType.TRIP_AGENT), any(AiDailyPlanRequest.class));
     }
   }
 }

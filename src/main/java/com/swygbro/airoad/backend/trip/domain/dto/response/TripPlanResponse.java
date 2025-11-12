@@ -13,6 +13,7 @@ public record TripPlanResponse(
     Long chatRoomId,
     String title,
     LocalDate startDate,
+    Boolean isCompleted,
     String region,
     String imageUrl) {
 
@@ -23,6 +24,7 @@ public record TripPlanResponse(
         .chatRoomId(aiConversationId)
         .title(tripPlan.getTitle())
         .startDate(tripPlan.getStartDate())
+        .isCompleted(tripPlan.getIsCompleted())
         .region(tripPlan.getRegion())
         .imageUrl(tripPlan.getImageUrl())
         .build();

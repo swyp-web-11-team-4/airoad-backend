@@ -68,6 +68,7 @@ public interface TripPlanApi {
                                       "chatRoomId": 105,
                                       "title": "제주도 힐링 여행",
                                       "startDate": "2025-03-01",
+                                      "isCompleted": false,
                                       "region": "제주",
                                       "imageUrl": "https://example.com/images/jeju.jpg"
                                     },
@@ -77,6 +78,7 @@ public interface TripPlanApi {
                                       "chatRoomId": 104,
                                       "title": "부산 맛집 투어",
                                       "startDate": "2025-02-15",
+                                      "isCompleted": false,
                                       "region": "부산",
                                       "imageUrl": "https://example.com/images/busan.jpg"
                                     },
@@ -86,6 +88,7 @@ public interface TripPlanApi {
                                       "chatRoomId": 103,
                                       "title": "서울 3박 4일",
                                       "startDate": "2025-01-20",
+                                      "isCompleted": true,
                                       "region": "서울",
                                       "imageUrl": "https://example.com/images/seoul.jpg"
                                     }
@@ -111,6 +114,7 @@ public interface TripPlanApi {
                                       "chatRoomId": 102,
                                       "title": "강릉 바다 여행",
                                       "startDate": "2024-12-10",
+                                      "isCompleted": false,
                                       "region": "강릉",
                                       "imageUrl": "https://example.com/images/gangneung.jpg"
                                     }
@@ -257,6 +261,7 @@ public interface TripPlanApi {
                                 "title": "제주도 힐링 여행",
                                 "region": "제주",
                                 "startDate": "2025-03-01",
+                                "isCompleted": true,
                                 "duration": 3,
                                 "peopleCount": 2,
                                 "themes": ["HEALING", "FAMOUS_SPOT", "RESTAURANT"]

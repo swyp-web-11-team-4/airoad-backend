@@ -1,3 +1,10 @@
+# [0.19.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.18.0...v0.19.0) (2025-11-11)
+
+
+### Features
+
+* AI 프롬프트 관리 API 추가 ([#59](https://github.com/swyp-web-11-team-4/airoad-backend/issues/59)) ([0841279](https://github.com/swyp-web-11-team-4/airoad-backend/commit/0841279f8eb67f8524b0ef6538129ba929a835a0))
+
 # [0.18.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.17.2...v0.18.0) (2025-11-11)
 
 

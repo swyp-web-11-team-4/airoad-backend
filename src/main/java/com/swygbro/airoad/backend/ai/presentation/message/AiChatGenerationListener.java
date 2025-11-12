@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import com.swygbro.airoad.backend.ai.agent.chat.dto.request.AiChatRequest;
 import com.swygbro.airoad.backend.ai.application.AiUseCase;
+import com.swygbro.airoad.backend.ai.domain.entity.AgentType;
 import com.swygbro.airoad.backend.chat.domain.event.AiChatGenerationRequestedEvent;
 
 import lombok.RequiredArgsConstructor;
@@ -42,6 +43,6 @@ public class AiChatGenerationListener {
             .userPrompt(event.userMessage())
             .build();
 
-    aiUseCase.agentCall("chatAgent", request);
+    aiUseCase.agentCall(AgentType.CHAT_AGENT, request);
   }
 }

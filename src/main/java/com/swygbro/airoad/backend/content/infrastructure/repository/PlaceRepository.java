@@ -16,10 +16,22 @@ import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
 /** Place 엔티티의 JPA Repository */
 public interface PlaceRepository extends JpaRepository<Place, Long> {
 
+  /**
+   * ID에 해당하는 장소 엔티티와 연결된 테마 정보를 조회합니다.
+   *
+   * @param id 조회할 장소의 고유 ID
+   * @return ID에 해당하는 장소와 연결된 테마 정보를 포함한 Optional 객체. 해당 ID에 해당하는 장소가 없을 경우 Optional.empty 반환
+   */
   @Query("SELECT p FROM Place p JOIN FETCH p.themes WHERE p.id = :id")
   Optional<Place> findByIdWithThemes(Long id);
 
-  @Query("SELECT p FROM Place p JOIN FETCH p.themes WHERE p.id IN :ids")
+  /**
+   * 주어진 ID 목록에 해당하는 장소와 그에 연결된 테마들을 조회합니다. 필수 방문지(isMustVisit)가 true인 장소들만 반환됩니다.
+   *
+   * @param ids 조회할 장소의 ID 목록
+   * @return ID 목록에 해당하고 isMustVisit가 true인 장소 및 연결된 테마들의 리스트
+   */
+  @Query("SELECT p FROM Place p JOIN FETCH p.themes WHERE p.id IN :ids AND p.isMustVisit = true")
   List<Place> findAllByIdsWithThemes(@Param("ids") List<Long> ids);
 
   /**

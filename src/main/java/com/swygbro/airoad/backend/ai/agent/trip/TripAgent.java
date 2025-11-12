@@ -150,7 +150,7 @@ public class TripAgent implements AiroadAgent {
             QuestionAnswerAdvisor.builder(vectorStore)
                 .searchRequest(
                     SearchRequest.builder()
-                        .topK(15)
+                        .topK(5)
                         .similarityThreshold(0.3d)
                         .filterExpression(filterExpression)
                         .build())

@@ -1,6 +1,15 @@
 package com.swygbro.airoad.backend.chat.domain.entity;
 
-import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 
 import com.swygbro.airoad.backend.common.domain.entity.BaseEntity;
 import com.swygbro.airoad.backend.member.domain.entity.Member;
@@ -26,6 +35,10 @@ public class AiConversation extends BaseEntity {
   @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(nullable = false)
   private TripPlan tripPlan;
+
+  /** 대화의 메시지 목록 */
+  @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<AiMessage> aiMessage = new ArrayList<>();
 
   @Builder
   private AiConversation(Member member, TripPlan tripPlan) {

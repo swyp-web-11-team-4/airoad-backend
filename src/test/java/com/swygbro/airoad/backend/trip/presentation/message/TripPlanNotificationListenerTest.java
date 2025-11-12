@@ -100,7 +100,7 @@ class TripPlanNotificationListenerTest {
       ArgumentCaptor<TripPlanProgressMessage> messageCaptor =
           ArgumentCaptor.forClass(TripPlanProgressMessage.class);
       verify(messagingTemplate)
-          .convertAndSendToUser(eq("testUser"), eq("/sub/chat/1"), messageCaptor.capture());
+          .convertAndSendToUser(eq("testUser"), eq("/sub/schedule/100"), messageCaptor.capture());
 
       TripPlanProgressMessage message = messageCaptor.getValue();
       assertThat(message.type()).isEqualTo(TripPlanProgressMessage.MessageType.COMPLETED);
@@ -168,7 +168,7 @@ class TripPlanNotificationListenerTest {
       ArgumentCaptor<TripPlanProgressMessage> messageCaptor =
           ArgumentCaptor.forClass(TripPlanProgressMessage.class);
       verify(messagingTemplate)
-          .convertAndSendToUser(eq("testUser"), eq("/sub/chat/1"), messageCaptor.capture());
+          .convertAndSendToUser(eq("testUser"), eq("/sub/schedule/100"), messageCaptor.capture());
 
       TripPlanProgressMessage message = messageCaptor.getValue();
       assertThat(message.type()).isEqualTo(TripPlanProgressMessage.MessageType.CANCELLED);

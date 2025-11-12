@@ -1,3 +1,11 @@
+# [0.20.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.19.1...v0.20.0) (2025-11-12)
+
+
+### Features
+
+* 간단한 회원 정보 조회 API 추가 ([91e1e53](https://github.com/swyp-web-11-team-4/airoad-backend/commit/91e1e533ba21cc0bbc51d84549e09ca4c02ec814))
+* 간단한 회원 정보 조회 API 추가 ([4897416](https://github.com/swyp-web-11-team-4/airoad-backend/commit/4897416c04f9c6661a54ea86740d8e09b431080d))
+
 # [0.19.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.18.0...v0.19.0) (2025-11-11)
 
 

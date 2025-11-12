@@ -110,4 +110,63 @@ class MemberControllerTest {
       verify(memberUseCase).getMemberByEmail(email);
     }
   }
+
+  @Nested
+  @DisplayName("getSimpleMemberInfo 메서드는")
+  class GetSimpleMemberInfo {
+
+    @Test
+    @DisplayName("인증된 사용자의 이름과 이메일만 반환한다")
+    void shouldReturnSimpleMemberInfo() throws Exception {
+      // given
+      String email = "test@naver.com";
+      String name = "testName";
+
+      Member member =
+          Member.builder()
+              .email(email)
+              .name(name)
+              .imageUrl("https://example.com/image.jpg")
+              .provider(ProviderType.GOOGLE)
+              .role(MemberRole.MEMBER)
+              .build();
+
+      UserPrincipal userPrincipal = new UserPrincipal(member);
+
+      UsernamePasswordAuthenticationToken authentication =
+          new UsernamePasswordAuthenticationToken(
+              userPrincipal, null, userPrincipal.getAuthorities());
+
+      SecurityContext context = SecurityContextHolder.createEmptyContext();
+      context.setAuthentication(authentication);
+      SecurityContextHolder.setContext(context);
+
+      MemberResponse memberResponse =
+          MemberResponse.builder()
+              .id(1L)
+              .email(email)
+              .name(name)
+              .imageUrl("https://example.com/image.jpg")
+              .provider("GOOGLE")
+              .role("MEMBER")
+              .build();
+
+      given(memberUseCase.getMemberByEmail(email)).willReturn(memberResponse);
+
+      // when & then
+      mockMvc
+          .perform(get("/api/v1/members/me/simple"))
+          .andDo(print())
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.success").value(true))
+          .andExpect(jsonPath("$.status").value(HttpStatus.OK.value()))
+          .andExpect(jsonPath("$.data.name").value(name))
+          .andExpect(jsonPath("$.data.email").value(email))
+          .andExpect(jsonPath("$.data.imageUrl").doesNotExist())
+          .andExpect(jsonPath("$.data.provider").doesNotExist())
+          .andExpect(jsonPath("$.data.role").doesNotExist());
+
+      verify(memberUseCase).getMemberByEmail(email);
+    }
+  }
 }

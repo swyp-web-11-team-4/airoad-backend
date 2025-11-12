@@ -49,7 +49,7 @@ public class TripPlanNotificationListener {
   /**
    * 전체 일정 생성 완료 이벤트를 처리합니다.
    *
-   * <p>WebSocket을 통해 채팅 채널로 완료 메시지를 전송합니다.
+   * <p>WebSocket을 통해 일정 생성 채널로 완료 메시지를 전송합니다.
    *
    * @param event 전체 일정 생성 완료 이벤트
    */
@@ -64,7 +64,7 @@ public class TripPlanNotificationListener {
             .message(event.message())
             .build();
 
-    String destination = "/sub/chat/" + event.chatRoomId();
+    String destination = "/sub/schedule/" + event.tripPlanId();
     sendToUser(event.username(), destination, message);
   }
 
@@ -98,7 +98,7 @@ public class TripPlanNotificationListener {
   /**
    * 일정 생성 취소 이벤트를 처리합니다.
    *
-   * <p>WebSocket을 통해 채팅 채널로 취소 메시지를 전송합니다.
+   * <p>WebSocket을 통해 일정 생성 채널로 취소 메시지를 전송합니다.
    *
    * @param event 일정 생성 취소 이벤트
    */
@@ -113,7 +113,7 @@ public class TripPlanNotificationListener {
             .message("일정 생성이 취소되었습니다: " + event.reason())
             .build();
 
-    String destination = "/sub/chat/" + event.chatRoomId();
+    String destination = "/sub/schedule/" + event.tripPlanId();
     sendToUser(event.username(), destination, message);
   }
 

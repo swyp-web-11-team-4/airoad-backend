@@ -146,7 +146,7 @@ public class SwaggerConfig {
                   onConnect,
                   function onError(error) {
                     console.error('STOMP ERROR:', error);
-                    // 연결이 끊어짐 - 재연결 필요
+                    // 연결이 끊어짐 - 재연결 필요함
                     handleReconnect();
                   }
                 );

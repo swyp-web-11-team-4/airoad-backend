@@ -1,3 +1,11 @@
+# [0.21.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.20.0...v0.21.0) (2025-11-13)
+
+
+### Features
+
+* MessageStreamType에 UPDATED 타입 추가 ([d1b5c4a](https://github.com/swyp-web-11-team-4/airoad-backend/commit/d1b5c4ace6b21a0bc068576ae7361d658b689c90))
+* 간단한 회원 정보 조회 API 제거 ([90c309e](https://github.com/swyp-web-11-team-4/airoad-backend/commit/90c309e7534d20d1dc88991d96f339c91fcd0e7c))
+
 # [0.20.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.19.1...v0.20.0) (2025-11-12)
 
 

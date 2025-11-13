@@ -6,9 +6,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageRequest;
-import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageResponse;
-import com.swygbro.airoad.backend.chat.domain.dto.MessageContentType;
+import com.swygbro.airoad.backend.chat.domain.dto.request.ChatMessageRequest;
+import com.swygbro.airoad.backend.chat.domain.dto.response.ChatMessageResponse;
+import com.swygbro.airoad.backend.chat.domain.dto.response.MessageContentType;
 import com.swygbro.airoad.backend.chat.domain.entity.AiConversation;
 import com.swygbro.airoad.backend.chat.domain.entity.AiMessage;
 import com.swygbro.airoad.backend.chat.domain.event.AiChatGenerationRequestedEvent;

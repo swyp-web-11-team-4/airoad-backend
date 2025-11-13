@@ -1,6 +1,8 @@
-package com.swygbro.airoad.backend.chat.domain.dto;
+package com.swygbro.airoad.backend.chat.domain.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+
+import com.swygbro.airoad.backend.chat.domain.dto.response.MessageContentType;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

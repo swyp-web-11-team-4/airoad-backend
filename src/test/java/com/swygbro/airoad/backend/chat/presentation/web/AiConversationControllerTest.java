@@ -27,8 +27,8 @@ import com.swygbro.airoad.backend.auth.domain.dto.UserPrincipal;
 import com.swygbro.airoad.backend.auth.infrastructure.RefreshTokenRepository;
 import com.swygbro.airoad.backend.auth.presentation.web.OAuth2AuthenticationSuccessHandler;
 import com.swygbro.airoad.backend.chat.application.AiMessageService;
-import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageResponse;
-import com.swygbro.airoad.backend.chat.domain.dto.MessageContentType;
+import com.swygbro.airoad.backend.chat.domain.dto.response.ChatMessageResponse;
+import com.swygbro.airoad.backend.chat.domain.dto.response.MessageContentType;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
 
 import static org.mockito.BDDMockito.*;

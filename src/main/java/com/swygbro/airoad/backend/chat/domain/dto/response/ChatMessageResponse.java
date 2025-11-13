@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.chat.domain.dto;
+package com.swygbro.airoad.backend.chat.domain.dto.response;
 
 import java.time.LocalDateTime;
 

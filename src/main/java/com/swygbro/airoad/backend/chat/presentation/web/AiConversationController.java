@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.swygbro.airoad.backend.auth.domain.dto.UserPrincipal;
 import com.swygbro.airoad.backend.chat.application.AiMessageService;
-import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageResponse;
+import com.swygbro.airoad.backend.chat.domain.dto.response.ChatMessageResponse;
 import com.swygbro.airoad.backend.common.domain.dto.CommonResponse;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
 

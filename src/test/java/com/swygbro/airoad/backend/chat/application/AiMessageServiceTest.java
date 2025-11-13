@@ -20,9 +20,9 @@ import org.springframework.data.domain.SliceImpl;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageRequest;
-import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageResponse;
-import com.swygbro.airoad.backend.chat.domain.dto.MessageContentType;
+import com.swygbro.airoad.backend.chat.domain.dto.request.ChatMessageRequest;
+import com.swygbro.airoad.backend.chat.domain.dto.response.ChatMessageResponse;
+import com.swygbro.airoad.backend.chat.domain.dto.response.MessageContentType;
 import com.swygbro.airoad.backend.chat.domain.entity.AiConversation;
 import com.swygbro.airoad.backend.chat.domain.entity.AiMessage;
 import com.swygbro.airoad.backend.chat.domain.event.AiChatGenerationRequestedEvent;

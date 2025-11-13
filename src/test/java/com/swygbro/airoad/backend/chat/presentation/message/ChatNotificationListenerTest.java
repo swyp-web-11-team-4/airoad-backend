@@ -11,7 +11,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.swygbro.airoad.backend.ai.domain.event.AiMessageGeneratedEvent;
-import com.swygbro.airoad.backend.chat.domain.dto.ChatStreamDto;
+import com.swygbro.airoad.backend.chat.domain.dto.response.ChatStreamDto;
 import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
 
 import static org.mockito.ArgumentMatchers.*;

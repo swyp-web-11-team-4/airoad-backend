@@ -19,8 +19,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.swygbro.airoad.backend.chat.application.AiMessageService;
-import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageRequest;
-import com.swygbro.airoad.backend.chat.domain.dto.MessageContentType;
+import com.swygbro.airoad.backend.chat.domain.dto.request.ChatMessageRequest;
+import com.swygbro.airoad.backend.chat.domain.dto.response.MessageContentType;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.common.exception.WebSocketErrorCode;
 

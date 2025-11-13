@@ -1,7 +1,7 @@
 package com.swygbro.airoad.backend.chat.application;
 
-import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageRequest;
-import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageResponse;
+import com.swygbro.airoad.backend.chat.domain.dto.request.ChatMessageRequest;
+import com.swygbro.airoad.backend.chat.domain.dto.response.ChatMessageResponse;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
 
 /**

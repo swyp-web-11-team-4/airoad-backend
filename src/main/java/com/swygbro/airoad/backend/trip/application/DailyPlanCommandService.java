@@ -1,5 +1,14 @@
 package com.swygbro.airoad.backend.trip.application;
 
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.content.domain.entity.Place;
 import com.swygbro.airoad.backend.content.infrastructure.repository.PlaceRepository;
@@ -13,15 +22,9 @@ import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
 import com.swygbro.airoad.backend.trip.domain.event.DailyPlanSavedEvent;
 import com.swygbro.airoad.backend.trip.exception.TripErrorCode;
 import com.swygbro.airoad.backend.trip.infrastructure.TripPlanRepository;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -35,10 +38,7 @@ public class DailyPlanCommandService implements DailyPlanCommandUseCase {
 
   @Override
   public void saveDailyPlan(
-      Long chatRoomId,
-      Long tripPlanId,
-      String username,
-      DailyPlanCreateRequest request) {
+      Long chatRoomId, Long tripPlanId, String username, DailyPlanCreateRequest request) {
     TripPlan tripPlan =
         tripPlanRepository
             .findById(tripPlanId)

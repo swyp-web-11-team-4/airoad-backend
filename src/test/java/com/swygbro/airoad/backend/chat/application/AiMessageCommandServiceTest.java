@@ -43,7 +43,8 @@ class AiMessageCommandServiceTest {
     Long chatRoomId = 1L;
     ChatMessageCreateRequest request = new ChatMessageCreateRequest("안녕하세요", MessageType.USER);
     AiConversation conversation = AiConversationFixture.create();
-    AiMessage message = AiMessageFixture.createWithConversation(conversation);
+    AiMessage message =
+        AiMessageFixture.createWithConversationAndContent(conversation, request.message());
 
     given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
     given(aiMessageRepository.save(any(AiMessage.class))).willReturn(message);

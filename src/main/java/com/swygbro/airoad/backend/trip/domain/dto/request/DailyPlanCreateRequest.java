@@ -3,8 +3,6 @@ package com.swygbro.airoad.backend.trip.domain.dto.request;
 import java.time.LocalDate;
 import java.util.List;
 
-import org.springframework.ai.tool.annotation.ToolParam;
-
 import lombok.Builder;
 
 /**

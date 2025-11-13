@@ -16,8 +16,6 @@ import com.swygbro.airoad.backend.chat.application.AiMessageCommandUseCase;
 import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.request.DailyPlanCreateRequest;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -63,8 +61,6 @@ class ChatPersistenceListenerTest {
     chatPersistenceListener.handleDailyPlanGenerated(event);
 
     // then
-    verify(aiMessageCommandUseCase)
-        .saveMessage(eq(chatRoomId), any(ChatMessageCreateRequest.class));
     verify(aiMessageCommandUseCase).saveMessage(chatRoomId, expectedRequest);
   }
 }

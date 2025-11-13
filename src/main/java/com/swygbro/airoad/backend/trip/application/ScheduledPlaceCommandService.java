@@ -46,20 +46,7 @@ public class ScheduledPlaceCommandService implements ScheduledPlaceCommandUseCas
         "[시작] saveScheduledPlace - 사용자: {}, 여행 계획 ID: {}, 일차: {}", username, tripPlanId, dayNumber);
     log.info("요청 정보: {}", request.toString());
 
-    TripPlan tripPlan =
-        tripPlanRepository
-            .findByIdWithDetails(tripPlanId)
-            .orElseThrow(() -> new BusinessException(TripErrorCode.TRIP_PLAN_NOT_FOUND));
-
-    if (!tripPlan.getMember().getEmail().equals(username)) {
-      throw new BusinessException(TripErrorCode.TRIP_PLAN_FORBIDDEN);
-    }
-
-    DailyPlan dailyPlan =
-        tripPlan.getDailyPlans().stream()
-            .filter(dp -> dp.getDayNumber().equals(dayNumber))
-            .findFirst()
-            .orElseThrow(() -> new BusinessException(TripErrorCode.DAILY_PLAN_NOT_FOUND));
+    DailyPlan dailyPlan = validateAndGetDailyPlan(tripPlanId, username, dayNumber);
 
     Place place =
         placeRepository
@@ -105,28 +92,9 @@ public class ScheduledPlaceCommandService implements ScheduledPlaceCommandUseCas
         tripPlanId,
         dayNumber,
         visitOrder);
-    log.info("요청 정보: {}", request.toString());
 
-    TripPlan tripPlan =
-        tripPlanRepository
-            .findByIdWithDetails(tripPlanId)
-            .orElseThrow(() -> new BusinessException(TripErrorCode.TRIP_PLAN_NOT_FOUND));
-
-    if (!tripPlan.getMember().getEmail().equals(username)) {
-      throw new BusinessException(TripErrorCode.TRIP_PLAN_FORBIDDEN);
-    }
-
-    DailyPlan dailyPlan =
-        tripPlan.getDailyPlans().stream()
-            .filter(dp -> dp.getDayNumber().equals(dayNumber))
-            .findFirst()
-            .orElseThrow(() -> new BusinessException(TripErrorCode.DAILY_PLAN_NOT_FOUND));
-
-    ScheduledPlace scheduledPlace =
-        dailyPlan.getScheduledPlaces().stream()
-            .filter(sp -> sp.getVisitOrder().equals(visitOrder))
-            .findFirst()
-            .orElseThrow(() -> new BusinessException(TripErrorCode.SCHEDULED_PLACE_NOT_FOUND));
+    DailyPlan dailyPlan = validateAndGetDailyPlan(tripPlanId, username, dayNumber);
+    ScheduledPlace scheduledPlace = getScheduledPlace(dailyPlan, visitOrder);
 
     TravelSegment travelSegment =
         TravelSegment.builder()
@@ -166,6 +134,18 @@ public class ScheduledPlaceCommandService implements ScheduledPlaceCommandUseCas
         dayNumber,
         visitOrder);
 
+    DailyPlan dailyPlan = validateAndGetDailyPlan(tripPlanId, username, dayNumber);
+    ScheduledPlace scheduledPlace = getScheduledPlace(dailyPlan, visitOrder);
+
+    dailyPlan.removeScheduledPlace(scheduledPlace);
+    log.info(
+        "[완료] deleteScheduledPlace - 여행 계획 ID: {}, 일차: {}, 방문 순서: {} 장소 삭제 완료",
+        tripPlanId,
+        dayNumber,
+        visitOrder);
+  }
+
+  private DailyPlan validateAndGetDailyPlan(Long tripPlanId, String username, Integer dayNumber) {
     TripPlan tripPlan =
         tripPlanRepository
             .findByIdWithDetails(tripPlanId)
@@ -175,23 +155,16 @@ public class ScheduledPlaceCommandService implements ScheduledPlaceCommandUseCas
       throw new BusinessException(TripErrorCode.TRIP_PLAN_FORBIDDEN);
     }
 
-    DailyPlan dailyPlan =
-        tripPlan.getDailyPlans().stream()
-            .filter(dp -> dp.getDayNumber().equals(dayNumber))
-            .findFirst()
-            .orElseThrow(() -> new BusinessException(TripErrorCode.DAILY_PLAN_NOT_FOUND));
+    return tripPlan.getDailyPlans().stream()
+        .filter(dp -> dp.getDayNumber().equals(dayNumber))
+        .findFirst()
+        .orElseThrow(() -> new BusinessException(TripErrorCode.DAILY_PLAN_NOT_FOUND));
+  }
 
-    ScheduledPlace scheduledPlace =
-        dailyPlan.getScheduledPlaces().stream()
-            .filter(sp -> sp.getVisitOrder().equals(visitOrder))
-            .findFirst()
-            .orElseThrow(() -> new BusinessException(TripErrorCode.SCHEDULED_PLACE_NOT_FOUND));
-
-    dailyPlan.removeScheduledPlace(scheduledPlace);
-    log.info(
-        "[완료] deleteScheduledPlace - 여행 계획 ID: {}, 일차: {}, 방문 순서: {} 장소 삭제 완료",
-        tripPlanId,
-        dayNumber,
-        visitOrder);
+  private ScheduledPlace getScheduledPlace(DailyPlan dailyPlan, Integer visitOrder) {
+    return dailyPlan.getScheduledPlaces().stream()
+        .filter(sp -> sp.getVisitOrder().equals(visitOrder))
+        .findFirst()
+        .orElseThrow(() -> new BusinessException(TripErrorCode.SCHEDULED_PLACE_NOT_FOUND));
   }
 }

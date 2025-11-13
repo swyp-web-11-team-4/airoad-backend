@@ -102,6 +102,10 @@ public class PlaceQueryService implements PlaceQueryUseCase {
       @ToolParam(description = "장소 이름 (부분 일치 가능)") String name,
       @ToolParam(description = "장소 주소 (부분 일치 가능)") String address,
       @ToolParam(description = "조회할 사이즈") int size) {
+    if (size <= 0) {
+      throw new IllegalArgumentException("size must be greater than 0");
+    }
+
     PageRequest pageRequest = PageRequest.of(0, size);
 
     Page<Place> page = placeRepository.findByNameAndAddress(name, address, pageRequest);

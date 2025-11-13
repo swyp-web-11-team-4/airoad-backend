@@ -16,4 +16,14 @@ public interface PlaceQueryUseCase {
    * @return 랜덤하게 선택된 장소 목록
    */
   List<PlaceResponse> findRandomPlaces(String province, List<PlaceThemeType> themes, int limit);
+
+  /**
+   * 이름, 주소, 설명, 테마를 기반으로 장소 상세 정보를 조회합니다.
+   *
+   * @param name 장소 이름 (부분 일치)
+   * @param address 장소 주소 (부분 일치
+   * @param size 조회할 주소 사이즈
+   * @return 조건에 맞는 장소 상세 정보 목록
+   */
+  List<PlaceResponse> findPlaceDetails(String name, String address, int size);
 }

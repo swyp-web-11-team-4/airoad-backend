@@ -19,6 +19,12 @@ public enum TripErrorCode implements ErrorCode {
   TRIP_PLAN_NOT_FOUND("TRIP101", HttpStatus.NOT_FOUND, "여행 일정을 찾을 수 없습니다."),
   TRIP_PLAN_FORBIDDEN("TRIP102", HttpStatus.FORBIDDEN, "여행 일정에 대한 접근 권한이 없습니다."),
 
+  // 일일 일정 관련 에러
+  DAILY_PLAN_NOT_FOUND("TRIP103", HttpStatus.NOT_FOUND, "일일 일정을 찾을 수 없습니다."),
+
+  // 방문 장소 관련 에러
+  SCHEDULED_PLACE_NOT_FOUND("TRIP104", HttpStatus.NOT_FOUND, "계획 방문 일정을 찾을 수 없습니다."),
+
   // 장소 관련 에러
   PLACE_NOT_FOUND("TRIP201", HttpStatus.NOT_FOUND, "장소를 찾을 수 없습니다");
 

@@ -15,6 +15,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.swygbro.airoad.backend.ai.exception.AiErrorCode;
 import com.swygbro.airoad.backend.chat.domain.dto.response.ChatStreamDto;
+import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
 import com.swygbro.airoad.backend.trip.domain.dto.TripPlanProgressMessage;
 import com.swygbro.airoad.backend.trip.domain.dto.response.DailyPlanResponse;
 import com.swygbro.airoad.backend.trip.domain.event.DailyPlanSavedEvent;
@@ -141,14 +142,14 @@ class TripPlanNotificationListenerTest {
       tripPlanNotificationListener.handleTripPlanGenerationError(event);
 
       // then
-      ArgumentCaptor<ChatStreamDto> messageCaptor = ArgumentCaptor.forClass(ChatStreamDto.class);
+      ArgumentCaptor<ErrorResponse> messageCaptor = ArgumentCaptor.forClass(ErrorResponse.class);
       verify(messagingTemplate)
           .convertAndSendToUser(eq("testUser"), eq("/sub/errors/1"), messageCaptor.capture());
 
-      ChatStreamDto message = messageCaptor.getValue();
+      ErrorResponse message = messageCaptor.getValue();
       assertThat(message.message())
           .isEqualTo(AiErrorCode.TRIP_PLAN_GENERATION_ERROR.getDefaultMessage());
-      assertThat(message.isComplete()).isTrue();
+      assertThat(message.code()).isEqualTo(AiErrorCode.TRIP_PLAN_GENERATION_ERROR.getCode());
     }
   }
 

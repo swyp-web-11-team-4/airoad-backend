@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import com.swygbro.airoad.backend.chat.domain.dto.response.ChatStreamDto;
 import com.swygbro.airoad.backend.chat.domain.dto.response.MessageStreamType;
+import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
 import com.swygbro.airoad.backend.trip.domain.dto.TripPlanProgressMessage;
 import com.swygbro.airoad.backend.trip.domain.event.DailyPlanSavedEvent;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationCancelledEvent;
@@ -88,10 +89,11 @@ public class TripPlanNotificationListener {
         event.errorCode().getCode(),
         event.errorCode().getDefaultMessage());
 
-    ChatStreamDto message =
-        ChatStreamDto.of(event.errorCode().getDefaultMessage(), true, MessageStreamType.ERROR);
-
     String destination = "/sub/errors/" + event.chatRoomId();
+    ErrorResponse message =
+        ErrorResponse.of(
+            event.errorCode().getCode(), event.errorCode().getDefaultMessage(), destination);
+
     sendToUser(event.username(), destination, message);
   }
 

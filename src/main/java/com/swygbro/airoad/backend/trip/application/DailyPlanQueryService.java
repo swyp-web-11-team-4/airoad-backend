@@ -1,5 +1,6 @@
 package com.swygbro.airoad.backend.trip.application;
 
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -7,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.trip.domain.dto.response.DailyPlanResponse;
+import com.swygbro.airoad.backend.trip.domain.entity.ScheduledPlace;
 import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
 import com.swygbro.airoad.backend.trip.exception.TripErrorCode;
 import com.swygbro.airoad.backend.trip.infrastructure.DailyPlanRepository;
@@ -33,6 +35,11 @@ public class DailyPlanQueryService implements DailyPlanQueryUseCase {
       throw new BusinessException(TripErrorCode.TRIP_PLAN_FORBIDDEN);
     }
     return dailyPlanRepository.findAllByTripPlanId(tripPlanId).stream()
+        .peek(
+            dailyPlan ->
+                dailyPlan
+                    .getScheduledPlaces()
+                    .sort(Comparator.comparing(ScheduledPlace::getVisitOrder)))
         .map(DailyPlanResponse::of)
         .toList();
   }

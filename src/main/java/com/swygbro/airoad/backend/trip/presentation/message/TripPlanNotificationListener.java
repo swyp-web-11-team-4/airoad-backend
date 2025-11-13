@@ -45,27 +45,27 @@ public class TripPlanNotificationListener {
     sendToUser(event.username(), destination, message);
   }
 
-  //  /**
-  //   * 전체 일정 생성 완료 이벤트를 처리합니다.
-  //   *
-  //   * <p>WebSocket을 통해 일정 생성 채널로 완료 메시지를 전송합니다.
-  //   *
-  //   * @param event 전체 일정 생성 완료 이벤트
-  //   */
-  //  @EventListener
-  //  public void handleTripPlanGenerationCompleted(TripPlanGenerationCompletedEvent event) {
-  //    log.info("전체 일정 생성 완료 - tripPlanId: {}", event.tripPlanId());
+  /**
+   * 전체 일정 생성 완료 이벤트를 처리합니다.
+   *
+   * <p>WebSocket을 통해 일정 생성 채널로 완료 메시지를 전송합니다.
+   *
+   * @param event 전체 일정 생성 완료 이벤트
+   */
+  //    @EventListener
+  //    public void handleTripPlanGenerationCompleted(TripPlanGenerationCompletedEvent event) {
+  //      log.info("전체 일정 생성 완료 - tripPlanId: {}", event.tripPlanId());
   //
-  //    TripPlanProgressMessage message =
-  //        TripPlanProgressMessage.builder()
-  //            .type(TripPlanProgressMessage.MessageType.COMPLETED)
-  //            .tripPlanId(event.tripPlanId())
-  //            .message(event.message())
-  //            .build();
+  //      TripPlanProgressMessage message =
+  //          TripPlanProgressMessage.builder()
+  //              .type(TripPlanProgressMessage.MessageType.COMPLETED)
+  //              .tripPlanId(event.tripPlanId())
+  //              .message(event.message())
+  //              .build();
   //
-  //    String destination = "/sub/schedule/" + event.tripPlanId();
-  //    sendToUser(event.username(), destination, message);
-  //  }
+  //      String destination = "/sub/schedule/" + event.tripPlanId();
+  //      sendToUser(event.username(), destination, message);
+  //    }
 
   /**
    * 일정 생성 오류 이벤트를 처리합니다.

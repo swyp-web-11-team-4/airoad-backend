@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -59,7 +58,7 @@ public class TripAgent extends AbstractPromptAgent {
     this.chatClient =
         ChatClient.builder(chatModel)
             .defaultAdvisors(
-//                new SimpleLoggerAdvisor(),
+                //                new SimpleLoggerAdvisor(),
                 PromptMetadataAdvisor.builder()
                     .metadata(PromptMetadataAdvisor.systemMetadata(jsonSchema))
                     .build())

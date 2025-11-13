@@ -20,8 +20,8 @@ import lombok.Builder;
  */
 @Builder
 public record DailyPlanCreateRequest(
-    @ToolParam(description = "일차 (1일차, 2일차, ...)") Integer dayNumber,
-    @ToolParam(description = "해당 날짜") LocalDate date,
-    @ToolParam(description = "일정 제목") String title,
-    @ToolParam(description = "일정 설명") String description,
-    @ToolParam(description = "방문할 장소 목록, 방문 순서대로 정렬") List<ScheduledPlaceCreateRequest> places) {}
+    Integer dayNumber,
+    LocalDate date,
+    String title,
+    String description,
+    List<ScheduledPlaceCreateRequest> places) {}

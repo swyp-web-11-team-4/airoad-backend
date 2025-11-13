@@ -5,7 +5,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import com.swygbro.airoad.backend.ai.domain.event.AiMessageGeneratedEvent;
-import com.swygbro.airoad.backend.chat.domain.dto.ChatStreamDto;
+import com.swygbro.airoad.backend.chat.domain.dto.response.ChatStreamDto;
 import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
 import com.swygbro.airoad.backend.common.exception.WebSocketErrorCode;
 
@@ -46,7 +46,7 @@ public class ChatNotificationListener {
   private void sendToWebSocket(AiMessageGeneratedEvent event) {
     try {
       // ChatStreamDto로 변환 (완료된 메시지)
-      ChatStreamDto response = ChatStreamDto.of(event.aiMessage(), true);
+      ChatStreamDto response = ChatStreamDto.ofChat(event.aiMessage(), true);
 
       // WebSocket 목적지 결정
       String destination = "/sub/chat/" + event.chatRoomId();

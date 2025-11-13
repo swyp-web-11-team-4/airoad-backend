@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.chat.domain.dto;
+package com.swygbro.airoad.backend.chat.domain.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

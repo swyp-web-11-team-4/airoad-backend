@@ -14,10 +14,14 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.swygbro.airoad.backend.ai.exception.AiErrorCode;
+import com.swygbro.airoad.backend.chat.domain.dto.response.ChatStreamDto;
+import com.swygbro.airoad.backend.chat.domain.dto.response.MessageStreamType;
+import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
 import com.swygbro.airoad.backend.trip.domain.dto.TripPlanProgressMessage;
 import com.swygbro.airoad.backend.trip.domain.dto.response.DailyPlanResponse;
 import com.swygbro.airoad.backend.trip.domain.event.DailyPlanSavedEvent;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationCancelledEvent;
+import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationCompletedEvent;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationErrorEvent;
 
 import static org.assertj.core.api.Assertions.*;
@@ -37,7 +41,7 @@ class TripPlanNotificationListenerTest {
   class HandleDailyPlanSavedTests {
 
     @Test
-    @DisplayName("WebSocket을 통해 일정 생성 채널로 일정 데이터를 전송한다")
+    @DisplayName("WebSocket을 통해 일정 생성 채널과 채팅 채널로 데이터를 전송한다")
     void WebSocket으로_일정_생성_진행_상황_전송() {
       // given
       DailyPlanResponse dailyPlan =
@@ -60,54 +64,64 @@ class TripPlanNotificationListenerTest {
       // when
       tripPlanNotificationListener.handleDailyPlanSaved(event);
 
-      // then
-      ArgumentCaptor<TripPlanProgressMessage> messageCaptor =
+      // then - 일정 채널로 TripPlanProgressMessage 전송 검증
+      ArgumentCaptor<TripPlanProgressMessage> tripMessageCaptor =
           ArgumentCaptor.forClass(TripPlanProgressMessage.class);
       verify(messagingTemplate)
-          .convertAndSendToUser(eq("testUser"), eq("/sub/schedule/100"), messageCaptor.capture());
+          .convertAndSendToUser(
+              eq("testUser"), eq("/sub/schedule/100"), tripMessageCaptor.capture());
 
-      TripPlanProgressMessage message = messageCaptor.getValue();
-      assertThat(message.type())
+      TripPlanProgressMessage tripMessage = tripMessageCaptor.getValue();
+      assertThat(tripMessage.type())
           .isEqualTo(TripPlanProgressMessage.MessageType.DAILY_PLAN_GENERATED);
-      assertThat(message.tripPlanId()).isEqualTo(100L);
-      assertThat(message.dailyPlan()).isEqualTo(dailyPlan);
+      assertThat(tripMessage.tripPlanId()).isEqualTo(100L);
+      assertThat(tripMessage.dailyPlan()).isEqualTo(dailyPlan);
+
+      // then - 채팅 채널로 ChatStreamDto 전송 검증
+      ArgumentCaptor<ChatStreamDto> chatMessageCaptor =
+          ArgumentCaptor.forClass(ChatStreamDto.class);
+      verify(messagingTemplate)
+          .convertAndSendToUser(eq("testUser"), eq("/sub/chat/1"), chatMessageCaptor.capture());
+
+      ChatStreamDto chatMessage = chatMessageCaptor.getValue();
+      assertThat(chatMessage.message()).contains("1일차 일정이 생성되었습니다.");
+      assertThat(chatMessage.isComplete()).isTrue();
+      assertThat(chatMessage.messageStreamType()).isEqualTo(MessageStreamType.DAILY_PLAN_GENERATED);
     }
   }
 
-  //  @Nested
-  //  @DisplayName("전체 일정 생성 완료 이벤트를 수신할 때")
-  //  class HandleTripPlanGenerationCompletedTests {
-  //
-  //    @Test
-  //    @DisplayName("WebSocket을 통해 채팅 채널로 완료 메시지를 전송한다")
-  //    void WebSocket으로_완료_메시지_전송() {
-  //      // given
-  //      String username = "testUser";
-  //
-  //      TripPlanGenerationCompletedEvent event =
-  //          TripPlanGenerationCompletedEvent.builder()
-  //              .chatRoomId(1L)
-  //              .tripPlanId(100L)
-  //              .username(username)
-  //              .message("여행 일정 생성이 완료되었습니다")
-  //              .build();
-  //
-  //      // when
-  //      tripPlanNotificationListener.handleTripPlanGenerationCompleted(event);
-  //
-  //      // then
-  //      ArgumentCaptor<TripPlanProgressMessage> messageCaptor =
-  //          ArgumentCaptor.forClass(TripPlanProgressMessage.class);
-  //      verify(messagingTemplate)
-  //          .convertAndSendToUser(eq("testUser"), eq("/sub/schedule/100"),
-  // messageCaptor.capture());
-  //
-  //      TripPlanProgressMessage message = messageCaptor.getValue();
-  //      assertThat(message.type()).isEqualTo(TripPlanProgressMessage.MessageType.COMPLETED);
-  //      assertThat(message.tripPlanId()).isEqualTo(100L);
-  //      assertThat(message.message()).isEqualTo("여행 일정 생성이 완료되었습니다");
-  //    }
-  //  }
+  @Nested
+  @DisplayName("전체 일정 생성 완료 이벤트를 수신할 때")
+  class HandleTripPlanGenerationCompletedTests {
+
+    @Test
+    @DisplayName("WebSocket을 통해 채팅 채널로 완료 메시지를 전송한다")
+    void WebSocket으로_완료_메시지_전송() {
+      // given
+      String username = "testUser";
+
+      TripPlanGenerationCompletedEvent event =
+          TripPlanGenerationCompletedEvent.builder()
+              .chatRoomId(1L)
+              .tripPlanId(100L)
+              .username(username)
+              .message("여행 일정 생성이 완료되었습니다")
+              .build();
+
+      // when
+      tripPlanNotificationListener.handleTripPlanGenerationCompleted(event);
+
+      // then
+      ArgumentCaptor<ChatStreamDto> messageCaptor = ArgumentCaptor.forClass(ChatStreamDto.class);
+      verify(messagingTemplate)
+          .convertAndSendToUser(eq("testUser"), eq("/sub/chat/1"), messageCaptor.capture());
+
+      ChatStreamDto message = messageCaptor.getValue();
+      assertThat(message.message()).isEqualTo("여행 일정 생성이 완료되었습니다");
+      assertThat(message.isComplete()).isTrue();
+      assertThat(message.messageStreamType()).isEqualTo(MessageStreamType.COMPLETED);
+    }
+  }
 
   @Nested
   @DisplayName("일정 생성 오류 이벤트를 수신할 때")
@@ -131,15 +145,14 @@ class TripPlanNotificationListenerTest {
       tripPlanNotificationListener.handleTripPlanGenerationError(event);
 
       // then
-      ArgumentCaptor<TripPlanProgressMessage> messageCaptor =
-          ArgumentCaptor.forClass(TripPlanProgressMessage.class);
+      ArgumentCaptor<ErrorResponse> messageCaptor = ArgumentCaptor.forClass(ErrorResponse.class);
       verify(messagingTemplate)
           .convertAndSendToUser(eq("testUser"), eq("/sub/errors/1"), messageCaptor.capture());
 
-      TripPlanProgressMessage message = messageCaptor.getValue();
-      assertThat(message.type()).isEqualTo(TripPlanProgressMessage.MessageType.ERROR);
-      assertThat(message.tripPlanId()).isEqualTo(100L);
-      assertThat(message.errorCode()).isEqualTo(AiErrorCode.TRIP_PLAN_GENERATION_ERROR.getCode());
+      ErrorResponse message = messageCaptor.getValue();
+      assertThat(message.message())
+          .isEqualTo(AiErrorCode.TRIP_PLAN_GENERATION_ERROR.getDefaultMessage());
+      assertThat(message.code()).isEqualTo(AiErrorCode.TRIP_PLAN_GENERATION_ERROR.getCode());
     }
   }
 
@@ -165,15 +178,14 @@ class TripPlanNotificationListenerTest {
       tripPlanNotificationListener.handleTripPlanGenerationCancelled(event);
 
       // then
-      ArgumentCaptor<TripPlanProgressMessage> messageCaptor =
-          ArgumentCaptor.forClass(TripPlanProgressMessage.class);
+      ArgumentCaptor<ChatStreamDto> messageCaptor = ArgumentCaptor.forClass(ChatStreamDto.class);
       verify(messagingTemplate)
-          .convertAndSendToUser(eq("testUser"), eq("/sub/schedule/100"), messageCaptor.capture());
+          .convertAndSendToUser(eq("testUser"), eq("/sub/chat/1"), messageCaptor.capture());
 
-      TripPlanProgressMessage message = messageCaptor.getValue();
-      assertThat(message.type()).isEqualTo(TripPlanProgressMessage.MessageType.CANCELLED);
-      assertThat(message.tripPlanId()).isEqualTo(100L);
+      ChatStreamDto message = messageCaptor.getValue();
       assertThat(message.message()).contains("사용자 요청");
+      assertThat(message.isComplete()).isTrue();
+      assertThat(message.messageStreamType()).isEqualTo(MessageStreamType.CANCELLED);
     }
   }
 }

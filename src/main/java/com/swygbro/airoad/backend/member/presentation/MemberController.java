@@ -11,7 +11,6 @@ import com.swygbro.airoad.backend.auth.domain.dto.UserPrincipal;
 import com.swygbro.airoad.backend.common.domain.dto.CommonResponse;
 import com.swygbro.airoad.backend.member.application.MemberUseCase;
 import com.swygbro.airoad.backend.member.domain.dto.MemberResponse;
-import com.swygbro.airoad.backend.member.domain.dto.MemberSimpleResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -53,35 +52,5 @@ public class MemberController {
     MemberResponse memberResponse = memberUseCase.getMemberByEmail(email);
 
     return ResponseEntity.ok(CommonResponse.success(HttpStatus.OK, memberResponse));
-  }
-
-  @Operation(
-      summary = "간단한 사용자 정보 조회",
-      description = "이름과 이메일만 반환하는 간단한 사용자 정보 조회 API입니다.",
-      security = @SecurityRequirement(name = "bearerAuth"))
-  @ApiResponses(
-      value = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "간단한 사용자 정보 제공",
-            content =
-                @Content(
-                    mediaType = "application/json",
-                    schema = @Schema(implementation = MemberSimpleResponse.class)))
-      })
-  @GetMapping(value = "/me/simple")
-  public ResponseEntity<CommonResponse<MemberSimpleResponse>> getSimpleMemberInfo(
-      @AuthenticationPrincipal UserPrincipal userPrincipal) {
-
-    String email = userPrincipal.getUsername();
-
-    MemberResponse memberResponse = memberUseCase.getMemberByEmail(email);
-    MemberSimpleResponse simpleResponse =
-        MemberSimpleResponse.builder()
-            .name(memberResponse.name())
-            .email(memberResponse.email())
-            .build();
-
-    return ResponseEntity.ok(CommonResponse.success(HttpStatus.OK, simpleResponse));
   }
 }

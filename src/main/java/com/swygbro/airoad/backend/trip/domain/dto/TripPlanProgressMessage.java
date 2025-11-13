@@ -29,6 +29,7 @@ public record TripPlanProgressMessage(
 
   /** 메시지 타입 enum */
   public enum MessageType {
+
     /** 일차별 일정 생성 완료 */
     DAILY_PLAN_GENERATED,
     /** 전체 일정 생성 완료 */

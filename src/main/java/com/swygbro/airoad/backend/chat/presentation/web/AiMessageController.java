@@ -9,7 +9,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 
 import com.swygbro.airoad.backend.chat.application.AiMessageService;
-import com.swygbro.airoad.backend.chat.domain.dto.ChatMessageRequest;
+import com.swygbro.airoad.backend.chat.domain.dto.request.ChatMessageRequest;
+import com.swygbro.airoad.backend.chat.domain.dto.response.ChatMessageResponse;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.common.exception.WebSocketErrorCode;
 
@@ -43,8 +44,7 @@ import lombok.extern.slf4j.Slf4j;
  * <ul>
  *   <li><strong>채팅 응답</strong>: {@code /user/sub/chat/{chatRoomId}}
  *   <li><strong>일정 응답</strong>: {@code /user/sub/schedule/{tripPlanId}}
- *   <li><strong>페이로드</strong>: {@link
- *       com.swygbro.airoad.backend.chat.domain.dto.ChatMessageResponse}
+ *   <li><strong>페이로드</strong>: {@link ChatMessageResponse}
  *   <li><strong>설명</strong>: chatRoomId별로 구분된 AI 채팅 응답을 실시간으로 수신 (사용자 email 기반 라우팅)
  * </ul>
  *

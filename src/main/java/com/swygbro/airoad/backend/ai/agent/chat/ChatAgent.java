@@ -1,15 +1,5 @@
 package com.swygbro.airoad.backend.ai.agent.chat;
 
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
-import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
-import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.vectorstore.VectorStore;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Component;
-
 import com.swygbro.airoad.backend.ai.agent.advisor.PromptMetadataAdvisor;
 import com.swygbro.airoad.backend.ai.agent.chat.dto.request.AiChatRequest;
 import com.swygbro.airoad.backend.ai.agent.common.AbstractPromptAgent;
@@ -20,9 +10,15 @@ import com.swygbro.airoad.backend.ai.exception.AiErrorCode;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.content.application.PlaceQueryUseCase;
 import com.swygbro.airoad.backend.trip.application.ScheduledPlaceCommandUseCase;
-import com.swygbro.airoad.backend.trip.application.TripPlanUseCase;
-
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Component;
 
 /**
  * AI 채팅 에이전트
@@ -47,14 +43,13 @@ public class ChatAgent extends AbstractPromptAgent {
       ApplicationEventPublisher eventPublisher,
       PlaceQueryUseCase placeQueryUseCase,
       ScheduledPlaceCommandUseCase scheduledPlaceCommandUseCase,
-      AiPromptTemplateQueryUseCase promptTemplateQueryUseCase,
-      TripPlanUseCase tripPlanUseCase) {
+      AiPromptTemplateQueryUseCase promptTemplateQueryUseCase) {
     super(promptTemplateQueryUseCase);
     this.eventPublisher = eventPublisher;
     this.chatClient =
         ChatClient.builder(chatModel)
             .defaultAdvisors(
-                new SimpleLoggerAdvisor(),
+//                new SimpleLoggerAdvisor(),
                 MessageChatMemoryAdvisor.builder(chatMemory).build(),
                 PromptMetadataAdvisor.builder().build()
                 //                QuestionAnswerAdvisor.builder(vectorStore)

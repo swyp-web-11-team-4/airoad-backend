@@ -59,7 +59,7 @@ public class TripAgent extends AbstractPromptAgent {
     this.chatClient =
         ChatClient.builder(chatModel)
             .defaultAdvisors(
-                new SimpleLoggerAdvisor(),
+//                new SimpleLoggerAdvisor(),
                 PromptMetadataAdvisor.builder()
                     .metadata(PromptMetadataAdvisor.systemMetadata(jsonSchema))
                     .build())

@@ -11,6 +11,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 
 import org.hibernate.annotations.BatchSize;
 
@@ -35,6 +36,7 @@ public class DailyPlan extends BaseEntity {
   /** 예정된 방문 장소 목록 */
   @BatchSize(size = 10)
   @OneToMany(mappedBy = "dailyPlan", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OrderBy("visitOrder asc")
   private List<ScheduledPlace> scheduledPlaces = new ArrayList<>();
 
   /** 일정 날짜 */

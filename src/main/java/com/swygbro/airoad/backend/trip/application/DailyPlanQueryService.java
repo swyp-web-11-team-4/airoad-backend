@@ -35,11 +35,6 @@ public class DailyPlanQueryService implements DailyPlanQueryUseCase {
       throw new BusinessException(TripErrorCode.TRIP_PLAN_FORBIDDEN);
     }
     return dailyPlanRepository.findAllByTripPlanId(tripPlanId).stream()
-        .peek(
-            dailyPlan ->
-                dailyPlan
-                    .getScheduledPlaces()
-                    .sort(Comparator.comparing(ScheduledPlace::getVisitOrder)))
         .map(DailyPlanResponse::of)
         .toList();
   }

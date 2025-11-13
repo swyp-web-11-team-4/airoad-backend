@@ -15,6 +15,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.swygbro.airoad.backend.ai.exception.AiErrorCode;
 import com.swygbro.airoad.backend.chat.domain.dto.response.ChatStreamDto;
+import com.swygbro.airoad.backend.chat.domain.dto.response.MessageStreamType;
 import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
 import com.swygbro.airoad.backend.trip.domain.dto.TripPlanProgressMessage;
 import com.swygbro.airoad.backend.trip.domain.dto.response.DailyPlanResponse;
@@ -85,6 +86,7 @@ class TripPlanNotificationListenerTest {
       ChatStreamDto chatMessage = chatMessageCaptor.getValue();
       assertThat(chatMessage.message()).contains("1일차 일정이 생성되었습니다.");
       assertThat(chatMessage.isComplete()).isTrue();
+      assertThat(chatMessage.messageStreamType()).isEqualTo(MessageStreamType.DAILY_PLAN_GENERATED);
     }
   }
 
@@ -117,6 +119,7 @@ class TripPlanNotificationListenerTest {
       ChatStreamDto message = messageCaptor.getValue();
       assertThat(message.message()).isEqualTo("여행 일정 생성이 완료되었습니다");
       assertThat(message.isComplete()).isTrue();
+      assertThat(message.messageStreamType()).isEqualTo(MessageStreamType.COMPLETED);
     }
   }
 
@@ -182,6 +185,7 @@ class TripPlanNotificationListenerTest {
       ChatStreamDto message = messageCaptor.getValue();
       assertThat(message.message()).contains("사용자 요청");
       assertThat(message.isComplete()).isTrue();
+      assertThat(message.messageStreamType()).isEqualTo(MessageStreamType.CANCELLED);
     }
   }
 }

@@ -20,13 +20,23 @@ public record AiDailyPlanResponse(
         String title,
     @JsonProperty(required = true, value = "description")
         @JsonPropertyDescription(
-            "해당 일차의 요약 설명. 일정 카테고리별로 소개 내용 작성. 카테고리: 오전 일정, 오후 일정, 저녁 일정. 마크다운 문법 사용. 쌍따옴표(\")는 절대 사용하지 마세요, 작은따옴표(') 사용")
+            """
+            해당 일차의 요약 설명으로 다음의 지침을 반드시 준수해서 작성하세요
+            - 일정 카테고리별로 소개 내용 작성
+            - 쌍따옴표(")는 절대 사용하지 마세요
+            - 작은따옴표(') 사용
+            - 다음의 마크다운 템플릿을 반드시 지켜서 작성하세요
+            ```markdown
+            **n일차 - {제목}**
+            - {일정 카테고리}: {장소}
+              {설명}
+
+            {일정 요약}: 2~3줄 분량으로 작성
+            ```
+            """)
         String description,
     @JsonProperty(required = true, value = "places") @JsonPropertyDescription("방문 장소 배열")
-        List<AiScheduledPlaceDto> places,
-    @JsonProperty(required = true, value = "nextQuestions")
-        @JsonPropertyDescription("유저가 질문하면 좋을 법한 질문 추천 목록")
-        List<NextQuestionDto> nextQuestions) {
+        List<AiScheduledPlaceDto> places) {
 
   /** AI가 생성한 방문 장소 DTO */
   public record AiScheduledPlaceDto(

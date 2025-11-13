@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.ai.tool.annotation.Tool;
+import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +23,6 @@ import com.swygbro.airoad.backend.trip.domain.entity.ScheduledPlace;
 import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
 import com.swygbro.airoad.backend.trip.domain.event.DailyPlanSavedEvent;
 import com.swygbro.airoad.backend.trip.exception.TripErrorCode;
-import com.swygbro.airoad.backend.trip.infrastructure.DailyPlanRepository;
 import com.swygbro.airoad.backend.trip.infrastructure.TripPlanRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -30,17 +31,20 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class DailyPlanCommandService implements DailyPlanCommandUseCase {
 
   private final TripPlanRepository tripPlanRepository;
   private final PlaceRepository placeRepository;
   private final ApplicationEventPublisher eventPublisher;
-  private final DailyPlanRepository dailyPlanRepository;
 
   @Override
-  @Transactional
+  @Tool(description = "유저의 일일 일정 계획을 저장합니다")
   public void saveDailyPlan(
-      Long chatRoomId, Long tripPlanId, String username, DailyPlanCreateRequest request) {
+      @ToolParam Long chatRoomId,
+      @ToolParam Long tripPlanId,
+      @ToolParam String username,
+      @ToolParam DailyPlanCreateRequest request) {
     TripPlan tripPlan =
         tripPlanRepository
             .findById(tripPlanId)
@@ -123,4 +127,7 @@ public class DailyPlanCommandService implements DailyPlanCommandUseCase {
         request.dayNumber(),
         savedTripPlan.getIsCompleted());
   }
+
+  @Tool(description = "유저의 일일 일정 계획을 수정합니다")
+  public void updateDailyPlan() {}
 }

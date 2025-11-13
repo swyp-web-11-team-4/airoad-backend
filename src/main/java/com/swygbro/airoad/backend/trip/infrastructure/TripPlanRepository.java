@@ -16,5 +16,14 @@ public interface TripPlanRepository
       "SELECT tp FROM TripPlan tp JOIN FETCH tp.member JOIN FETCH tp.tripThemes WHERE tp.id = :tripPlanId")
   Optional<TripPlan> findByIdWithMember(@Param("tripPlanId") Long tripPlanId);
 
+  @Query(
+      """
+          SELECT tp FROM TripPlan tp
+                     JOIN FETCH tp.member m
+                     LEFT JOIN FETCH tp.dailyPlans dp
+          WHERE tp.id = :tripPlanId
+          """)
+  Optional<TripPlan> findByIdWithDetails(@Param("tripPlanId") Long tripPlanId);
+
   boolean existsByIdAndMemberId(Long id, Long memberId);
 }

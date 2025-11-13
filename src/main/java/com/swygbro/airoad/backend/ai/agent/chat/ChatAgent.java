@@ -2,15 +2,15 @@ package com.swygbro.airoad.backend.ai.agent.chat;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
-import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
+import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
+import com.swygbro.airoad.backend.ai.agent.advisor.PromptMetadataAdvisor;
 import com.swygbro.airoad.backend.ai.agent.chat.dto.request.AiChatRequest;
 import com.swygbro.airoad.backend.ai.agent.common.AbstractPromptAgent;
 import com.swygbro.airoad.backend.ai.application.query.AiPromptTemplateQueryUseCase;
@@ -19,6 +19,8 @@ import com.swygbro.airoad.backend.ai.domain.event.AiMessageGeneratedEvent;
 import com.swygbro.airoad.backend.ai.exception.AiErrorCode;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.content.application.PlaceQueryUseCase;
+import com.swygbro.airoad.backend.trip.application.ScheduledPlaceCommandUseCase;
+import com.swygbro.airoad.backend.trip.application.TripPlanUseCase;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,18 +46,24 @@ public class ChatAgent extends AbstractPromptAgent {
       ChatMemory chatMemory,
       ApplicationEventPublisher eventPublisher,
       PlaceQueryUseCase placeQueryUseCase,
-      AiPromptTemplateQueryUseCase promptTemplateQueryUseCase) {
+      ScheduledPlaceCommandUseCase scheduledPlaceCommandUseCase,
+      AiPromptTemplateQueryUseCase promptTemplateQueryUseCase,
+      TripPlanUseCase tripPlanUseCase) {
     super(promptTemplateQueryUseCase);
     this.eventPublisher = eventPublisher;
     this.chatClient =
         ChatClient.builder(chatModel)
             .defaultAdvisors(
+                new SimpleLoggerAdvisor(),
                 MessageChatMemoryAdvisor.builder(chatMemory).build(),
-                QuestionAnswerAdvisor.builder(vectorStore)
-                    .searchRequest(
-                        SearchRequest.builder().similarityThreshold(0.5d).topK(5).build())
-                    .build())
-            .defaultTools(placeQueryUseCase)
+                PromptMetadataAdvisor.builder().build()
+                //                QuestionAnswerAdvisor.builder(vectorStore)
+                //                    .searchRequest(
+                //
+                // SearchRequest.builder().similarityThreshold(0.5d).topK(5).build())
+                //                    .build()
+                )
+            .defaultTools(placeQueryUseCase, scheduledPlaceCommandUseCase)
             .build();
   }
 
@@ -81,7 +89,22 @@ public class ChatAgent extends AbstractPromptAgent {
               .prompt()
               .system(systemPrompt)
               .user(request.userPrompt())
-              .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, request.chatRoomId().toString()))
+              .advisors(
+                  a ->
+                      a.param(ChatMemory.CONVERSATION_ID, request.chatRoomId())
+                          .param(
+                              PromptMetadataAdvisor.METADATA_KEY,
+                              PromptMetadataAdvisor.userMetadata(
+                                  """
+                          ### 채팅방 정보
+                          chatRoomId: %s
+                          tripPlanId: %s
+                          username: %s
+                          """
+                                      .formatted(
+                                          request.chatRoomId(),
+                                          request.tripPlanId(),
+                                          request.username()))))
               .call()
               .content();
 

@@ -7,7 +7,9 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
@@ -46,15 +48,18 @@ public class TripAgent extends AbstractPromptAgent {
 
   public TripAgent(
       ApplicationEventPublisher eventPublisher,
-      ChatModel chatModel,
+      @Qualifier("upstageChatModel") ChatModel chatModel,
       PlaceQueryUseCase placeQueryUseCase,
       AiPromptTemplateQueryUseCase promptTemplateQueryUseCase) {
     super(promptTemplateQueryUseCase);
+
     String jsonSchema = outputConverter.getFormat();
+
     this.eventPublisher = eventPublisher;
     this.chatClient =
         ChatClient.builder(chatModel)
             .defaultAdvisors(
+                new SimpleLoggerAdvisor(),
                 PromptMetadataAdvisor.builder()
                     .metadata(PromptMetadataAdvisor.systemMetadata(jsonSchema))
                     .build())

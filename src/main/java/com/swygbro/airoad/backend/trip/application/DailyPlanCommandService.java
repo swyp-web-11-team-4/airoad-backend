@@ -127,7 +127,4 @@ public class DailyPlanCommandService implements DailyPlanCommandUseCase {
         request.dayNumber(),
         savedTripPlan.getIsCompleted());
   }
-
-  @Tool(description = "유저의 일일 일정 계획을 수정합니다")
-  public void updateDailyPlan() {}
 }

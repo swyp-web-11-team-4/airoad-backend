@@ -20,7 +20,7 @@ import lombok.Builder;
  */
 @Builder
 public record DailyPlanCreateRequest(
-    @ToolParam(description = "일차 \\(1일차, 2일차, ...\\)") Integer dayNumber,
+    @ToolParam(description = "일차 (1일차, 2일차, ...)") Integer dayNumber,
     @ToolParam(description = "해당 날짜") LocalDate date,
     @ToolParam(description = "일정 제목") String title,
     @ToolParam(description = "일정 설명") String description,

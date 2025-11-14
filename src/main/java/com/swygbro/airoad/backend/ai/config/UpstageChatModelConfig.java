@@ -28,7 +28,8 @@ public class UpstageChatModelConfig {
 
     return OpenAiChatModel.builder()
         .openAiApi(openAiApi)
-        .defaultOptions(OpenAiChatOptions.builder().model(model).build())
+        .defaultOptions(
+            OpenAiChatOptions.builder().model(model).temperature(0.3d).maxTokens(1500).build())
         .build();
   }
 }

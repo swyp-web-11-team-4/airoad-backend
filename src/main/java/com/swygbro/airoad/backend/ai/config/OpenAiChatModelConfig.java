@@ -23,12 +23,13 @@ public class OpenAiChatModelConfig {
   private String model;
 
   @Bean("openAiChatModel")
-  public OpenAiChatModel upstageChatModel() {
+  public OpenAiChatModel openAiChatModel() {
     OpenAiApi openAiApi = OpenAiApi.builder().apiKey(apiKey).baseUrl(baseUrl).build();
 
     return OpenAiChatModel.builder()
         .openAiApi(openAiApi)
-        .defaultOptions(OpenAiChatOptions.builder().model(model).build())
+        .defaultOptions(
+            OpenAiChatOptions.builder().model(model).temperature(0.3d).maxTokens(1500).build())
         .build();
   }
 }

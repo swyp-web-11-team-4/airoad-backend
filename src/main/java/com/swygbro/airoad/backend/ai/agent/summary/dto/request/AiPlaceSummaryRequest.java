@@ -6,4 +6,10 @@ import lombok.Builder;
 
 @Builder
 public record AiPlaceSummaryRequest(
-    Long placeId, String name, String address, String description, List<String> themes) {}
+    Long placeId,
+    String name,
+    String address,
+    String description,
+    String operatingHours,
+    String holidayInfo,
+    List<String> themes) {}

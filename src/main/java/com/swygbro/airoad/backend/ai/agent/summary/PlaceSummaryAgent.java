@@ -47,7 +47,7 @@ public class PlaceSummaryAgent implements AiroadAgent {
 
   public PlaceSummaryAgent(
       ApplicationEventPublisher eventPublisher,
-      @Qualifier("naverChatModel") OpenAiChatModel upstageChatModel,
+      @Qualifier("openAiChatModel") OpenAiChatModel upstageChatModel,
       ContextManager contextManager) {
     this.eventPublisher = eventPublisher;
     this.contextManager = contextManager;

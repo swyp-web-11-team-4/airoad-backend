@@ -40,7 +40,7 @@ public class TripAgent implements AiroadAgent {
 
   public TripAgent(
       ApplicationEventPublisher eventPublisher,
-      @Qualifier("upstageChatModel") ChatModel chatModel,
+      @Qualifier("openAiChatModel") ChatModel chatModel,
       ContextManager contextManager) {
 
     this.eventPublisher = eventPublisher;

@@ -48,7 +48,7 @@ public class ChatAgent implements AiroadAgent {
   private final ContextManager contextManager;
 
   public ChatAgent(
-      @Qualifier("upstageChatModel") ChatModel chatModel,
+      @Qualifier("openAiChatModel") ChatModel chatModel,
       VectorStore vectorStore,
       ChatMemory chatMemory,
       ApplicationEventPublisher eventPublisher,

@@ -11,6 +11,9 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
+
+import org.hibernate.annotations.BatchSize;
 
 import com.swygbro.airoad.backend.common.domain.entity.BaseEntity;
 
@@ -31,7 +34,9 @@ public class DailyPlan extends BaseEntity {
   private TripPlan tripPlan;
 
   /** 예정된 방문 장소 목록 */
+  @BatchSize(size = 10)
   @OneToMany(mappedBy = "dailyPlan", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OrderBy("visitOrder asc")
   private List<ScheduledPlace> scheduledPlaces = new ArrayList<>();
 
   /** 일정 날짜 */
@@ -69,6 +74,18 @@ public class DailyPlan extends BaseEntity {
   public void addScheduledPlace(ScheduledPlace scheduledPlace) {
     this.scheduledPlaces.add(scheduledPlace);
     scheduledPlace.setDailyPlan(this);
+  }
+
+  /**
+   * 방문 장소를 일정에서 제거합니다.
+   *
+   * <p>orphanRemoval = true 옵션에 의해 DB에서도 삭제됩니다.
+   *
+   * @param scheduledPlace 제거할 방문 장소
+   */
+  public void removeScheduledPlace(ScheduledPlace scheduledPlace) {
+    this.scheduledPlaces.remove(scheduledPlace);
+    scheduledPlace.setDailyPlan(null);
   }
 
   /**

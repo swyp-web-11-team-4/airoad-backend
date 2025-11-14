@@ -38,7 +38,7 @@ class CustomChatMemoryRepositoryDialect implements JdbcChatMemoryRepositoryDiale
             FROM ai_message AS m
             INNER JOIN ai_conversation AS c ON m.conversation_id = c.id
             WHERE c.id = CAST(? AS BIGINT)
-            ORDER BY m.created_at ASC
+            ORDER BY m.created_at
             """;
   }
 
@@ -63,7 +63,7 @@ class CustomChatMemoryRepositoryDialect implements JdbcChatMemoryRepositoryDiale
     return """
             SELECT DISTINCT CAST(id AS VARCHAR) AS conversation_id
             FROM ai_conversation
-            ORDER BY created_at DESC
+            ORDER BY created_at
             """;
   }
 

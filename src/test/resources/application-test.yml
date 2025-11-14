@@ -45,6 +45,11 @@ spring:
       secret-key: test-tokens-token-secret-key-for-testing-purposes-only
       access-token-validity: 1000 # 10초
       refresh-token-validity: 300000 # 5분
+  ai:
+    openai:
+      api-key: test-openai-api-key
+    upstage:
+      api-key: test-upstage-api-key
 
   autoconfigure:
     exclude:

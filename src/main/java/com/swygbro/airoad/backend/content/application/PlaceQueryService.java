@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.swygbro.airoad.backend.content.domain.dto.response.PlaceResponse;
@@ -25,7 +27,12 @@ public class PlaceQueryService implements PlaceQueryUseCase {
   private final PlaceRepository placeRepository;
 
   @Override
-  @Tool(description = "주소와 테마를 기반으로 장소를 랜덤으로 조회합니다")
+  @Tool(
+      description =
+          """
+              특정 지역과 테마 내에서 장소를 랜덤으로 추천합니다.
+              사용자가 '어디 갈지 추천해줘'처럼 구체적인 장소 없이 막연하게 요청할 때, 혹은 새로운 장소를 발견하고 싶어할 때 사용하세요.
+              """)
   public List<PlaceResponse> findRandomPlaces(
       @ToolParam(
               description =
@@ -41,15 +48,15 @@ public class PlaceQueryService implements PlaceQueryUseCase {
       @ToolParam(
               description =
                   """
-              장소 테마 목록
-              - FAMOUS_SPOT: 유명 관광지
-              - HEALING: 힐링
-              - SNS_HOTSPOT: sns 핫플
-              - EXPERIENCE_ACTIVITY: 체험 액티비티
-              - CULTURE_ART: 문화/예술
-              - SHOPPING: 쇼핑
-              - RESTAURANT: 음식점
-              """,
+                  장소 테마 목록
+                  - FAMOUS_SPOT: 유명 관광지
+                  - HEALING: 힐링
+                  - SNS_HOTSPOT: sns 핫플
+                  - EXPERIENCE_ACTIVITY: 체험 액티비티
+                  - CULTURE_ART: 문화/예술
+                  - SHOPPING: 쇼핑
+                  - RESTAURANT: 음식점
+                  """,
               required = false)
           List<PlaceThemeType> themes,
       @ToolParam(description = "추천할 장소 개수") int limit) {
@@ -82,5 +89,27 @@ public class PlaceQueryService implements PlaceQueryUseCase {
         "랜덤 장소 조회 완료 - address: {}, themes: {}, 반환 개수: {}", address, themes, responses.size());
 
     return responses;
+  }
+
+  @Override
+  @Tool(
+      description =
+          """
+              이름, 주소, 테마 등 특정 조건으로 장소를 검색합니다.
+              사용자가 'A라는 카페 정보 알려줘' 또는 'B동에 있는 맛집 찾아줘'처럼 명확한 검색 의도를 가지고 질문할 때 사용하세요.
+              """)
+  public List<PlaceResponse> findPlaceDetails(
+      @ToolParam(description = "장소 이름 (부분 일치 가능)") String name,
+      @ToolParam(description = "장소 주소 (부분 일치 가능)") String address,
+      @ToolParam(description = "조회할 사이즈") int size) {
+    if (size <= 0) {
+      throw new IllegalArgumentException("size must be greater than 0");
+    }
+
+    PageRequest pageRequest = PageRequest.of(0, size);
+
+    Page<Place> page = placeRepository.findByNameAndAddress(name, address, pageRequest);
+
+    return page.getContent().stream().map(PlaceResponse::of).toList();
   }
 }

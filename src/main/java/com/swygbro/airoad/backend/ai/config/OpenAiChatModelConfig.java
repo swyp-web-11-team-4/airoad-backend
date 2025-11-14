@@ -11,18 +11,18 @@ import lombok.RequiredArgsConstructor;
 
 @Configuration
 @RequiredArgsConstructor
-public class UpstageChatModelConfig {
+public class OpenAiChatModelConfig {
 
-  @Value("${spring.ai.upstage.api-key}")
+  @Value("${spring.ai.openai.api-key}")
   private String apiKey;
 
-  @Value("${spring.ai.upstage.base-url}")
+  @Value("${spring.ai.openai.base-url}")
   private String baseUrl;
 
-  @Value("${spring.ai.upstage.chat.options.model}")
+  @Value("${spring.ai.openai.chat.options.model}")
   private String model;
 
-  @Bean("upstageChatModel")
+  @Bean("openAiChatModel")
   public OpenAiChatModel upstageChatModel() {
     OpenAiApi openAiApi = OpenAiApi.builder().apiKey(apiKey).baseUrl(baseUrl).build();
 

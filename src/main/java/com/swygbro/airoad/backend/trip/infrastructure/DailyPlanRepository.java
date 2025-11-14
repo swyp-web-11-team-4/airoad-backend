@@ -18,6 +18,6 @@ public interface DailyPlanRepository extends JpaRepository<DailyPlan, Long> {
   void deleteByTripPlanId(@Param("tripPlanId") Long tripPlanId);
 
   @Query(
-      "SELECT DISTINCT dp FROM DailyPlan dp LEFT JOIN FETCH dp.scheduledPlaces WHERE dp.tripPlan.id = :tripPlanId ORDER BY dp.dayNumber asc")
+      "SELECT DISTINCT dp FROM DailyPlan dp LEFT JOIN FETCH dp.scheduledPlaces as sp WHERE dp.tripPlan.id = :tripPlanId ORDER BY dp.dayNumber asc")
   List<DailyPlan> findAllByTripPlanId(@Param("tripPlanId") Long tripPlanId);
 }

@@ -67,6 +67,19 @@ public class ScheduledPlace extends BaseEntity {
     this.travelSegment = travelSegment;
   }
 
+  public void update(
+      Integer visitOrder,
+      ScheduledCategory category,
+      LocalTime startTime,
+      LocalTime endTime,
+      TravelSegment travelSegment) {
+    this.visitOrder = visitOrder;
+    this.category = category;
+    this.startTime = startTime;
+    this.endTime = endTime;
+    this.travelSegment = travelSegment;
+  }
+
   /**
    * DailyPlan과의 양방향 관계 설정을 위한 메서드입니다.
    *

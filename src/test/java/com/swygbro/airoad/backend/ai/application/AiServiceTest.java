@@ -11,7 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
 
-import com.swygbro.airoad.backend.ai.agent.common.AiroadAgent;
+import com.swygbro.airoad.backend.ai.common.agent.AiroadAgent;
 import com.swygbro.airoad.backend.ai.domain.entity.AgentType;
 import com.swygbro.airoad.backend.ai.exception.AiErrorCode;
 import com.swygbro.airoad.backend.common.exception.BusinessException;

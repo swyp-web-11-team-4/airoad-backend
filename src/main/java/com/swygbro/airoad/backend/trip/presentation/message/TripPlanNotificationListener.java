@@ -160,7 +160,7 @@ public class TripPlanNotificationListener {
             .build();
     ChatStreamDto chatMessage =
         ChatStreamDto.of(
-            event.dailyPlan().dayNumber() + "일차 일정이 수정되었습니다.", true, MessageStreamType.UPDATED);
+                event.dailyPlan().description(), true, MessageStreamType.UPDATED);
 
     String tripDestination = "/sub/schedule/" + event.tripPlanId();
     String chatDestination = "/sub/chat/" + event.chatRoomId();

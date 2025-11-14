@@ -1,3 +1,15 @@
+# [0.25.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.24.1...v0.25.0) (2025-11-14)
+
+
+### Bug Fixes
+
+* 일정 수정 완료 채팅 메시지를 AI 생성 요약으로 변경 ([b88013b](https://github.com/swyp-web-11-team-4/airoad-backend/commit/b88013b2c8af080482ba6ca65d5fcfbf1545b57a))
+
+
+### Features
+
+* 일정 수정 이벤트 및 WebSocket 리스너 추가 ([5e12fc6](https://github.com/swyp-web-11-team-4/airoad-backend/commit/5e12fc67786fd359969ae4dd0459c59a9dd2f8a9))
+
 ## [0.24.1](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.24.0...v0.24.1) (2025-11-14)
 
 

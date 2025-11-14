@@ -46,10 +46,7 @@ public class TripPlanNotificationListener {
             .message(event.dailyPlan().dayNumber() + "일차 일정이 생성되었습니다.")
             .build();
     ChatStreamDto chatMessage =
-        ChatStreamDto.of(
-            event.dailyPlan().dayNumber() + "일차 일정이 생성되었습니다.",
-            true,
-            MessageStreamType.DAILY_PLAN_GENERATED);
+        ChatStreamDto.of(event.dailyPlan().description(), true, MessageStreamType.CHAT);
 
     String tripDestination = "/sub/schedule/" + event.tripPlanId();
     String chatDestination = "/sub/chat/" + event.chatRoomId();

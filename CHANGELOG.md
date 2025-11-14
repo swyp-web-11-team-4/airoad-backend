@@ -1,3 +1,10 @@
+## [0.24.1](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.24.0...v0.24.1) (2025-11-14)
+
+
+### Bug Fixes
+
+* 일일 일정 요약 메시지 내용을 AI가 생성한 일정 요약으로 변경 ([#73](https://github.com/swyp-web-11-team-4/airoad-backend/issues/73)) ([04c91ca](https://github.com/swyp-web-11-team-4/airoad-backend/commit/04c91ca63cb0141c6109cd50f375abdab6f1aa92))
+
 # [0.24.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.23.0...v0.24.0) (2025-11-14)
 
 

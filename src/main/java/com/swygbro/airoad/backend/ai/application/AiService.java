@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.swygbro.airoad.backend.ai.agent.common.AiroadAgent;
+import com.swygbro.airoad.backend.ai.common.agent.AiroadAgent;
 import com.swygbro.airoad.backend.ai.domain.entity.AgentType;
 import com.swygbro.airoad.backend.ai.exception.AiErrorCode;
 import com.swygbro.airoad.backend.common.exception.BusinessException;

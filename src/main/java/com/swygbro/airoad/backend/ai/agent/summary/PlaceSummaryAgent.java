@@ -1,16 +1,20 @@
 package com.swygbro.airoad.backend.ai.agent.summary;
 
+import java.util.List;
+
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import com.swygbro.airoad.backend.ai.agent.advisor.PromptMetadataAdvisor;
-import com.swygbro.airoad.backend.ai.agent.common.AbstractPromptAgent;
-import com.swygbro.airoad.backend.ai.agent.summary.dto.PlaceSummaryAiResponse;
 import com.swygbro.airoad.backend.ai.agent.summary.dto.request.AiPlaceSummaryRequest;
-import com.swygbro.airoad.backend.ai.application.query.AiPromptTemplateQueryUseCase;
+import com.swygbro.airoad.backend.ai.agent.summary.dto.response.PlaceSummaryAiResponse;
+import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor;
+import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor.MetadataEntry;
+import com.swygbro.airoad.backend.ai.common.agent.AiroadAgent;
+import com.swygbro.airoad.backend.ai.common.context.ContextManager;
+import com.swygbro.airoad.backend.ai.domain.dto.context.PlaceQueryContext;
 import com.swygbro.airoad.backend.ai.domain.entity.AgentType;
 import com.swygbro.airoad.backend.ai.domain.event.PlaceSummaryGeneratedEvent;
 import com.swygbro.airoad.backend.ai.exception.AiErrorCode;
@@ -33,19 +37,20 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Component
-public class PlaceSummaryAgent extends AbstractPromptAgent {
+public class PlaceSummaryAgent implements AiroadAgent {
 
   private final AgentType agentType = AgentType.PLACE_SUMMARY_AGENT;
 
   private final ChatClient chatClient;
   private final ApplicationEventPublisher eventPublisher;
+  private final ContextManager contextManager;
 
   public PlaceSummaryAgent(
       ApplicationEventPublisher eventPublisher,
-      @Qualifier("upstageChatModel") OpenAiChatModel upstageChatModel,
-      AiPromptTemplateQueryUseCase promptTemplateQueryUseCase) {
-    super(promptTemplateQueryUseCase);
+      @Qualifier("openAiChatModel") OpenAiChatModel upstageChatModel,
+      ContextManager contextManager) {
     this.eventPublisher = eventPublisher;
+    this.contextManager = contextManager;
     this.chatClient =
         ChatClient.builder(upstageChatModel)
             .defaultAdvisors(PromptMetadataAdvisor.builder().build())
@@ -87,30 +92,23 @@ public class PlaceSummaryAgent extends AbstractPromptAgent {
   }
 
   private PlaceSummaryAiResponse generateSummary(AiPlaceSummaryRequest request) {
-    PromptPair prompts = findActivePromptPair(agentType);
+    PlaceQueryContext placeQueryContext =
+        PlaceQueryContext.builder()
+            .name(request.name())
+            .address(request.address())
+            .description(request.description())
+            .operatingHours(request.operatingHours())
+            .holidayInfo(request.holidayInfo())
+            .themes(request.themes())
+            .build();
 
-    String userPrompt =
-        prompts
-            .userPrompt()
-            .replace("{name}", request.name())
-            .replace("{address}", request.address())
-            .replace("{description}", request.description() != null ? request.description() : "")
-            .replace("{themes}", String.join(", ", request.themes()));
+    List<MetadataEntry> contextMetadata =
+        contextManager.buildContext(AgentType.PLACE_SUMMARY_AGENT, placeQueryContext);
 
     PlaceSummaryAiResponse response =
         chatClient
             .prompt()
-            .system(prompts.systemPrompt())
-            .advisors(
-                a ->
-                    a.param(
-                        PromptMetadataAdvisor.METADATA_KEY,
-                        PromptMetadataAdvisor.userMetadata(
-                            """
-                        ## 장소 정보
-                        %s
-                        """
-                                .formatted(userPrompt))))
+            .advisors(a -> a.param(PromptMetadataAdvisor.METADATA_KEY, contextMetadata))
             .call()
             .entity(PlaceSummaryAiResponse.class);
 

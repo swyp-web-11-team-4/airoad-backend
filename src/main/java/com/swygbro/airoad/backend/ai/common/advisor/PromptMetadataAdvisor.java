@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.ai.agent.advisor;
+package com.swygbro.airoad.backend.ai.common.advisor;
 
 import java.util.ArrayList;
 import java.util.Arrays;

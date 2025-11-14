@@ -21,18 +21,30 @@ public record AiDailyPlanResponse(
     @JsonProperty(required = true, value = "description")
         @JsonPropertyDescription(
             """
-            해당 일차의 요약 설명으로 다음의 지침을 반드시 준수해서 작성하세요
-            - 일정 카테고리별로 소개 내용 작성
-            - 쌍따옴표(")는 절대 사용하지 마세요
-            - 작은따옴표(') 사용
-            - 다음의 마크다운 템플릿을 반드시 지켜서 작성하세요
-            ```markdown
+            해당 일차의 요약 설명입니다. 마크다운 형식으로 작성하되 다음 규칙을 준수하세요:
+            1. 쌍따옴표(") 사용 금지, 작은따옴표(') 사용
+            2. 아래 형식으로 작성:
+
             **n일차 - {제목}**
-            - {일정 카테고리}: {장소}
+            - **{일정 카테고리}**: {장소}
+              {설명}
+            - **{일정 카테고리}**: {장소}
+              {설명}
+            - **{일정 카테고리}**: {장소}
               {설명}
 
-            {일정 요약}: 2~3줄 분량으로 작성
-            ```
+            {일정 요약}: Optional
+
+            예시:
+            **1일차 - 제주 동부 해안 탐방**
+            - **오전 일정**: 성산일출봉
+              제주를 대표하는 일출 명소로, 유네스코 세계자연유산입니다. 정상까지 약 30분 소요됩니다.
+            - **오후 일정**: 섭지코지
+              드라마 촬영지로 유명한 아름다운 해안가입니다. 카페에서 바다를 바라보며 휴식을 취할 수 있습니다.
+            - **저녁 일정**: 성산 해녀의집
+              신선한 해산물 정식을 맛볼 수 있는 현지 맛집입니다.
+
+            제주의 동부 해안을 따라 자연 경관을 감상하며 여유로운 하루를 보냅니다.
             """)
         String description,
     @JsonProperty(required = true, value = "places") @JsonPropertyDescription("방문 장소 배열")
@@ -46,7 +58,9 @@ public record AiDailyPlanResponse(
       @JsonProperty(required = true, value = "visitOrder")
           @JsonPropertyDescription("일정 방문 순서 (1부터 시작)")
           int visitOrder,
-      @JsonProperty(required = true, value = "category") @JsonPropertyDescription("일정 카테고리")
+      @JsonProperty(required = true, value = "category")
+          @JsonPropertyDescription(
+              "일정 카테고리. 반드시 다음 중 하나만 사용: MORNING(오전 일정, 아침~점심 전), AFTERNOON(오후 일정, 점심~저녁 전), EVENING(저녁 일정, 저녁~밤). 점심 식사 - `AFTERNOON`, 저녁 식사 - `EVENING` 으로 분류")
           ScheduledCategory category,
       @JsonProperty(required = true, value = "startTime")
           @JsonPropertyDescription("일정 시작 시간. 'HH:mm' 형식 (예: 09:00, 13:30)")

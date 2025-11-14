@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import com.swygbro.airoad.backend.ai.agent.trip.dto.request.AiDailyPlanRequest;
 import com.swygbro.airoad.backend.ai.application.AiUseCase;
 import com.swygbro.airoad.backend.ai.domain.entity.AgentType;
+import com.swygbro.airoad.backend.trip.domain.entity.Transportation;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationRequestedEvent;
 
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,7 @@ public class TripPlanGenerationListener {
             .duration(event.request().duration())
             .region(event.request().region())
             .peopleCount(event.request().peopleCount())
+            .transportation(Transportation.PUBLIC_TRANSIT)
             .build();
 
     aiUseCase.agentCall(AgentType.TRIP_AGENT, request);

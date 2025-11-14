@@ -29,6 +29,8 @@ public class PlaceSummaryGenerationListener {
             .name(event.name())
             .address(event.address())
             .description(event.description())
+            .operatingHours(event.operatingHours())
+            .holidayInfo(event.holidayInfo())
             .themes(event.themes())
             .build();
 

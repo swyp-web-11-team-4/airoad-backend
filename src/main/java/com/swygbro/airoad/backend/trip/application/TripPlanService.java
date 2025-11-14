@@ -174,8 +174,22 @@ public class TripPlanService implements TripPlanUseCase {
     LocalDate endDate = request.startDate().plusDays(request.duration() - 1);
 
     // TripPlanTitle
-    String title =
-        request.region() + " " + request.duration() + "박 " + (request.duration() + 1) + "일 여행";
+    StringBuilder stringBuilder = new StringBuilder();
+    stringBuilder.append(request.region());
+
+    if (request.duration() <= 1) {
+      stringBuilder.append(" ").append("당일치기 여행");
+    } else {
+      stringBuilder
+          .append(" ")
+          .append(request.duration() - 1)
+          .append("박 ")
+          .append(request.duration())
+          .append("일 여행");
+    }
+
+    String title = stringBuilder.toString();
+
     // TripPlan 생성
     TripPlan tripPlan =
         TripPlan.builder()

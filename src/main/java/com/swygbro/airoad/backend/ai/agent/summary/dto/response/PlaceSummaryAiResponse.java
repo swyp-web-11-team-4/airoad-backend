@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.ai.agent.summary.dto;
+package com.swygbro.airoad.backend.ai.agent.summary.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 

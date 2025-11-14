@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.ai.agent.common;
+package com.swygbro.airoad.backend.ai.common.agent;
 
 import com.swygbro.airoad.backend.ai.domain.entity.AgentType;
 

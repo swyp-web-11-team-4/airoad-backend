@@ -1,3 +1,10 @@
+# [0.22.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.21.0...v0.22.0) (2025-11-14)
+
+
+### Features
+
+* ai 일정 채팅 기능을 위한 툴 추가 ([#68](https://github.com/swyp-web-11-team-4/airoad-backend/issues/68)) ([5b464d6](https://github.com/swyp-web-11-team-4/airoad-backend/commit/5b464d6518dc91c246b67c0cebc8fd7e12bce7d7))
+
 # [0.21.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.20.0...v0.21.0) (2025-11-13)
 
 

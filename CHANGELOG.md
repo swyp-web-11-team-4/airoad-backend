@@ -1,3 +1,10 @@
+# [0.23.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.22.0...v0.23.0) (2025-11-14)
+
+
+### Features
+
+* AI 컨텍스트 관리 및 RAG 개선 ([#70](https://github.com/swyp-web-11-team-4/airoad-backend/issues/70)) ([8f14ed4](https://github.com/swyp-web-11-team-4/airoad-backend/commit/8f14ed483495ff8301ec71742c07b63a0ea19c0c))
+
 # [0.22.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.21.0...v0.22.0) (2025-11-14)
 
 

@@ -15,6 +15,7 @@ import com.swygbro.airoad.backend.trip.domain.entity.DailyPlan;
 import com.swygbro.airoad.backend.trip.domain.entity.ScheduledPlace;
 import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
 import com.swygbro.airoad.backend.trip.exception.TripErrorCode;
+import com.swygbro.airoad.backend.trip.infrastructure.ScheduledPlaceRepository;
 import com.swygbro.airoad.backend.trip.infrastructure.TripPlanRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class ScheduledPlaceCommandService implements ScheduledPlaceCommandUseCas
 
   private final TripPlanRepository tripPlanRepository;
   private final PlaceRepository placeRepository;
+  private final ScheduledPlaceRepository scheduledPlaceRepository;
 
   @Override
   @Tool(
@@ -143,6 +145,24 @@ public class ScheduledPlaceCommandService implements ScheduledPlaceCommandUseCas
         tripPlanId,
         dayNumber,
         visitOrder);
+  }
+
+  @Override
+  public boolean validateScheduledPlace(String username, Long scheduledPlaceId) {
+    log.debug(
+        "[검증] validateScheduledPlace - username: {}, scheduledPlaceId: {}",
+        username,
+        scheduledPlaceId);
+
+    boolean isOwner = scheduledPlaceRepository.existsByIdAndOwner(scheduledPlaceId, username);
+
+    if (!isOwner) {
+      log.warn("[검증 실패] 사용자 {}는 scheduledPlaceId {}에 대한 권한이 없습니다", username, scheduledPlaceId);
+      throw new BusinessException(TripErrorCode.SCHEDULED_PLACE_NOT_FOUND);
+    }
+
+    log.debug("[검증 성공] scheduledPlaceId {}는 사용자 {}의 소유입니다", scheduledPlaceId, username);
+    return true;
   }
 
   private DailyPlan validateAndGetDailyPlan(Long tripPlanId, String username, Integer dayNumber) {

@@ -15,4 +15,17 @@ public interface ScheduledPlaceRepository extends JpaRepository<ScheduledPlace, 
   @Query(
       "DELETE FROM ScheduledPlace sp WHERE sp.dailyPlan.id IN (SELECT dp.id FROM DailyPlan dp WHERE dp.tripPlan.id = :tripPlanId)")
   void deleteByTripPlanId(@Param("tripPlanId") Long tripPlanId);
+
+  @Query(
+      """
+      SELECT CASE WHEN COUNT(sp) > 0 THEN true ELSE false END
+      FROM ScheduledPlace sp
+      JOIN sp.dailyPlan dp
+      JOIN dp.tripPlan tp
+      JOIN tp.member m
+      WHERE sp.id = :scheduledPlaceId
+      AND m.email = :username
+      """)
+  boolean existsByIdAndOwner(
+      @Param("scheduledPlaceId") Long scheduledPlaceId, @Param("username") String username);
 }

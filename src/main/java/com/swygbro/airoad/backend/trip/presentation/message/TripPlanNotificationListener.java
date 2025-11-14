@@ -12,6 +12,8 @@ import com.swygbro.airoad.backend.trip.domain.event.DailyPlanSavedEvent;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationCancelledEvent;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationCompletedEvent;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationErrorEvent;
+import com.swygbro.airoad.backend.trip.domain.event.TripPlanUpdateStartedEvent;
+import com.swygbro.airoad.backend.trip.domain.event.TripPlanUpdatedEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -113,6 +115,60 @@ public class TripPlanNotificationListener {
 
     String destination = "/sub/chat/" + event.chatRoomId();
     sendToUser(event.username(), destination, message);
+  }
+
+  /**
+   * 일정 수정 시작 이벤트를 처리합니다.
+   *
+   * <p>WebSocket을 통해 일정 채널로 수정 시작 메시지를 전송합니다.
+   *
+   * @param event 일정 수정 시작 이벤트
+   */
+  @EventListener
+  public void handleTripPlanUpdateStarted(TripPlanUpdateStartedEvent event) {
+    log.info("일정 수정 시작 - tripPlanId: {}, message: {}", event.tripPlanId(), event.message());
+
+    TripPlanProgressMessage tripMessage =
+        TripPlanProgressMessage.builder()
+            .type(TripPlanProgressMessage.MessageType.UPDATE_STARTED)
+            .tripPlanId(event.tripPlanId())
+            .message(event.message())
+            .build();
+
+    String destination = "/sub/schedule/" + event.tripPlanId();
+    sendToUser(event.username(), destination, tripMessage);
+  }
+
+  /**
+   * 일정 수정 완료 이벤트를 처리합니다.
+   *
+   * <p>WebSocket을 통해 일정 채널과 채팅 채널로 수정된 일정 데이터를 전송합니다. 일정 채널(/sub/schedule/{tripPlanId})에는 수정된 일정
+   * 데이터를, 채팅 채널(/sub/chat/{chatRoomId})에는 완료 메시지를 전송합니다.
+   *
+   * @param event 일정 수정 완료 이벤트
+   */
+  @EventListener
+  public void handleTripPlanUpdated(TripPlanUpdatedEvent event) {
+    log.info(
+        "일정 수정 완료 - tripPlanId: {}, dayNumber: {}",
+        event.tripPlanId(),
+        event.dailyPlan().dayNumber());
+
+    TripPlanProgressMessage tripMessage =
+        TripPlanProgressMessage.builder()
+            .type(TripPlanProgressMessage.MessageType.UPDATED)
+            .tripPlanId(event.tripPlanId())
+            .dailyPlan(event.dailyPlan())
+            .message(event.dailyPlan().dayNumber() + "일차 일정이 수정되었습니다.")
+            .build();
+    ChatStreamDto chatMessage =
+        ChatStreamDto.of(
+            event.dailyPlan().dayNumber() + "일차 일정이 수정되었습니다.", true, MessageStreamType.UPDATED);
+
+    String tripDestination = "/sub/schedule/" + event.tripPlanId();
+    String chatDestination = "/sub/chat/" + event.chatRoomId();
+    sendToUser(event.username(), tripDestination, tripMessage);
+    sendToUser(event.username(), chatDestination, chatMessage);
   }
 
   /**

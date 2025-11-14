@@ -24,6 +24,9 @@ pgvector = "0.1.6"
 # Redis
 lettuce = "6.5.2.RELEASE"
 
+# Guava
+guava = "33.3.1-jre"
+
 [libraries]
 # JWT
 jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
@@ -52,7 +55,7 @@ spring-boot-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-open
 # Spring AI
 spring-ai-bom = { module = "org.springframework.ai:spring-ai-bom", version.ref = "spring-ai-bom" }
 spring-ai-openai = { module = "org.springframework.ai:spring-ai-starter-model-openai", version.ref = "spring-ai-bom" }
-spring-ai-pgvector-store = { module = "org.springframework.ai:spring-ai-starter-vector-store-pgvector", version.ref = "spring-ai-bom" }
+spring-ai-pgvector-store = { module = "org.springframework.ai:spring-ai-pgvector-store", version.ref = "spring-ai-bom" }
 spring-ai-chat-memory-repository-jdbc = { module = "org.springframework.ai:spring-ai-starter-model-chat-memory-repository-jdbc", version.ref = "spring-ai-bom" }
 spring-ai-advisors-vector-store = { module = "org.springframework.ai:spring-ai-advisors-vector-store", version.ref = "spring-ai-bom" }
 spring-ai-rag = { module = "org.springframework.ai:spring-ai-rag", version.ref = "spring-ai-bom" }
@@ -73,6 +76,9 @@ lombok = { module = "org.projectlombok:lombok"}
 
 # Redis
 lettuce-core = { module = "io.lettuce:lettuce-core", version.ref = "lettuce" }
+
+# Guava
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
 
 # Sonarqube
 sonarqube-plugin = { module = "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin", version.ref = "sonarqube" }

@@ -48,6 +48,9 @@ dependencies {
     // Redis (Lettuce)
     implementation libs.lettuce.core
 
+    // Guava (RateLimiter)
+    implementation libs.guava
+
     // OTLP
     implementation(platform(libs.otlp.bom))
     implementation(libs.otlp.spring.boot.starter)

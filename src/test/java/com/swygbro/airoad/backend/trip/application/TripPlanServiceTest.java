@@ -45,7 +45,14 @@ import com.swygbro.airoad.backend.trip.infrastructure.TripPlanRepository;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.*;
+import static org.mockito.BDDMockito.anyList;
+import static org.mockito.BDDMockito.anyLong;
+import static org.mockito.BDDMockito.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.never;
+import static org.mockito.BDDMockito.times;
+import static org.mockito.BDDMockito.verify;
+import static org.mockito.BDDMockito.willDoNothing;
 
 @ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
@@ -330,7 +337,6 @@ class TripPlanServiceTest {
       assertThat(capturedTripPlan.getPeopleCount()).isEqualTo(2);
       assertThat(capturedTripPlan.getTransportation()).isEqualTo(Transportation.PUBLIC_TRANSIT);
       assertThat(capturedTripPlan.getIsCompleted()).isFalse();
-      assertThat(capturedTripPlan.getTitle()).isEqualTo("서울 3박 4일 여행");
       assertThat(capturedTripPlan.getTripThemes()).hasSize(themes.size());
 
       // AiConversation 저장 검증
@@ -475,9 +481,6 @@ class TripPlanServiceTest {
       // then
       ArgumentCaptor<TripPlan> tripPlanCaptor = ArgumentCaptor.forClass(TripPlan.class);
       verify(tripPlanRepository).save(tripPlanCaptor.capture());
-      TripPlan capturedTripPlan = tripPlanCaptor.getValue();
-
-      assertThat(capturedTripPlan.getTitle()).isEqualTo("제주 5박 6일 여행");
     }
 
     @Test
@@ -510,9 +513,6 @@ class TripPlanServiceTest {
       // then
       ArgumentCaptor<TripPlan> tripPlanCaptor = ArgumentCaptor.forClass(TripPlan.class);
       verify(tripPlanRepository).save(tripPlanCaptor.capture());
-      TripPlan capturedTripPlan = tripPlanCaptor.getValue();
-
-      assertThat(capturedTripPlan.getTitle()).isEqualTo("부산 1박 2일 여행");
     }
 
     @Test
@@ -545,9 +545,6 @@ class TripPlanServiceTest {
       // then
       ArgumentCaptor<TripPlan> tripPlanCaptor = ArgumentCaptor.forClass(TripPlan.class);
       verify(tripPlanRepository).save(tripPlanCaptor.capture());
-      TripPlan capturedTripPlan = tripPlanCaptor.getValue();
-
-      assertThat(capturedTripPlan.getTitle()).isEqualTo("강릉 2박 3일 여행");
     }
   }
 

@@ -1,18 +1,26 @@
 package com.swygbro.airoad.backend.ai.agent.chat;
 
+import java.util.List;
+
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
+import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import com.swygbro.airoad.backend.ai.agent.advisor.PromptMetadataAdvisor;
 import com.swygbro.airoad.backend.ai.agent.chat.dto.request.AiChatRequest;
-import com.swygbro.airoad.backend.ai.agent.common.AbstractPromptAgent;
-import com.swygbro.airoad.backend.ai.application.query.AiPromptTemplateQueryUseCase;
+import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor;
+import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor.MetadataEntry;
+import com.swygbro.airoad.backend.ai.common.agent.AiroadAgent;
+import com.swygbro.airoad.backend.ai.common.context.ContextManager;
+import com.swygbro.airoad.backend.ai.domain.dto.context.ChatRoomContext;
+import com.swygbro.airoad.backend.ai.domain.dto.context.TripPlanQueryContext;
 import com.swygbro.airoad.backend.ai.domain.entity.AgentType;
 import com.swygbro.airoad.backend.ai.domain.event.AiMessageGeneratedEvent;
 import com.swygbro.airoad.backend.ai.exception.AiErrorCode;
@@ -31,35 +39,34 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Component
-public class ChatAgent extends AbstractPromptAgent {
+public class ChatAgent implements AiroadAgent {
 
   private final AgentType agentType = AgentType.CHAT_AGENT;
 
   private final ChatClient chatClient;
   private final ApplicationEventPublisher eventPublisher;
+  private final ContextManager contextManager;
 
   public ChatAgent(
-      @Qualifier("upstageChatModel") ChatModel chatModel,
+      @Qualifier("openAiChatModel") ChatModel chatModel,
       VectorStore vectorStore,
       ChatMemory chatMemory,
       ApplicationEventPublisher eventPublisher,
       PlaceQueryUseCase placeQueryUseCase,
       ScheduledPlaceCommandUseCase scheduledPlaceCommandUseCase,
-      AiPromptTemplateQueryUseCase promptTemplateQueryUseCase) {
-    super(promptTemplateQueryUseCase);
+      ContextManager contextManager) {
     this.eventPublisher = eventPublisher;
+    this.contextManager = contextManager;
     this.chatClient =
         ChatClient.builder(chatModel)
             .defaultAdvisors(
-                //                new SimpleLoggerAdvisor(),
+                new SimpleLoggerAdvisor(),
                 MessageChatMemoryAdvisor.builder(chatMemory).build(),
-                PromptMetadataAdvisor.builder().build()
-                //                QuestionAnswerAdvisor.builder(vectorStore)
-                //                    .searchRequest(
-                //
-                // SearchRequest.builder().similarityThreshold(0.5d).topK(5).build())
-                //                    .build()
-                )
+                PromptMetadataAdvisor.builder().build(),
+                QuestionAnswerAdvisor.builder(vectorStore)
+                    .searchRequest(
+                        SearchRequest.builder().similarityThreshold(0.5d).topK(25).build())
+                    .build())
             .defaultTools(placeQueryUseCase, scheduledPlaceCommandUseCase)
             .build();
   }
@@ -79,29 +86,30 @@ public class ChatAgent extends AbstractPromptAgent {
           request.chatRoomId(),
           request.tripPlanId());
 
-      String systemPrompt = findActiveSystemPrompt(agentType);
+      TripPlanQueryContext tripPlanQueryContext =
+          TripPlanQueryContext.builder()
+              .tripPlanId(request.tripPlanId())
+              .username(request.username())
+              .build();
+
+      ChatRoomContext chatRoomContext =
+          ChatRoomContext.builder()
+              .chatRoomId(request.chatRoomId())
+              .tripPlanId(request.tripPlanId())
+              .username(request.username())
+              .build();
+
+      List<MetadataEntry> contextMetadata =
+          contextManager.buildContext(AgentType.CHAT_AGENT, tripPlanQueryContext, chatRoomContext);
 
       String response =
           chatClient
               .prompt()
-              .system(systemPrompt)
               .user(request.userPrompt())
               .advisors(
                   a ->
                       a.param(ChatMemory.CONVERSATION_ID, request.chatRoomId())
-                          .param(
-                              PromptMetadataAdvisor.METADATA_KEY,
-                              PromptMetadataAdvisor.userMetadata(
-                                  """
-                          ### 채팅방 정보
-                          chatRoomId: %s
-                          tripPlanId: %s
-                          username: %s
-                          """
-                                      .formatted(
-                                          request.chatRoomId(),
-                                          request.tripPlanId(),
-                                          request.username()))))
+                          .param(PromptMetadataAdvisor.METADATA_KEY, contextMetadata))
               .call()
               .content();
 
@@ -122,7 +130,7 @@ public class ChatAgent extends AbstractPromptAgent {
     } catch (BusinessException e) {
       throw e;
     } catch (Exception e) {
-      log.debug(e.getMessage(), e);
+      log.error("ChatAgent 실행 중 오류 발생", e);
       throw new BusinessException(
           AiErrorCode.AGENT_EXECUTION_FAILED,
           "ChatAgent 실행 중 오류가 발생했습니다: %s".formatted(e.getMessage()));

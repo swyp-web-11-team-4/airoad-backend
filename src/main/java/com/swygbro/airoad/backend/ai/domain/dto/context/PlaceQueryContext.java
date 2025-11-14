@@ -1,12 +1,11 @@
-package com.swygbro.airoad.backend.ai.agent.summary.dto.request;
+package com.swygbro.airoad.backend.ai.domain.dto.context;
 
 import java.util.List;
 
 import lombok.Builder;
 
 @Builder
-public record AiPlaceSummaryRequest(
-    Long placeId,
+public record PlaceQueryContext(
     String name,
     String address,
     String description,

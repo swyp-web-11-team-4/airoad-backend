@@ -9,6 +9,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.util.concurrent.RateLimiter;
 import com.swygbro.airoad.backend.content.domain.entity.Place;
 import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
 import com.swygbro.airoad.backend.content.domain.event.PlaceSummaryRequestedEvent;
@@ -27,6 +28,13 @@ public class PlaceEmbeddingService implements PlaceEmbeddingUseCase {
    * 우선이므로 여행지 장소 임베딩을 단건 처리로 API 요청을 보내도록 하고 추후 청킹 전략으로 전환이 필요합니다.
    */
   private static final int BATCH_SIZE = 1;
+
+  /**
+   * API Rate Limiter (초당 최대 1개로 제한)
+   *
+   * <p>Naver ClovaX API의 Rate Limit (분당 60회)를 초과하지 않도록 초당 최대 1개의 요청만 허용합니다.
+   */
+  private final RateLimiter rateLimiter = RateLimiter.create(55.0 / 60.0);
 
   private final PlaceRepository placeRepository;
   private final ApplicationEventPublisher eventPublisher;
@@ -138,18 +146,25 @@ public class PlaceEmbeddingService implements PlaceEmbeddingUseCase {
   /**
    * PlaceSummaryRequestedEvent 발행
    *
+   * <p>RateLimiter를 통해 초당 10개로 이벤트 발행 속도를 제한하여 API Rate Limit 초과를 방지합니다.
+   *
    * @param place 처리할 Place
    */
   private void publishPlaceSummaryEvent(Place place) {
+    rateLimiter.acquire();
+
     List<String> themes = place.getThemes().stream().map(PlaceThemeType::getDescription).toList();
 
     PlaceSummaryRequestedEvent event =
-        new PlaceSummaryRequestedEvent(
-            place.getId(),
-            place.getLocation().getName(),
-            place.getLocation().getAddress(),
-            place.getDescription(),
-            themes);
+        PlaceSummaryRequestedEvent.builder()
+            .placeId(place.getId())
+            .name(place.getLocation().getName())
+            .address(place.getLocation().getAddress())
+            .description(place.getDescription())
+            .operatingHours(place.getOperatingHours())
+            .holidayInfo(place.getHolidayInfo())
+            .themes(themes)
+            .build();
 
     eventPublisher.publishEvent(event);
     log.debug("PlaceSummaryRequestedEvent published - placeId: {}", place.getId());

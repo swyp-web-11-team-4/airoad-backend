@@ -1,11 +1,5 @@
 spring:
   ai:
-    retry:
-      max-attempts: 5
-      backoff:
-        initial-interval: 15000
-        multiplier: 2
-        max-interval: 60000
     openai:
       api-key: ${OPENAI_API_KEY}
       base-url: ${OPENAI_BASE_URL:https://api.openai.com}
@@ -21,10 +15,23 @@ spring:
           encoding-format: float
     upstage:
       api-key: ${UPSTAGE_API_KEY:}
-      base-url: ${UPSTAGE_BASE_URL:https://api.upstage.ai}
+      base-url: https://api.upstage.ai
       chat:
         options:
           model: ${UPSTAGE_CHAT_MODEL:solar-pro2}
+    naver:
+      api-key: ${NAVER_CLOVA_API_KEY:}
+      base-url: https://clovastudio.stream.ntruss.com/v1/openai
+      chat:
+        completions-path: /chat/completions
+        options:
+          model: ${NAVER_CLOVA_CHAT_MODEL:HCX-007}
+      embedding:
+        embeddings-path: /embeddings
+        options:
+          model: ${NAVER_CLOVA_EMBEDDING_MODEL:bge-m3}
+          dimensions: ${EMBEDDING_DIMENSIONS:1024}
+          encoding-format: float
     chat:
       memory:
         repository:
@@ -33,7 +40,4 @@ spring:
     vectorstore:
       pgvector:
         table-name: place_embedding
-        dimensions: ${EMBEDDING_DIMENSIONS:768}
-        distance-type: COSINE_DISTANCE
-        index-type: HNSW
-        initialize-schema: true
+        dimensions: ${EMBEDDING_DIMENSIONS:1024}

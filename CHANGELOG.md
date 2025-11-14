@@ -1,3 +1,10 @@
+# [0.24.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.23.0...v0.24.0) (2025-11-14)
+
+
+### Features
+
+* 채팅 메시지에 장소 태그 기능 추가 ([24c6dd7](https://github.com/swyp-web-11-team-4/airoad-backend/commit/24c6dd76ad2bdd7e9f2d2782dc2e1223b7359bf2)), closes [#69](https://github.com/swyp-web-11-team-4/airoad-backend/issues/69)
+
 # [0.23.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.22.0...v0.23.0) (2025-11-14)
 
 

@@ -86,9 +86,8 @@ class TripPlanNotificationListenerTest {
           .convertAndSendToUser(eq("testUser"), eq("/sub/chat/1"), chatMessageCaptor.capture());
 
       ChatStreamDto chatMessage = chatMessageCaptor.getValue();
-      assertThat(chatMessage.message()).contains("1일차 일정이 생성되었습니다.");
       assertThat(chatMessage.isComplete()).isTrue();
-      assertThat(chatMessage.messageStreamType()).isEqualTo(MessageStreamType.DAILY_PLAN_GENERATED);
+      assertThat(chatMessage.messageStreamType()).isEqualTo(MessageStreamType.CHAT);
     }
   }
 

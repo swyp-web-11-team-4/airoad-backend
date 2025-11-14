@@ -41,6 +41,7 @@ public class AiChatGenerationListener {
             .tripPlanId(event.tripPlanId())
             .username(event.username())
             .userPrompt(event.userMessage())
+            .scheduledPlaceId(event.scheduledPlaceId())
             .build();
 
     aiUseCase.agentCall(AgentType.CHAT_AGENT, request);

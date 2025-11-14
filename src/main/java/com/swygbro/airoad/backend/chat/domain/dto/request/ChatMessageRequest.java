@@ -12,7 +12,9 @@ public record ChatMessageRequest(
         @NotBlank(message = "메시지 내용은 필수입니다.")
         String content,
     @Schema(description = "메시지 타입", example = "TEXT", defaultValue = "TEXT")
-        MessageContentType messageContentType) {
+        MessageContentType messageContentType,
+    @Schema(description = "태그한 일정 장소 id (선택사항)", example = "123", nullable = true)
+        Long scheduledPlaceId) {
 
   // 기본값을 TEXT로 설정하는 compact 생성자
   public ChatMessageRequest {

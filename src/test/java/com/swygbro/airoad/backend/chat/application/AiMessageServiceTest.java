@@ -36,6 +36,7 @@ import com.swygbro.airoad.backend.fixture.chat.AiMessageFixture;
 import com.swygbro.airoad.backend.fixture.member.MemberFixture;
 import com.swygbro.airoad.backend.fixture.trip.TripPlanFixture;
 import com.swygbro.airoad.backend.member.domain.entity.Member;
+import com.swygbro.airoad.backend.trip.application.ScheduledPlaceCommandUseCase;
 import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
 
 import static org.assertj.core.api.Assertions.*;
@@ -51,6 +52,8 @@ class AiMessageServiceTest {
   @Mock private AiConversationRepository aiConversationRepository;
 
   @Mock private ApplicationEventPublisher eventPublisher;
+
+  @Mock private ScheduledPlaceCommandUseCase scheduledPlaceCommandUseCase;
 
   @InjectMocks private AiMessageService aiMessageService;
 
@@ -70,11 +73,15 @@ class AiMessageServiceTest {
           AiConversationFixture.createWithMemberAndTripPlan(member, tripPlan);
 
       ChatMessageRequest request =
-          new ChatMessageRequest("서울 3박 4일 여행 추천해주세요", MessageContentType.TEXT);
+          new ChatMessageRequest("서울 3박 4일 여행 추천해주세요", MessageContentType.TEXT, 123L);
       String userEmail = member.getEmail();
       Long chatRoomId = 1L;
 
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
+      given(
+              scheduledPlaceCommandUseCase.validateScheduledPlace(
+                  userEmail, request.scheduledPlaceId()))
+          .willReturn(true);
 
       // when
       aiMessageService.processAndSendMessage(chatRoomId, userEmail, request);
@@ -97,7 +104,7 @@ class AiMessageServiceTest {
       // given
       Long chatRoomId = 999L;
       String userEmail = "test@example.com";
-      ChatMessageRequest request = new ChatMessageRequest("메시지 내용", MessageContentType.TEXT);
+      ChatMessageRequest request = new ChatMessageRequest("메시지 내용", MessageContentType.TEXT, 123L);
 
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.empty());
 
@@ -118,7 +125,7 @@ class AiMessageServiceTest {
       AiConversation conversation = AiConversationFixture.createWithMember(owner);
       Long chatRoomId = 1L;
       String unauthorizedEmail = "unauthorized@example.com";
-      ChatMessageRequest request = new ChatMessageRequest("메시지 내용", MessageContentType.TEXT);
+      ChatMessageRequest request = new ChatMessageRequest("메시지 내용", MessageContentType.TEXT, 123L);
 
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
 
@@ -138,7 +145,7 @@ class AiMessageServiceTest {
       Member member = MemberFixture.create();
       AiConversation conversation = AiConversationFixture.createWithMember(member);
       Long chatRoomId = 1L;
-      ChatMessageRequest request = new ChatMessageRequest("이미지 내용", MessageContentType.IMAGE);
+      ChatMessageRequest request = new ChatMessageRequest("이미지 내용", MessageContentType.IMAGE, 123L);
 
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
 
@@ -158,7 +165,7 @@ class AiMessageServiceTest {
       Member member = MemberFixture.create();
       AiConversation conversation = AiConversationFixture.createWithMember(member);
       Long chatRoomId = 1L;
-      ChatMessageRequest request = new ChatMessageRequest("", MessageContentType.TEXT);
+      ChatMessageRequest request = new ChatMessageRequest("", MessageContentType.TEXT, null);
 
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
 
@@ -178,7 +185,7 @@ class AiMessageServiceTest {
       Member member = MemberFixture.create();
       AiConversation conversation = AiConversationFixture.createWithMember(member);
       Long chatRoomId = 1L;
-      ChatMessageRequest request = new ChatMessageRequest("   ", MessageContentType.TEXT);
+      ChatMessageRequest request = new ChatMessageRequest("   ", MessageContentType.TEXT, 123L);
 
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
 
@@ -199,7 +206,7 @@ class AiMessageServiceTest {
       AiConversation conversationMock = mock(AiConversation.class);
 
       Long chatRoomId = 1L;
-      ChatMessageRequest request = new ChatMessageRequest("메시지 내용", MessageContentType.TEXT);
+      ChatMessageRequest request = new ChatMessageRequest("메시지 내용", MessageContentType.TEXT, 123L);
 
       given(aiConversationRepository.findById(chatRoomId))
           .willReturn(Optional.of(conversationMock));
@@ -213,6 +220,42 @@ class AiMessageServiceTest {
           .hasFieldOrPropertyWithValue("errorCode", ChatErrorCode.INVALID_CONVERSATION_FORMAT);
 
       verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    @DisplayName("scheduledPlaceId가 null인 경우 장소 검증을 건너뛰고 AI 요청 이벤트를 발행한다")
+    void scheduledPlaceId가_null인_경우_장소_검증_건너뛰고_이벤트_발행() {
+      // given
+      Member member = MemberFixture.create();
+      TripPlan tripPlan = TripPlanFixture.create();
+      ReflectionTestUtils.setField(tripPlan, "id", 100L);
+
+      AiConversation conversation =
+          AiConversationFixture.createWithMemberAndTripPlan(member, tripPlan);
+
+      ChatMessageRequest request =
+          new ChatMessageRequest("서울 3박 4일 여행 추천해주세요", MessageContentType.TEXT, null);
+      String userEmail = member.getEmail();
+      Long chatRoomId = 1L;
+
+      given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
+
+      // when
+      aiMessageService.processAndSendMessage(chatRoomId, userEmail, request);
+
+      // then
+      verify(scheduledPlaceCommandUseCase, never()).validateScheduledPlace(any(), any());
+
+      ArgumentCaptor<AiChatGenerationRequestedEvent> eventCaptor =
+          ArgumentCaptor.forClass(AiChatGenerationRequestedEvent.class);
+      verify(eventPublisher).publishEvent(eventCaptor.capture());
+
+      AiChatGenerationRequestedEvent publishedEvent = eventCaptor.getValue();
+      assertThat(publishedEvent.chatRoomId()).isEqualTo(chatRoomId);
+      assertThat(publishedEvent.tripPlanId()).isEqualTo(100L);
+      assertThat(publishedEvent.username()).isEqualTo(userEmail);
+      assertThat(publishedEvent.userMessage()).isEqualTo(request.content());
+      assertThat(publishedEvent.scheduledPlaceId()).isNull();
     }
   }
 

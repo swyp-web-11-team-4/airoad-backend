@@ -46,7 +46,7 @@ class AiMessageControllerTest {
       Long chatRoomId = 1L;
       String username = "test@example.com";
       ChatMessageRequest request =
-          new ChatMessageRequest("서울 3박 4일 여행 계획을 짜주세요", MessageContentType.TEXT);
+          new ChatMessageRequest("서울 3박 4일 여행 계획을 짜주세요", MessageContentType.TEXT, 123L);
 
       // StompHeaderAccessor 생성 및 인증 정보 설정
       UserDetails userDetails =
@@ -77,7 +77,7 @@ class AiMessageControllerTest {
       // given
       Long chatRoomId = 1L;
       ChatMessageRequest request =
-          new ChatMessageRequest("서울 3박 4일 여행 계획을 짜주세요", MessageContentType.TEXT);
+          new ChatMessageRequest("서울 3박 4일 여행 계획을 짜주세요", MessageContentType.TEXT, 123L);
 
       Message<ChatMessageRequest> message = new GenericMessage<>(request);
       StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(message);
@@ -97,7 +97,7 @@ class AiMessageControllerTest {
       // given
       Long chatRoomId = 1L;
       ChatMessageRequest request =
-          new ChatMessageRequest("서울 3박 4일 여행 계획을 짜주세요", MessageContentType.TEXT);
+          new ChatMessageRequest("서울 3박 4일 여행 계획을 짜주세요", MessageContentType.TEXT, 123L);
 
       Message<ChatMessageRequest> message = new GenericMessage<>(request);
       StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(message);

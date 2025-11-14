@@ -16,4 +16,6 @@ public interface ScheduledPlaceCommandUseCase {
 
   void deleteScheduledPlace(
       String username, Long tripPlanId, Integer dayNumber, Integer visitOrder);
+
+  boolean validateScheduledPlace(String username, Long scheduledPlaceId);
 }

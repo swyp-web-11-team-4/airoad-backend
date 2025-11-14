@@ -237,6 +237,7 @@ class TripPlanNotificationListenerTest {
               .dayNumber(2)
               .date("2025-12-02")
               .scheduledPlaces(Collections.emptyList())
+              .description("description")
               .build();
 
       String username = "testUser";
@@ -272,7 +273,7 @@ class TripPlanNotificationListenerTest {
           .convertAndSendToUser(eq("testUser"), eq("/sub/chat/1"), chatMessageCaptor.capture());
 
       ChatStreamDto chatMessage = chatMessageCaptor.getValue();
-      assertThat(chatMessage.message()).contains("2일차 일정이 수정되었습니다.");
+      assertThat(chatMessage.message()).contains("description");
       assertThat(chatMessage.isComplete()).isTrue();
       assertThat(chatMessage.messageStreamType()).isEqualTo(MessageStreamType.UPDATED);
     }

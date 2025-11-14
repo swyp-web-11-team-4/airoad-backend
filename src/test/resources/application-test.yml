@@ -50,10 +50,8 @@ spring:
       api-key: test-openai-api-key
     upstage:
       api-key: test-upstage-api-key
-
-  autoconfigure:
-    exclude:
-      - org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreAutoConfiguration
+    naver:
+      api-key: test-naver-api-key
 
 cors:
   allowed-origins: http://localhost:3000

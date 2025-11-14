@@ -23,6 +23,8 @@ import com.swygbro.airoad.backend.trip.domain.event.DailyPlanSavedEvent;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationCancelledEvent;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationCompletedEvent;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationErrorEvent;
+import com.swygbro.airoad.backend.trip.domain.event.TripPlanUpdateStartedEvent;
+import com.swygbro.airoad.backend.trip.domain.event.TripPlanUpdatedEvent;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -185,6 +187,95 @@ class TripPlanNotificationListenerTest {
       assertThat(message.message()).contains("사용자 요청");
       assertThat(message.isComplete()).isTrue();
       assertThat(message.messageStreamType()).isEqualTo(MessageStreamType.CANCELLED);
+    }
+  }
+
+  @Nested
+  @DisplayName("일정 수정 시작 이벤트를 수신할 때")
+  class HandleTripPlanUpdateStartedTests {
+
+    @Test
+    @DisplayName("WebSocket을 통해 일정 채널로 수정 시작 메시지를 전송한다")
+    void WebSocket으로_일정_채널에_수정_시작_메시지_전송() {
+      // given
+      String username = "testUser";
+
+      TripPlanUpdateStartedEvent event =
+          TripPlanUpdateStartedEvent.builder()
+              .chatRoomId(1L)
+              .tripPlanId(100L)
+              .username(username)
+              .message("일정 수정을 시작합니다")
+              .build();
+
+      // when
+      tripPlanNotificationListener.handleTripPlanUpdateStarted(event);
+
+      // then
+      ArgumentCaptor<TripPlanProgressMessage> messageCaptor =
+          ArgumentCaptor.forClass(TripPlanProgressMessage.class);
+      verify(messagingTemplate)
+          .convertAndSendToUser(eq(username), eq("/sub/schedule/100"), messageCaptor.capture());
+
+      TripPlanProgressMessage message = messageCaptor.getValue();
+      assertThat(message.type()).isEqualTo(TripPlanProgressMessage.MessageType.UPDATE_STARTED);
+      assertThat(message.tripPlanId()).isEqualTo(100L);
+      assertThat(message.message()).isEqualTo("일정 수정을 시작합니다");
+    }
+  }
+
+  @Nested
+  @DisplayName("일정 수정 완료 이벤트를 수신할 때")
+  class HandleTripPlanUpdatedTests {
+
+    @Test
+    @DisplayName("WebSocket을 통해 일정 채널과 채팅 채널로 수정된 데이터를 전송한다")
+    void WebSocket으로_일정_수정_완료_데이터_전송() {
+      // given
+      DailyPlanResponse dailyPlan =
+          DailyPlanResponse.builder()
+              .dayNumber(2)
+              .date("2025-12-02")
+              .scheduledPlaces(Collections.emptyList())
+              .description("description")
+              .build();
+
+      String username = "testUser";
+
+      TripPlanUpdatedEvent event =
+          TripPlanUpdatedEvent.builder()
+              .chatRoomId(1L)
+              .tripPlanId(100L)
+              .username(username)
+              .dailyPlan(dailyPlan)
+              .build();
+
+      // when
+      tripPlanNotificationListener.handleTripPlanUpdated(event);
+
+      // then - 일정 채널로 TripPlanProgressMessage 전송 검증
+      ArgumentCaptor<TripPlanProgressMessage> tripMessageCaptor =
+          ArgumentCaptor.forClass(TripPlanProgressMessage.class);
+      verify(messagingTemplate)
+          .convertAndSendToUser(
+              eq("testUser"), eq("/sub/schedule/100"), tripMessageCaptor.capture());
+
+      TripPlanProgressMessage tripMessage = tripMessageCaptor.getValue();
+      assertThat(tripMessage.type()).isEqualTo(TripPlanProgressMessage.MessageType.UPDATED);
+      assertThat(tripMessage.tripPlanId()).isEqualTo(100L);
+      assertThat(tripMessage.dailyPlan()).isEqualTo(dailyPlan);
+      assertThat(tripMessage.message()).contains("2일차 일정이 수정되었습니다.");
+
+      // then - 채팅 채널로 ChatStreamDto 전송 검증
+      ArgumentCaptor<ChatStreamDto> chatMessageCaptor =
+          ArgumentCaptor.forClass(ChatStreamDto.class);
+      verify(messagingTemplate)
+          .convertAndSendToUser(eq("testUser"), eq("/sub/chat/1"), chatMessageCaptor.capture());
+
+      ChatStreamDto chatMessage = chatMessageCaptor.getValue();
+      assertThat(chatMessage.message()).contains("description");
+      assertThat(chatMessage.isComplete()).isTrue();
+      assertThat(chatMessage.messageStreamType()).isEqualTo(MessageStreamType.UPDATED);
     }
   }
 }

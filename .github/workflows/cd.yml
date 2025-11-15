@@ -130,7 +130,7 @@ jobs:
             exit 0
           elif [ "${{ needs.rollback.outputs.status }}" = "success" ]; then
             echo "🔄 Deployment failed but rollback succeeded"
-            echo "⚠️  Service restored to previous version"
+            echo "⚠️ Service restored to previous version"
             exit 1
           else
             echo "❌ Deployment failed!"

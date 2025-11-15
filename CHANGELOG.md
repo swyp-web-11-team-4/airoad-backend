@@ -1,3 +1,10 @@
+# [0.26.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.25.0...v0.26.0) (2025-11-15)
+
+
+### Features
+
+* 현재 로그인 사용자 이메일 조회 API 추가 ([b17236b](https://github.com/swyp-web-11-team-4/airoad-backend/commit/b17236bc71b90aef77e26992f30154734064d2a7))
+
 # [0.25.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.24.1...v0.25.0) (2025-11-14)
 
 

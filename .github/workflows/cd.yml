@@ -20,6 +20,10 @@ on:
         default: 'latest'
         type: string
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_branch || github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
   packages: read

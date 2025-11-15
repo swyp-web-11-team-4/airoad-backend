@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.ai.domain.context.content;
+package com.swygbro.airoad.backend.ai.application.context.content;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,10 +10,10 @@ import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Component;
 
+import com.swygbro.airoad.backend.ai.application.context.dto.PlaceVectorQueryContext;
 import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor;
 import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor.MetadataEntry;
 import com.swygbro.airoad.backend.ai.common.context.AbstractContextProvider;
-import com.swygbro.airoad.backend.ai.domain.dto.context.PlaceVectorQueryContext;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -115,7 +115,7 @@ public class PlaceVectorQueryContextProvider
         metadata.get("placeId"),
         metadata.get("name"),
         metadata.get("address"),
-        metadata.get("theme"),
+        metadata.get("themes"),
         doc.getText());
   }
 }

@@ -1,13 +1,13 @@
-package com.swygbro.airoad.backend.ai.domain.context.trip;
+package com.swygbro.airoad.backend.ai.application.context.trip;
 
 import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import com.swygbro.airoad.backend.ai.application.context.dto.TripPlanCommandContext;
 import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor;
 import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor.MetadataEntry;
 import com.swygbro.airoad.backend.ai.common.context.AbstractContextProvider;
-import com.swygbro.airoad.backend.ai.domain.dto.context.TripPlanCommandContext;
 import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
 
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +40,7 @@ public class TripPlanCommandContextProvider
 
     return PromptMetadataAdvisor.userMetadata(
         """
-        ## 여행 계획 요구사항 (Trip Requirements)
+        ## 요구사항 컨텍스트 (Requirements Context)
 
         사용자가 원하는 여행 계획의 조건입니다. 여행 일정을 생성하는데 참고하세요.
 

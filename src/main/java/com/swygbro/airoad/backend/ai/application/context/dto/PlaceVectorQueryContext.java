@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.ai.domain.dto.context;
+package com.swygbro.airoad.backend.ai.application.context.dto;
 
 import java.util.List;
 

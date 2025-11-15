@@ -1,13 +1,13 @@
-package com.swygbro.airoad.backend.ai.domain.context.ai;
+package com.swygbro.airoad.backend.ai.application.context.ai;
 
 import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import com.swygbro.airoad.backend.ai.application.context.dto.StreamOutputContext;
 import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor;
 import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor.MetadataEntry;
 import com.swygbro.airoad.backend.ai.common.context.AbstractContextProvider;
-import com.swygbro.airoad.backend.ai.domain.dto.context.StreamOutputContext;
 
 import lombok.extern.slf4j.Slf4j;
 

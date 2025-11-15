@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.ai.domain.context.ai;
+package com.swygbro.airoad.backend.ai.application.context.ai;
 
 import java.util.List;
 

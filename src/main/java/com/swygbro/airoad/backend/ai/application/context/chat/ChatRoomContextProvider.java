@@ -1,13 +1,13 @@
-package com.swygbro.airoad.backend.ai.domain.context.chat;
+package com.swygbro.airoad.backend.ai.application.context.chat;
 
 import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import com.swygbro.airoad.backend.ai.application.context.dto.ChatRoomContext;
 import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor;
 import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor.MetadataEntry;
 import com.swygbro.airoad.backend.ai.common.context.AbstractContextProvider;
-import com.swygbro.airoad.backend.ai.domain.dto.context.ChatRoomContext;
 
 import lombok.extern.slf4j.Slf4j;
 

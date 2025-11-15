@@ -2,6 +2,7 @@ package com.swygbro.airoad.backend.trip.presentation.web;
 
 import java.util.List;
 
+import com.swygbro.airoad.backend.trip.domain.dto.response.ChannelIdResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -51,7 +52,7 @@ public interface TripPlanApi {
         content =
             @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = CommonResponse.class),
+                schema = @Schema(implementation = TripPlanResponse.class),
                 examples = {
                   @ExampleObject(
                       name = "첫 페이지 조회 성공(다음 페이지 존재)",
@@ -248,7 +249,7 @@ public interface TripPlanApi {
         content =
             @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = CommonResponse.class),
+                schema = @Schema(implementation = TripPlanDetailResponse.class),
                 examples =
                     @ExampleObject(
                         value =
@@ -476,7 +477,7 @@ public interface TripPlanApi {
         content =
             @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = CommonResponse.class),
+                schema = @Schema(implementation = ChannelIdResponse.class),
                 examples =
                     @ExampleObject(
                         value =
@@ -485,7 +486,7 @@ public interface TripPlanApi {
                                       "success": true,
                                       "status": 202,
                                       "data": {
-                                        "chatRoomId": 123,
+                                        "conversationId": 123,
                                         "tripPlanId": 456
                                       }
                                     }
@@ -660,6 +661,7 @@ public interface TripPlanApi {
         content =
             @Content(
                 mediaType = "application/json",
+                schema = @Schema(implementation = DailyPlanResponse.class),
                 examples =
                     @ExampleObject(
                         value =

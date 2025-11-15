@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  *
  * <p>WebSocket을 통해 실시간으로 전송되는 AI 채팅 응답입니다.
  */
-@Schema(description = "채팅 메시지 스트리밍 응답")
+@Schema(name = "ChatStreamDto", description = "채팅 메시지 스트리밍 응답")
 public record ChatStreamDto(
     @Schema(description = "메시지 내용 (스트리밍 청크)", example = "안녕하세요! AI 어시스턴트입니다.") String message,
     @Schema(description = "스트리밍 완료 여부", example = "false") boolean isComplete,

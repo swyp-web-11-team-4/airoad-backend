@@ -45,7 +45,7 @@ public class AiConversationController {
         content =
             @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = CommonResponse.class),
+                schema = @Schema(implementation = ChatMessageResponse.class),
                 examples = {
                   @ExampleObject(
                       name = "페이로드 예시(다음 페이지 존재)",

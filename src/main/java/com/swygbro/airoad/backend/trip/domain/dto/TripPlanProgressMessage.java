@@ -18,7 +18,7 @@ import lombok.Builder;
  * @param errorCode 오류 코드 (type이 ERROR인 경우)
  */
 @Builder
-@Schema(description = "여행 일정 생성 진행 상황 메시지")
+@Schema(name = "TripPlanProgressMessage", description = "여행 일정 생성 진행 상황 메시지")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record TripPlanProgressMessage(
     @Schema(description = "메시지 타입", example = "DAILY_PLAN_GENERATED") MessageType type,
@@ -28,19 +28,26 @@ public record TripPlanProgressMessage(
     @Schema(description = "오류 코드", example = "TRIP101") String errorCode) {
 
   /** 메시지 타입 enum */
+  @Schema(description = "메시지 타입")
   public enum MessageType {
 
     /** 일차별 일정 생성 완료 */
+    @Schema(description = "일차별 일정 생성 완료")
     DAILY_PLAN_GENERATED,
     /** 전체 일정 생성 완료 */
+    @Schema(description = "전체 일정 생성 완료")
     COMPLETED,
     /** 일정 수정 시작 */
+    @Schema(description = "일정 수정 시작")
     UPDATE_STARTED,
     /** 일정 수정 완료 */
+    @Schema(description = "일정 수정 완료")
     UPDATED,
     /** 오류 발생 */
+    @Schema(description = "오류 발생")
     ERROR,
     /** 생성 취소됨 */
+    @Schema(description = "생성 취소됨")
     CANCELLED
   }
 }

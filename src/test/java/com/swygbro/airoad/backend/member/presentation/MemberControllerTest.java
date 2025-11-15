@@ -110,4 +110,81 @@ class MemberControllerTest {
       verify(memberUseCase).getMemberByEmail(email);
     }
   }
+
+  @Nested
+  @DisplayName("getCurrentMemberEmail 메서드는")
+  class GetCurrentMemberEmail {
+
+    @Test
+    @DisplayName("인증된 사용자의 이메일만 반환한다")
+    void shouldReturnCurrentMemberEmail() throws Exception {
+      // given
+      String email = "test@naver.com";
+
+      Member member =
+          Member.builder()
+              .email(email)
+              .name("testName")
+              .imageUrl("https://example.com/image.jpg")
+              .provider(ProviderType.GOOGLE)
+              .role(MemberRole.MEMBER)
+              .build();
+
+      UserPrincipal userPrincipal = new UserPrincipal(member);
+
+      UsernamePasswordAuthenticationToken authentication =
+          new UsernamePasswordAuthenticationToken(
+              userPrincipal, null, userPrincipal.getAuthorities());
+
+      SecurityContext context = SecurityContextHolder.createEmptyContext();
+      context.setAuthentication(authentication);
+      SecurityContextHolder.setContext(context);
+
+      // when & then
+      mockMvc
+          .perform(get("/api/v1/members/me/email"))
+          .andDo(print())
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.success").value(true))
+          .andExpect(jsonPath("$.status").value(HttpStatus.OK.value()))
+          .andExpect(jsonPath("$.data.email").value(email));
+    }
+
+    @Test
+    @DisplayName("MemberUseCase를 호출하지 않고 UserPrincipal에서 직접 이메일을 가져온다")
+    void shouldGetEmailFromUserPrincipalDirectly() throws Exception {
+      // given
+      String email = "direct@example.com";
+
+      Member member =
+          Member.builder()
+              .email(email)
+              .name("testName")
+              .imageUrl("https://example.com/image.jpg")
+              .provider(ProviderType.GOOGLE)
+              .role(MemberRole.MEMBER)
+              .build();
+
+      UserPrincipal userPrincipal = new UserPrincipal(member);
+
+      UsernamePasswordAuthenticationToken authentication =
+          new UsernamePasswordAuthenticationToken(
+              userPrincipal, null, userPrincipal.getAuthorities());
+
+      SecurityContext context = SecurityContextHolder.createEmptyContext();
+      context.setAuthentication(authentication);
+      SecurityContextHolder.setContext(context);
+
+      // when
+      mockMvc
+          .perform(get("/api/v1/members/me/email"))
+          .andDo(print())
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.data.email").value(email));
+
+      // then - MemberUseCase가 호출되지 않았는지 확인
+      verify(memberUseCase, org.mockito.Mockito.never())
+          .getMemberByEmail(org.mockito.Mockito.any());
+    }
+  }
 }

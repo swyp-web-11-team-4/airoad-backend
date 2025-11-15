@@ -2,10 +2,21 @@ package com.swygbro.airoad.backend.common.config;
 
 import java.util.List;
 
+import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.swygbro.airoad.backend.chat.domain.dto.response.ChatMessageResponse;
+import com.swygbro.airoad.backend.chat.domain.dto.response.ChatStreamDto;
+import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
+import com.swygbro.airoad.backend.trip.domain.dto.TripPlanProgressMessage;
+import com.swygbro.airoad.backend.trip.domain.dto.response.ChannelIdResponse;
+import com.swygbro.airoad.backend.trip.domain.dto.response.DailyPlanResponse;
+import com.swygbro.airoad.backend.trip.domain.dto.response.TripPlanDetailResponse;
+import com.swygbro.airoad.backend.trip.domain.dto.response.TripPlanResponse;
+
+import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
@@ -90,12 +101,12 @@ public class SwaggerConfig {
 
                 #### 1. 채팅 메시지
                 - **경로**: `/user/sub/chat/{chatRoomId}`
-                - **페이로드**: `ChatMessageResponse`
+                - **페이로드**: `ChatStreamDto`
                 - **용도**: AI와의 1:1 대화 메시지
 
                 #### 2. 일정 데이터
                 - **경로**: `/user/sub/schedule/{tripPlanId}`
-                - **페이로드**: `TripPlanDto`
+                - **페이로드**: `TripPlanProgressMeesage`
                 - **용도**: AI로부터 받아오는 여행 일정 전송 (여행 계획별로 구분)
 
                 #### 3. 에러 메시지
@@ -244,5 +255,33 @@ public class SwaggerConfig {
     SecurityRequirement securityRequirement = new SecurityRequirement().addList("bearerAuth");
 
     return new OpenAPI().info(info).servers(List.of(server)).addSecurityItem(securityRequirement);
+  }
+
+  @Bean
+  public OpenApiCustomizer webSocketSchemaCustomizer() {
+    return openApi -> {
+      // WebSocket 메시지 스키마 등록
+      var tripPlanProgressSchemas =
+          ModelConverters.getInstance().read(TripPlanProgressMessage.class);
+      var chatStreamSchemas = ModelConverters.getInstance().read(ChatStreamDto.class);
+      var errorSchemas = ModelConverters.getInstance().read(ErrorResponse.class);
+
+      openApi.getComponents().getSchemas().putAll(tripPlanProgressSchemas);
+      openApi.getComponents().getSchemas().putAll(chatStreamSchemas);
+      openApi.getComponents().getSchemas().putAll(errorSchemas);
+
+      // API 응답 스키마 등록
+      var tripPlanResponseSchemas = ModelConverters.getInstance().read(TripPlanResponse.class);
+      var tripPlanDetailSchemas = ModelConverters.getInstance().read(TripPlanDetailResponse.class);
+      var dailyPlanSchemas = ModelConverters.getInstance().read(DailyPlanResponse.class);
+      var channelIdSchemas = ModelConverters.getInstance().read(ChannelIdResponse.class);
+      var chatMessageSchemas = ModelConverters.getInstance().read(ChatMessageResponse.class);
+
+      openApi.getComponents().getSchemas().putAll(tripPlanResponseSchemas);
+      openApi.getComponents().getSchemas().putAll(tripPlanDetailSchemas);
+      openApi.getComponents().getSchemas().putAll(dailyPlanSchemas);
+      openApi.getComponents().getSchemas().putAll(channelIdSchemas);
+      openApi.getComponents().getSchemas().putAll(chatMessageSchemas);
+    };
   }
 }

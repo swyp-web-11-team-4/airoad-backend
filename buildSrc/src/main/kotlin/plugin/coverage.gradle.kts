@@ -9,8 +9,7 @@ val excludePatterns =
         "**/domain/**",
         "**/dto/**",
         "**/exception/**",
-        "**/agent/**",
-        "**/advisor/**",
+        "**/ai/**", // AI는 E2E 테스트로 대체
         "**/tourapi/**", // Tour API 데이터 동기화 도메인 제외
         "**/*Application*",
         "**/*Config*",
@@ -36,10 +35,6 @@ val excludeClassPatterns =
         "*.CustomOAuth2UserService",
         "*.CustomOAuth2AuthorizationRequestRepository",
         "*.OAuth2RedirectUrlResolver",
-
-        // AI 관련 제외
-        "*.NdJsonBeanOutputConverter",
-        "*.ContextManager"
     )
 
 fun JacocoReportBase.configureClassDirectories() {

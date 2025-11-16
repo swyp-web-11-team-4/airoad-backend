@@ -14,7 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.swygbro.airoad.backend.ai.agent.trip.dto.request.AiDailyPlanRequest;
-import com.swygbro.airoad.backend.ai.application.AiUseCase;
+import com.swygbro.airoad.backend.ai.application.common.AiUseCase;
 import com.swygbro.airoad.backend.ai.domain.entity.AgentType;
 import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;

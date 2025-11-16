@@ -5,28 +5,26 @@ import java.util.List;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
-import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.vectorstore.SearchRequest;
-import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import com.swygbro.airoad.backend.ai.agent.chat.dto.request.AiChatRequest;
+import com.swygbro.airoad.backend.ai.application.context.dto.ChatRoomContext;
+import com.swygbro.airoad.backend.ai.application.context.dto.TripPlanQueryContext;
+import com.swygbro.airoad.backend.ai.application.tool.DailyPlanCommandTool;
+import com.swygbro.airoad.backend.ai.application.tool.PlaceVectorQueryTool;
+import com.swygbro.airoad.backend.ai.application.tool.ScheduledPlaceCommandTool;
 import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor;
 import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor.MetadataEntry;
 import com.swygbro.airoad.backend.ai.common.agent.AiroadAgent;
 import com.swygbro.airoad.backend.ai.common.context.ContextManager;
-import com.swygbro.airoad.backend.ai.domain.dto.context.ChatRoomContext;
-import com.swygbro.airoad.backend.ai.domain.dto.context.TripPlanQueryContext;
 import com.swygbro.airoad.backend.ai.domain.entity.AgentType;
 import com.swygbro.airoad.backend.ai.domain.event.AiMessageGeneratedEvent;
 import com.swygbro.airoad.backend.ai.exception.AiErrorCode;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
-import com.swygbro.airoad.backend.content.application.PlaceQueryUseCase;
-import com.swygbro.airoad.backend.trip.application.ScheduledPlaceCommandUseCase;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -49,11 +47,11 @@ public class ChatAgent implements AiroadAgent {
 
   public ChatAgent(
       @Qualifier("openAiChatModel") ChatModel chatModel,
-      VectorStore vectorStore,
       ChatMemory chatMemory,
       ApplicationEventPublisher eventPublisher,
-      PlaceQueryUseCase placeQueryUseCase,
-      ScheduledPlaceCommandUseCase scheduledPlaceCommandUseCase,
+      DailyPlanCommandTool dailyPlanCommandTool,
+      ScheduledPlaceCommandTool scheduledPlaceCommandTool,
+      PlaceVectorQueryTool placeVectorQueryTool,
       ContextManager contextManager) {
     this.eventPublisher = eventPublisher;
     this.contextManager = contextManager;
@@ -62,12 +60,8 @@ public class ChatAgent implements AiroadAgent {
             .defaultAdvisors(
                 new SimpleLoggerAdvisor(),
                 MessageChatMemoryAdvisor.builder(chatMemory).build(),
-                PromptMetadataAdvisor.builder().build(),
-                QuestionAnswerAdvisor.builder(vectorStore)
-                    .searchRequest(
-                        SearchRequest.builder().similarityThreshold(0.5d).topK(25).build())
-                    .build())
-            .defaultTools(placeQueryUseCase, scheduledPlaceCommandUseCase)
+                PromptMetadataAdvisor.builder().build())
+            .defaultTools(dailyPlanCommandTool, scheduledPlaceCommandTool, placeVectorQueryTool)
             .build();
   }
 
@@ -100,7 +94,7 @@ public class ChatAgent implements AiroadAgent {
               .build();
 
       List<MetadataEntry> contextMetadata =
-          contextManager.buildContext(AgentType.CHAT_AGENT, tripPlanQueryContext, chatRoomContext);
+          contextManager.buildContext(AgentType.CHAT_AGENT, chatRoomContext, tripPlanQueryContext);
 
       String response =
           chatClient

@@ -1,6 +1,5 @@
 package com.swygbro.airoad.backend.trip.application;
 
-import com.swygbro.airoad.backend.trip.domain.event.TripPlanUpdatedEvent;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -21,6 +20,7 @@ import com.swygbro.airoad.backend.trip.domain.entity.DailyPlan;
 import com.swygbro.airoad.backend.trip.domain.entity.ScheduledPlace;
 import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
 import com.swygbro.airoad.backend.trip.domain.event.DailyPlanSavedEvent;
+import com.swygbro.airoad.backend.trip.domain.event.TripPlanUpdatedEvent;
 import com.swygbro.airoad.backend.trip.exception.TripErrorCode;
 import com.swygbro.airoad.backend.trip.infrastructure.TripPlanRepository;
 

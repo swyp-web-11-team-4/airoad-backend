@@ -1,5 +1,10 @@
 name: CD Pipeline
 
+run-name: >
+  ${{ github.event_name == 'workflow_run'
+      && (github.event.workflow_run.display_title || github.event.workflow_run.head_commit.message)
+      || format('Deploy {0}', inputs.image_version) }}
+
 on:
   workflow_run:
     workflows: ["CI/CD Pipeline"]
@@ -14,6 +19,10 @@ on:
         required: true
         default: 'latest'
         type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_branch || github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -121,7 +130,7 @@ jobs:
             exit 0
           elif [ "${{ needs.rollback.outputs.status }}" = "success" ]; then
             echo "🔄 Deployment failed but rollback succeeded"
-            echo "⚠️  Service restored to previous version"
+            echo "⚠️ Service restored to previous version"
             exit 1
           else
             echo "❌ Deployment failed!"

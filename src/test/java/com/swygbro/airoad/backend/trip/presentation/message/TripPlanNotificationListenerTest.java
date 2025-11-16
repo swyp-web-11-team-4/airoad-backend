@@ -18,6 +18,7 @@ import com.swygbro.airoad.backend.chat.domain.dto.response.ChatStreamDto;
 import com.swygbro.airoad.backend.chat.domain.dto.response.MessageStreamType;
 import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
 import com.swygbro.airoad.backend.trip.domain.dto.TripPlanProgressMessage;
+import com.swygbro.airoad.backend.trip.domain.dto.TripPlanProgressMessage.MessageType;
 import com.swygbro.airoad.backend.trip.domain.dto.response.DailyPlanResponse;
 import com.swygbro.airoad.backend.trip.domain.event.DailyPlanSavedEvent;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationCancelledEvent;
@@ -261,7 +262,7 @@ class TripPlanNotificationListenerTest {
               eq("testUser"), eq("/sub/schedule/100"), tripMessageCaptor.capture());
 
       TripPlanProgressMessage tripMessage = tripMessageCaptor.getValue();
-      assertThat(tripMessage.type()).isEqualTo(TripPlanProgressMessage.MessageType.UPDATED);
+      assertThat(tripMessage.type()).isEqualTo(MessageType.DAILY_PLAN_GENERATED);
       assertThat(tripMessage.tripPlanId()).isEqualTo(100L);
       assertThat(tripMessage.dailyPlan()).isEqualTo(dailyPlan);
       assertThat(tripMessage.message()).contains("2일차 일정이 수정되었습니다.");

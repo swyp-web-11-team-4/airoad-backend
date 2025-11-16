@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.content.domain.entity.Place;
@@ -41,6 +42,8 @@ class ScheduledPlaceCommandServiceTest {
 
   @InjectMocks private ScheduledPlaceCommandService scheduledPlaceCommandService;
 
+  @Mock private ApplicationEventPublisher eventPublisher;
+
   @Mock private TripPlanRepository tripPlanRepository;
 
   @Mock private PlaceRepository placeRepository;
@@ -67,20 +70,14 @@ class ScheduledPlaceCommandServiceTest {
     Integer dayNumber = 1;
     ScheduledPlaceCreateRequest request =
         new ScheduledPlaceCreateRequest(
-            place.getId(),
-            1,
-            ScheduledCategory.MORNING,
-            LocalTime.of(9, 0),
-            LocalTime.of(11, 0),
-            30,
-            Transportation.PUBLIC_TRANSIT);
+            place.getId(), 1, ScheduledCategory.MORNING, 30, Transportation.PUBLIC_TRANSIT);
 
     given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
     given(placeRepository.findById(place.getId())).willReturn(Optional.of(place));
 
     // when
     scheduledPlaceCommandService.saveScheduledPlace(
-        member.getEmail(), tripPlanId, dayNumber, request);
+        0L, tripPlanId, member.getEmail(), dayNumber, request);
 
     // then
     DailyPlan dailyPlan = tripPlan.getDailyPlans().get(0);
@@ -98,13 +95,7 @@ class ScheduledPlaceCommandServiceTest {
     Long invalidTripPlanId = 999L;
     ScheduledPlaceCreateRequest request =
         new ScheduledPlaceCreateRequest(
-            place.getId(),
-            1,
-            ScheduledCategory.MORNING,
-            LocalTime.of(9, 0),
-            LocalTime.of(11, 0),
-            30,
-            Transportation.PUBLIC_TRANSIT);
+            place.getId(), 1, ScheduledCategory.MORNING, 30, Transportation.PUBLIC_TRANSIT);
 
     given(tripPlanRepository.findByIdWithDetails(invalidTripPlanId)).willReturn(Optional.empty());
 
@@ -112,7 +103,7 @@ class ScheduledPlaceCommandServiceTest {
     assertThatThrownBy(
             () ->
                 scheduledPlaceCommandService.saveScheduledPlace(
-                    member.getEmail(), invalidTripPlanId, 1, request))
+                    0L, invalidTripPlanId, member.getEmail(), 1, request))
         .isInstanceOf(BusinessException.class)
         .extracting("errorCode")
         .isEqualTo(TripErrorCode.TRIP_PLAN_NOT_FOUND);
@@ -127,13 +118,7 @@ class ScheduledPlaceCommandServiceTest {
     String otherUserEmail = "other@example.com";
     ScheduledPlaceCreateRequest request =
         new ScheduledPlaceCreateRequest(
-            place.getId(),
-            1,
-            ScheduledCategory.MORNING,
-            LocalTime.of(9, 0),
-            LocalTime.of(11, 0),
-            30,
-            Transportation.PUBLIC_TRANSIT);
+            place.getId(), 1, ScheduledCategory.MORNING, 30, Transportation.PUBLIC_TRANSIT);
 
     given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
 
@@ -141,7 +126,7 @@ class ScheduledPlaceCommandServiceTest {
     assertThatThrownBy(
             () ->
                 scheduledPlaceCommandService.saveScheduledPlace(
-                    otherUserEmail, tripPlanId, 1, request))
+                    0L, tripPlanId, otherUserEmail, 1, request))
         .isInstanceOf(BusinessException.class)
         .extracting("errorCode")
         .isEqualTo(TripErrorCode.TRIP_PLAN_FORBIDDEN);
@@ -154,7 +139,12 @@ class ScheduledPlaceCommandServiceTest {
     // given
     DailyPlan dailyPlan = tripPlan.getDailyPlans().get(0);
     ScheduledPlace scheduledPlace =
-        ScheduledPlace.builder().dailyPlan(dailyPlan).visitOrder(1).build();
+        ScheduledPlace.builder()
+            .dailyPlan(dailyPlan)
+            .visitOrder(1)
+            .startTime(LocalTime.of(9, 0))
+            .endTime(LocalTime.of(11, 0))
+            .build();
     dailyPlan.addScheduledPlace(scheduledPlace);
 
     Long tripPlanId = tripPlan.getId();
@@ -162,24 +152,17 @@ class ScheduledPlaceCommandServiceTest {
     Integer visitOrder = 1;
     ScheduledPlaceUpdateRequest request =
         new ScheduledPlaceUpdateRequest(
-            2,
-            ScheduledCategory.AFTERNOON,
-            LocalTime.of(14, 0),
-            LocalTime.of(16, 0),
-            20,
-            Transportation.WALKING);
+            1L, ScheduledCategory.AFTERNOON, 20, Transportation.WALKING);
 
     given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
+    given(placeRepository.findById(any())).willReturn(Optional.of(place));
 
     // when
     scheduledPlaceCommandService.updateScheduledPlace(
-        member.getEmail(), tripPlanId, dayNumber, visitOrder, request);
+        0L, tripPlanId, member.getEmail(), dayNumber, visitOrder, request);
 
     // then
-    assertThat(scheduledPlace.getVisitOrder()).isEqualTo(request.visitOrder());
     assertThat(scheduledPlace.getCategory()).isEqualTo(request.category());
-    assertThat(scheduledPlace.getStartTime()).isEqualTo(request.startTime());
-    assertThat(scheduledPlace.getEndTime()).isEqualTo(request.endTime());
     assertThat(scheduledPlace.getTravelSegment().getTravelTime()).isEqualTo(request.travelTime());
     assertThat(scheduledPlace.getTravelSegment().getTransportation())
         .isEqualTo(request.transportation());
@@ -194,12 +177,7 @@ class ScheduledPlaceCommandServiceTest {
     Integer invalidDayNumber = 999;
     ScheduledPlaceUpdateRequest request =
         new ScheduledPlaceUpdateRequest(
-            1,
-            ScheduledCategory.AFTERNOON,
-            LocalTime.of(14, 0),
-            LocalTime.of(16, 0),
-            20,
-            Transportation.WALKING);
+            1L, ScheduledCategory.AFTERNOON, 20, Transportation.WALKING);
 
     given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
 
@@ -207,7 +185,7 @@ class ScheduledPlaceCommandServiceTest {
     assertThatThrownBy(
             () ->
                 scheduledPlaceCommandService.updateScheduledPlace(
-                    member.getEmail(), tripPlanId, invalidDayNumber, 1, request))
+                    0L, tripPlanId, member.getEmail(), invalidDayNumber, 1, request))
         .isInstanceOf(BusinessException.class)
         .extracting("errorCode")
         .isEqualTo(TripErrorCode.DAILY_PLAN_NOT_FOUND);
@@ -219,7 +197,12 @@ class ScheduledPlaceCommandServiceTest {
     // given
     DailyPlan dailyPlan = tripPlan.getDailyPlans().get(0);
     ScheduledPlace scheduledPlace =
-        ScheduledPlace.builder().dailyPlan(dailyPlan).visitOrder(1).build();
+        ScheduledPlace.builder()
+            .dailyPlan(dailyPlan)
+            .visitOrder(1)
+            .startTime(LocalTime.of(9, 0))
+            .endTime(LocalTime.of(11, 0))
+            .build();
     dailyPlan.addScheduledPlace(scheduledPlace);
 
     Long tripPlanId = tripPlan.getId();
@@ -230,7 +213,7 @@ class ScheduledPlaceCommandServiceTest {
 
     // when
     scheduledPlaceCommandService.deleteScheduledPlace(
-        member.getEmail(), tripPlanId, dayNumber, visitOrder);
+        0L, tripPlanId, member.getEmail(), dayNumber, visitOrder);
 
     // then
     assertThat(dailyPlan.getScheduledPlaces()).isEmpty();
@@ -251,7 +234,7 @@ class ScheduledPlaceCommandServiceTest {
     assertThatThrownBy(
             () ->
                 scheduledPlaceCommandService.deleteScheduledPlace(
-                    member.getEmail(), tripPlanId, dayNumber, invalidVisitOrder))
+                    0L, tripPlanId, member.getEmail(), dayNumber, invalidVisitOrder))
         .isInstanceOf(BusinessException.class)
         .extracting("errorCode")
         .isEqualTo(TripErrorCode.SCHEDULED_PLACE_NOT_FOUND);

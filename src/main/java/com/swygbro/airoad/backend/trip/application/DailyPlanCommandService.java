@@ -20,6 +20,7 @@ import com.swygbro.airoad.backend.trip.domain.entity.DailyPlan;
 import com.swygbro.airoad.backend.trip.domain.entity.ScheduledPlace;
 import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
 import com.swygbro.airoad.backend.trip.domain.event.DailyPlanSavedEvent;
+import com.swygbro.airoad.backend.trip.domain.event.TripPlanUpdatedEvent;
 import com.swygbro.airoad.backend.trip.exception.TripErrorCode;
 import com.swygbro.airoad.backend.trip.infrastructure.TripPlanRepository;
 
@@ -70,6 +71,11 @@ public class DailyPlanCommandService implements DailyPlanCommandUseCase {
                 throw new BusinessException(TripErrorCode.PLACE_NOT_FOUND);
               }
 
+              int visitOrder =
+                  scheduledPlaceCreateRequest.visitOrder() != null
+                      ? scheduledPlaceCreateRequest.visitOrder()
+                      : dailyPlan.getScheduledPlaces().size() + 1;
+
               TravelSegment travelSegment =
                   TravelSegment.builder()
                       .travelTime(scheduledPlaceCreateRequest.travelTime())
@@ -80,10 +86,8 @@ public class DailyPlanCommandService implements DailyPlanCommandUseCase {
                   ScheduledPlace.builder()
                       .dailyPlan(dailyPlan)
                       .place(place)
-                      .visitOrder(scheduledPlaceCreateRequest.visitOrder())
+                      .visitOrder(visitOrder)
                       .category(scheduledPlaceCreateRequest.category())
-                      .startTime(scheduledPlaceCreateRequest.startTime())
-                      .endTime(scheduledPlaceCreateRequest.endTime())
                       .travelSegment(travelSegment)
                       .build();
 
@@ -120,5 +124,87 @@ public class DailyPlanCommandService implements DailyPlanCommandUseCase {
         tripPlanId,
         request.dayNumber(),
         savedTripPlan.getIsCompleted());
+  }
+
+  @Override
+  public void swapScheduledPlacesBetweenDays(
+      Long chatRoomId,
+      Long tripPlanId,
+      String username,
+      Integer dayNumberA,
+      Integer visitOrderA,
+      Integer dayNumberB,
+      Integer visitOrderB) {
+    log.info(
+        "[시작] swapScheduledPlacesBetweenDays - 사용자: {}, 여행 계획 ID: {}, {}일차 {}번 <-> {}일차 {}번",
+        username,
+        tripPlanId,
+        dayNumberA,
+        visitOrderA,
+        dayNumberB,
+        visitOrderB);
+
+    DailyPlan dailyPlanA = validateAndGetDailyPlan(tripPlanId, username, dayNumberA);
+    DailyPlan dailyPlanB = validateAndGetDailyPlan(tripPlanId, username, dayNumberB);
+
+    ScheduledPlace placeA = getScheduledPlace(dailyPlanA, visitOrderA);
+    ScheduledPlace placeB = getScheduledPlace(dailyPlanB, visitOrderB);
+
+    Place tempPlace = placeA.getPlace();
+    placeA.updatePlace(placeB.getPlace());
+    placeB.updatePlace(tempPlace);
+
+    log.info(
+        "[완료] swapScheduledPlacesBetweenDays - 여행 계획 ID: {}, {}일차 {}번 <-> {}일차 {}번 장소 교환 완료",
+        tripPlanId,
+        dayNumberA,
+        visitOrderA,
+        dayNumberB,
+        visitOrderB);
+
+    DailyPlanResponse dailyPlanResponseA = DailyPlanResponse.of(dailyPlanA);
+    DailyPlanResponse dailyPlanResponseB = DailyPlanResponse.of(dailyPlanB);
+
+    TripPlanUpdatedEvent eventA =
+        TripPlanUpdatedEvent.builder()
+            .chatRoomId(chatRoomId)
+            .tripPlanId(tripPlanId)
+            .username(username)
+            .dailyPlan(dailyPlanResponseA)
+            .build();
+
+    TripPlanUpdatedEvent eventB =
+        TripPlanUpdatedEvent.builder()
+            .chatRoomId(chatRoomId)
+            .tripPlanId(tripPlanId)
+            .username(username)
+            .dailyPlan(dailyPlanResponseB)
+            .build();
+
+    eventPublisher.publishEvent(eventA);
+    eventPublisher.publishEvent(eventB);
+  }
+
+  private DailyPlan validateAndGetDailyPlan(Long tripPlanId, String username, Integer dayNumber) {
+    TripPlan tripPlan =
+        tripPlanRepository
+            .findByIdWithDetails(tripPlanId)
+            .orElseThrow(() -> new BusinessException(TripErrorCode.TRIP_PLAN_NOT_FOUND));
+
+    if (!tripPlan.getMember().getEmail().equals(username)) {
+      throw new BusinessException(TripErrorCode.TRIP_PLAN_FORBIDDEN);
+    }
+
+    return tripPlan.getDailyPlans().stream()
+        .filter(dp -> dp.getDayNumber().equals(dayNumber))
+        .findFirst()
+        .orElseThrow(() -> new BusinessException(TripErrorCode.DAILY_PLAN_NOT_FOUND));
+  }
+
+  private ScheduledPlace getScheduledPlace(DailyPlan dailyPlan, Integer visitOrder) {
+    return dailyPlan.getScheduledPlaces().stream()
+        .filter(sp -> sp.getVisitOrder().equals(visitOrder))
+        .findFirst()
+        .orElseThrow(() -> new BusinessException(TripErrorCode.SCHEDULED_PLACE_NOT_FOUND));
   }
 }

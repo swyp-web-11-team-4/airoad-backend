@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.ai.application;
+package com.swygbro.airoad.backend.ai.application.common;
 
 import java.util.List;
 

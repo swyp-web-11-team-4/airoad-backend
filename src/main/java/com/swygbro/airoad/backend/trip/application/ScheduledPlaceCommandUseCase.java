@@ -5,17 +5,30 @@ import com.swygbro.airoad.backend.trip.domain.dto.request.ScheduledPlaceUpdateRe
 
 public interface ScheduledPlaceCommandUseCase {
   void saveScheduledPlace(
-      String username, Long tripPlanId, Integer dayNumber, ScheduledPlaceCreateRequest request);
+      Long chatRoomId,
+      Long tripPlanId,
+      String username,
+      Integer dayNumber,
+      ScheduledPlaceCreateRequest request);
 
   void updateScheduledPlace(
-      String username,
+      Long chatRoomId,
       Long tripPlanId,
+      String username,
       Integer dayNumber,
       Integer visitOrder,
       ScheduledPlaceUpdateRequest request);
 
   void deleteScheduledPlace(
-      String username, Long tripPlanId, Integer dayNumber, Integer visitOrder);
+      Long chatRoomId, Long tripPlanId, String username, Integer dayNumber, Integer visitOrder);
+
+  void swapScheduledPlaces(
+      Long chatRoomId,
+      Long tripPlanId,
+      String username,
+      Integer dayNumber,
+      Integer visitOrderA,
+      Integer visitOrderB);
 
   boolean validateScheduledPlace(String username, Long scheduledPlaceId);
 }

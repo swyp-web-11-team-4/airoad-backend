@@ -80,14 +80,14 @@ class TripPlanQueryServiceTest {
 
     // then
     assertThat(response).isNotNull();
-    assertThat(response.getId()).isEqualTo(tripPlan.getId());
-    assertThat(response.getTitle()).isEqualTo(tripPlan.getTitle());
-    assertThat(response.getDailyPlans()).hasSize(2);
-    assertThat(response.getDailyPlans().get(0).dayNumber()).isEqualTo(1);
-    assertThat(response.getDailyPlans().get(1).dayNumber()).isEqualTo(2);
-    assertThat(response.getDailyPlans().get(0).scheduledPlaces()).hasSize(2);
-    assertThat(response.getDailyPlans().get(0).scheduledPlaces().get(0).visitOrder()).isEqualTo(1);
-    assertThat(response.getDailyPlans().get(0).scheduledPlaces().get(1).visitOrder()).isEqualTo(2);
+    assertThat(response.id()).isEqualTo(tripPlan.getId());
+    assertThat(response.title()).isEqualTo(tripPlan.getTitle());
+    assertThat(response.dailyPlans()).hasSize(2);
+    assertThat(response.dailyPlans().get(0).dayNumber()).isEqualTo(1);
+    assertThat(response.dailyPlans().get(1).dayNumber()).isEqualTo(2);
+    assertThat(response.dailyPlans().get(0).scheduledPlaces()).hasSize(2);
+    assertThat(response.dailyPlans().get(0).scheduledPlaces().get(0).visitOrder()).isEqualTo(1);
+    assertThat(response.dailyPlans().get(0).scheduledPlaces().get(1).visitOrder()).isEqualTo(2);
   }
 
   @Test
@@ -136,8 +136,8 @@ class TripPlanQueryServiceTest {
 
     // then
     assertThat(response).isNotNull();
-    assertThat(response.getId()).isEqualTo(tripPlan.getId());
-    assertThat(response.getDailyPlans()).isEmpty();
+    assertThat(response.id()).isEqualTo(tripPlan.getId());
+    assertThat(response.dailyPlans()).isEmpty();
   }
 
   @Test
@@ -162,7 +162,7 @@ class TripPlanQueryServiceTest {
 
     // then
     assertThat(response).isNotNull();
-    assertThat(response.getDailyPlans()).hasSize(1);
-    assertThat(response.getDailyPlans().get(0).scheduledPlaces()).isEmpty();
+    assertThat(response.dailyPlans()).hasSize(1);
+    assertThat(response.dailyPlans().get(0).scheduledPlaces()).isEmpty();
   }
 }

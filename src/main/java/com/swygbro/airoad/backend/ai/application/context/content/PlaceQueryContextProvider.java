@@ -1,13 +1,13 @@
-package com.swygbro.airoad.backend.ai.domain.context.content;
+package com.swygbro.airoad.backend.ai.application.context.content;
 
 import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import com.swygbro.airoad.backend.ai.application.context.dto.PlaceQueryContext;
 import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor;
 import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor.MetadataEntry;
 import com.swygbro.airoad.backend.ai.common.context.AbstractContextProvider;
-import com.swygbro.airoad.backend.ai.domain.dto.context.PlaceQueryContext;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,7 +21,7 @@ public class PlaceQueryContextProvider extends AbstractContextProvider<PlaceQuer
 
   @Override
   public int getOrder() {
-    return 3;
+    return 30;
   }
 
   @Override
@@ -57,6 +57,6 @@ public class PlaceQueryContextProvider extends AbstractContextProvider<PlaceQuer
                 context.holidayInfo(),
                 context.themes());
 
-    return PromptMetadataAdvisor.userMetadata(placeInfo);
+    return PromptMetadataAdvisor.systemMetadata(placeInfo);
   }
 }

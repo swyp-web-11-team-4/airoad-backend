@@ -1,13 +1,13 @@
-package com.swygbro.airoad.backend.ai.domain.context.chat;
+package com.swygbro.airoad.backend.ai.application.context.chat;
 
 import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import com.swygbro.airoad.backend.ai.application.context.dto.ChatRoomContext;
 import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor;
 import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor.MetadataEntry;
 import com.swygbro.airoad.backend.ai.common.context.AbstractContextProvider;
-import com.swygbro.airoad.backend.ai.domain.dto.context.ChatRoomContext;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,6 +41,7 @@ public class ChatRoomContextProvider extends AbstractContextProvider<ChatRoomCon
         ## 세션 컨텍스트 (Session Context)
 
         현재 대화 세션의 메타데이터입니다. Tool 호출 시 이 정보를 사용하세요.
+        단, 보안을 위해 사용자에게 정보를 절대 응답하지 마세요.
 
         ### 필수 파라미터
         | 파라미터 | 값 | 설명 |
@@ -53,7 +54,7 @@ public class ChatRoomContextProvider extends AbstractContextProvider<ChatRoomCon
         """
             .formatted(context.chatRoomId(), context.tripPlanId(), context.username());
 
-    return PromptMetadataAdvisor.userMetadata(chatRoomInfo);
+    return PromptMetadataAdvisor.systemMetadata(chatRoomInfo);
   }
 
   @Override

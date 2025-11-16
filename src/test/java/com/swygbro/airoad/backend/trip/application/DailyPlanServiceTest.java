@@ -1,7 +1,6 @@
 package com.swygbro.airoad.backend.trip.application;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -76,10 +75,7 @@ class DailyPlanServiceTest {
       ScheduledPlaceCreateRequest scheduledPlaceRequest =
           ScheduledPlaceCreateRequest.builder()
               .placeId(1L)
-              .visitOrder(1)
               .category(ScheduledCategory.MORNING)
-              .startTime(LocalTime.of(9, 0))
-              .endTime(LocalTime.of(11, 0))
               .travelTime(30)
               .transportation(Transportation.PUBLIC_TRANSIT)
               .build();
@@ -155,10 +151,7 @@ class DailyPlanServiceTest {
       ScheduledPlaceCreateRequest scheduledPlaceRequest =
           ScheduledPlaceCreateRequest.builder()
               .placeId(999L)
-              .visitOrder(1)
               .category(ScheduledCategory.MORNING)
-              .startTime(LocalTime.of(9, 0))
-              .endTime(LocalTime.of(11, 0))
               .travelTime(30)
               .transportation(Transportation.PUBLIC_TRANSIT)
               .build();
@@ -199,10 +192,7 @@ class DailyPlanServiceTest {
       ScheduledPlaceCreateRequest scheduledPlace1 =
           ScheduledPlaceCreateRequest.builder()
               .placeId(1L)
-              .visitOrder(1)
               .category(ScheduledCategory.MORNING)
-              .startTime(LocalTime.of(9, 0))
-              .endTime(LocalTime.of(11, 0))
               .travelTime(0)
               .transportation(Transportation.WALKING)
               .build();
@@ -210,10 +200,7 @@ class DailyPlanServiceTest {
       ScheduledPlaceCreateRequest scheduledPlace2 =
           ScheduledPlaceCreateRequest.builder()
               .placeId(2L)
-              .visitOrder(2)
               .category(ScheduledCategory.AFTERNOON)
-              .startTime(LocalTime.of(12, 0))
-              .endTime(LocalTime.of(13, 0))
               .travelTime(30)
               .transportation(Transportation.PUBLIC_TRANSIT)
               .build();
@@ -282,10 +269,7 @@ class DailyPlanServiceTest {
       ScheduledPlaceCreateRequest morning =
           ScheduledPlaceCreateRequest.builder()
               .placeId(1L)
-              .visitOrder(1)
               .category(ScheduledCategory.MORNING)
-              .startTime(LocalTime.of(9, 0))
-              .endTime(LocalTime.of(11, 0))
               .travelTime(0)
               .transportation(Transportation.WALKING)
               .build();
@@ -293,10 +277,7 @@ class DailyPlanServiceTest {
       ScheduledPlaceCreateRequest afternoon1 =
           ScheduledPlaceCreateRequest.builder()
               .placeId(2L)
-              .visitOrder(2)
               .category(ScheduledCategory.AFTERNOON)
-              .startTime(LocalTime.of(12, 0))
-              .endTime(LocalTime.of(13, 0))
               .travelTime(30)
               .transportation(Transportation.PUBLIC_TRANSIT)
               .build();
@@ -304,10 +285,7 @@ class DailyPlanServiceTest {
       ScheduledPlaceCreateRequest afternoon2 =
           ScheduledPlaceCreateRequest.builder()
               .placeId(3L)
-              .visitOrder(3)
               .category(ScheduledCategory.AFTERNOON)
-              .startTime(LocalTime.of(14, 0))
-              .endTime(LocalTime.of(17, 0))
               .travelTime(20)
               .transportation(Transportation.PUBLIC_TRANSIT)
               .build();

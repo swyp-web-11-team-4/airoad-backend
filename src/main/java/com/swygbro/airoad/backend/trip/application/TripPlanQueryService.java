@@ -51,7 +51,6 @@ public class TripPlanQueryService implements TripPlanQueryUseCase {
                 .sorted(Comparator.comparing(DailyPlan::getDayNumber))
                 .map(
                     dailyPlan -> {
-                      // Manually create DailyPlanResponse to handle sorting of scheduled places
                       List<ScheduledPlaceResponse> scheduledPlaceResponses =
                           dailyPlan.getScheduledPlaces().stream()
                               .sorted(Comparator.comparing(ScheduledPlace::getVisitOrder))

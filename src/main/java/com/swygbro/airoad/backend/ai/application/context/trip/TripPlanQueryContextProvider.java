@@ -1,13 +1,13 @@
-package com.swygbro.airoad.backend.ai.domain.context.trip;
+package com.swygbro.airoad.backend.ai.application.context.trip;
 
 import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import com.swygbro.airoad.backend.ai.application.context.dto.TripPlanQueryContext;
 import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor;
 import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor.MetadataEntry;
 import com.swygbro.airoad.backend.ai.common.context.AbstractContextProvider;
-import com.swygbro.airoad.backend.ai.domain.dto.context.TripPlanQueryContext;
 import com.swygbro.airoad.backend.trip.application.TripPlanQueryUseCase;
 import com.swygbro.airoad.backend.trip.domain.dto.response.DailyPlanResponse;
 import com.swygbro.airoad.backend.trip.domain.dto.response.ScheduledPlaceResponse;
@@ -51,11 +51,13 @@ public class TripPlanQueryContextProvider extends AbstractContextProvider<TripPl
 
     log.debug("여행 계획 요약 완료 - 길이: {} 자", summary.length());
 
-    return PromptMetadataAdvisor.userMetadata(
+    return PromptMetadataAdvisor.systemMetadata(
         """
         ## 여행 계획 컨텍스트 (Trip Plan Context)
 
         사용자의 현재 여행 계획 정보입니다.
+        반드시 동일한 장소를 중복해서 일정에 포함하지 않도록 하세요.
+        또한 동일한 여행 소제목을 중복해서 작성하지 않도록 하세요.
 
         %s
 
@@ -65,7 +67,7 @@ public class TripPlanQueryContextProvider extends AbstractContextProvider<TripPl
 
   @Override
   public int getOrder() {
-    return 11;
+    return 20;
   }
 
   /**
@@ -79,15 +81,26 @@ public class TripPlanQueryContextProvider extends AbstractContextProvider<TripPl
 
     // 여행 기본 정보
     summary.append("### 기본 정보\n");
-    summary.append(String.format("- **제목**: %s\n", tripPlan.getTitle()));
-    summary.append(
-        String.format("- **기간**: %s ~ %s\n", tripPlan.getStartDate(), tripPlan.getEndDate()));
+    summary.append(String.format("- **제목**: %s\n", tripPlan.title()));
+    summary.append(String.format("- **기간**: %s ~ %s\n", tripPlan.startDate(), tripPlan.endDate()));
 
     // 일정 상세
+    if (tripPlan.dailyPlans().isEmpty()) {
+      summary.append("아직 생성된 일정이 없습니다.");
+    } else {
+      createDailyPlansSummary(summary, tripPlan);
+    }
+
+    return summary.toString();
+  }
+
+  private void createDailyPlansSummary(StringBuilder summary, TripPlanDetailsResponse tripPlan) {
     summary.append("### 일정 상세\n\n");
 
-    for (DailyPlanResponse dailyPlan : tripPlan.getDailyPlans()) {
-      summary.append(String.format("#### %d일차 (%s)\n", dailyPlan.dayNumber(), dailyPlan.date()));
+    for (DailyPlanResponse dailyPlan : tripPlan.dailyPlans()) {
+      summary.append(
+          String.format(
+              "#### %d일차: %s (%s)\n", dailyPlan.dayNumber(), dailyPlan.title(), dailyPlan.date()));
 
       if (dailyPlan.scheduledPlaces().isEmpty()) {
         summary.append("- *(일정 없음)*\n\n");
@@ -95,18 +108,10 @@ public class TripPlanQueryContextProvider extends AbstractContextProvider<TripPl
       }
 
       for (ScheduledPlaceResponse place : dailyPlan.scheduledPlaces()) {
-        String timeRange =
-            (place.startTime() != null && place.endTime() != null)
-                ? String.format("%s ~ %s", place.startTime(), place.endTime())
-                : "시간 미정";
-
-        summary.append(
-            String.format(
-                "- **[%d]** %s (%s)\n", place.visitOrder(), place.place().name(), timeRange));
+        summary.append(String.format("- **[%d]** %s\n", place.visitOrder(), place.place().name()));
       }
+
       summary.append("\n");
     }
-
-    return summary.toString();
   }
 }

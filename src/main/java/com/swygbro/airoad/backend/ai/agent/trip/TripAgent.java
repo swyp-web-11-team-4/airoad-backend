@@ -2,22 +2,27 @@ package com.swygbro.airoad.backend.ai.agent.trip;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
+import org.springframework.ai.chat.client.advisor.StructuredOutputValidationAdvisor;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import com.swygbro.airoad.backend.ai.agent.trip.dto.request.AiDailyPlanRequest;
 import com.swygbro.airoad.backend.ai.agent.trip.dto.response.AiDailyPlanResponse;
+import com.swygbro.airoad.backend.ai.application.context.dto.PlaceVectorQueryContext;
+import com.swygbro.airoad.backend.ai.application.context.dto.PlaceVectorQueryContext.QueryType;
+import com.swygbro.airoad.backend.ai.application.context.dto.TripPlanCommandContext;
+import com.swygbro.airoad.backend.ai.application.context.dto.TripPlanQueryContext;
 import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor;
 import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor.MetadataEntry;
 import com.swygbro.airoad.backend.ai.common.agent.AiroadAgent;
 import com.swygbro.airoad.backend.ai.common.context.ContextManager;
-import com.swygbro.airoad.backend.ai.domain.dto.context.PlaceVectorQueryContext;
-import com.swygbro.airoad.backend.ai.domain.dto.context.TripPlanCommandContext;
-import com.swygbro.airoad.backend.ai.domain.dto.context.TripPlanQueryContext;
 import com.swygbro.airoad.backend.ai.domain.entity.AgentType;
 import com.swygbro.airoad.backend.ai.domain.event.DailyPlanGeneratedEvent;
 import com.swygbro.airoad.backend.ai.exception.AiErrorCode;
@@ -40,14 +45,20 @@ public class TripAgent implements AiroadAgent {
 
   public TripAgent(
       ApplicationEventPublisher eventPublisher,
-      @Qualifier("openAiChatModel") ChatModel chatModel,
+      @Qualifier("upstageChatModel") ChatModel chatModel,
       ContextManager contextManager) {
 
     this.eventPublisher = eventPublisher;
     this.contextManager = contextManager;
     this.chatClient =
         ChatClient.builder(chatModel)
-            .defaultAdvisors(PromptMetadataAdvisor.builder().build())
+            .defaultAdvisors(
+                new SimpleLoggerAdvisor(),
+                PromptMetadataAdvisor.builder().build(),
+                StructuredOutputValidationAdvisor.builder()
+                    .outputType(AiDailyPlanResponse.class)
+                    .maxRepeatAttempts(3)
+                    .build())
             .build();
   }
 
@@ -140,12 +151,32 @@ public class TripAgent implements AiroadAgent {
             .transportation(request.transportation())
             .build();
 
-    PlaceVectorQueryContext placeVectorQueryContext =
+    PlaceVectorQueryContext placeVectorPlaceQueryContext =
         PlaceVectorQueryContext.builder()
-            .region(request.region())
-            .themes(request.themes().stream().map(PlaceThemeType::getDescription).toList())
-            .topK(10)
-            .similarityThreshold(0.4d)
+            .queryType(QueryType.PLACE)
+            .searchRequest(
+                SearchRequest.builder()
+                    .query(
+                        "%s에 있는 %s 테마에 어울리는 장소를 찾고 싶어요."
+                            .formatted(
+                                request.region(),
+                                request.themes().stream()
+                                    .map(PlaceThemeType::getDescription)
+                                    .collect(Collectors.joining(", "))))
+                    .topK(10)
+                    .similarityThreshold(0.45d)
+                    .build())
+            .build();
+
+    PlaceVectorQueryContext placeVectorRestaurantQueryContext =
+        PlaceVectorQueryContext.builder()
+            .queryType(QueryType.RESTAURANT)
+            .searchRequest(
+                SearchRequest.builder()
+                    .query("%s에 있는 음식점을 찾고 싶어요.".formatted(request.region()))
+                    .topK(10)
+                    .similarityThreshold(0.45d)
+                    .build())
             .build();
 
     List<MetadataEntry> contextMetadata =
@@ -153,13 +184,15 @@ public class TripAgent implements AiroadAgent {
             AgentType.TRIP_AGENT,
             tripPlanQueryContext,
             tripPlanCommandContext,
-            placeVectorQueryContext);
+            placeVectorPlaceQueryContext,
+            placeVectorRestaurantQueryContext);
 
     String daySpecificPrompt =
         String.format(
             """
-            %d일차 여행 (%s) 일정을 생성해주세요.
-            """, dayNumber, targetDate);
+                %d일차 여행 (%s) 일정을 생성해주세요.
+                """,
+            dayNumber, targetDate);
 
     try {
       AiDailyPlanResponse dailyPlan =
@@ -186,12 +219,10 @@ public class TripAgent implements AiroadAgent {
                 p ->
                     ScheduledPlaceCreateRequest.builder()
                         .placeId(p.placeId())
-                        .visitOrder(p.visitOrder())
                         .category(p.category())
-                        .startTime(p.startTime())
-                        .endTime(p.endTime())
                         .travelTime(p.travelTime())
                         .transportation(p.transportation())
+                        .visitOrder(p.visitOrder())
                         .build())
             .toList();
 

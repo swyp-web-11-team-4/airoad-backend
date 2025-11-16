@@ -21,7 +21,7 @@ public class PlaceQueryContextProvider extends AbstractContextProvider<PlaceQuer
 
   @Override
   public int getOrder() {
-    return 3;
+    return 30;
   }
 
   @Override
@@ -57,6 +57,6 @@ public class PlaceQueryContextProvider extends AbstractContextProvider<PlaceQuer
                 context.holidayInfo(),
                 context.themes());
 
-    return PromptMetadataAdvisor.userMetadata(placeInfo);
+    return PromptMetadataAdvisor.systemMetadata(placeInfo);
   }
 }

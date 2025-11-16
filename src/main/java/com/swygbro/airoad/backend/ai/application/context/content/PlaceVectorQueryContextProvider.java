@@ -1,12 +1,10 @@
 package com.swygbro.airoad.backend.ai.application.context.content;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.ai.document.Document;
-import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Component;
 
@@ -32,74 +30,40 @@ public class PlaceVectorQueryContextProvider
   @Override
   protected List<MetadataEntry> doGetContext(PlaceVectorQueryContext context) {
     log.debug(
-        "장소 벡터 검색 - region: {}, themes: {}, topK: {}, similarityThreshold: {}",
-        context.region(),
-        context.themes(),
-        context.topK(),
-        context.similarityThreshold());
+        "장소 유사도 검색 - queryType: {}, searchRequest: {}",
+        context.queryType(),
+        context.searchRequest());
 
-    List<Document> places = findPlaces(context);
-    List<Document> restaurants = findRestaurant(context);
+    List<Document> documents = vectorSearch(context);
 
-    String placeInfo =
+    String documentContext =
         """
-        ## 장소 컨텍스트 (Place Context)
+        ## %s 컨텍스트 (%s Context)
 
-        다음의 장소 정보를 활용하여 응답하세요.
+        다음 컨텍스트 정보를 사용하여 사용자 질문에 답변하세요.
+        절대로 컨텍스트에 없는 내용을 지어내서 답변하면 안 됩니다.
 
-        ### 추천 장소 목록
-        %s
-
-        ### 추천 음식점 목록
         %s
 
         """
             .formatted(
-                places.stream()
-                    .map(this::formatDocumentWithMetadata)
-                    .collect(Collectors.joining("\n\n")),
-                restaurants.stream()
+                context.queryType().getDescription(),
+                context.queryType().name(),
+                documents.stream()
                     .map(this::formatDocumentWithMetadata)
                     .collect(Collectors.joining("\n\n")));
 
-    return PromptMetadataAdvisor.userMetadata(placeInfo);
+    return PromptMetadataAdvisor.systemMetadata(documentContext);
   }
 
   @Override
   public int getOrder() {
-    return 20;
+    return 31;
   }
 
-  private List<Document> findPlaces(PlaceVectorQueryContext context) {
-    List<Document> allPlaces = new ArrayList<>();
-
-    for (String theme : context.themes()) {
-      String query = context.region() + "에 있는 " + theme + " 테마에 어울리는 장소를 찾고 싶어";
-
-      List<Document> documents =
-          vectorStore.similaritySearch(
-              SearchRequest.builder()
-                  .query(query)
-                  .topK(context.topK())
-                  .similarityThreshold(context.similarityThreshold())
-                  .build());
-
-      allPlaces.addAll(documents);
-    }
-
-    // 중복 제거
+  private List<Document> vectorSearch(PlaceVectorQueryContext context) {
+    List<Document> allPlaces = vectorStore.similaritySearch(context.searchRequest());
     return allPlaces.stream().distinct().toList();
-  }
-
-  private List<Document> findRestaurant(PlaceVectorQueryContext context) {
-    String query = context.region() + "에 있는 음식점을 찾고 싶어";
-
-    return vectorStore.similaritySearch(
-        SearchRequest.builder()
-            .query(query)
-            .topK(context.topK())
-            .similarityThreshold(context.similarityThreshold())
-            .build());
   }
 
   private String formatDocumentWithMetadata(Document doc) {

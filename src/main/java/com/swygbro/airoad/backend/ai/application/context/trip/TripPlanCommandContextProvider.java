@@ -38,7 +38,7 @@ public class TripPlanCommandContextProvider
 
     log.debug("여행 파라미터 포맷팅 완료 - 길이: {} 자", formattedParameters.length());
 
-    return PromptMetadataAdvisor.userMetadata(
+    return PromptMetadataAdvisor.systemMetadata(
         """
         ## 요구사항 컨텍스트 (Requirements Context)
 
@@ -51,7 +51,7 @@ public class TripPlanCommandContextProvider
 
   @Override
   public int getOrder() {
-    return 10;
+    return 21;
   }
 
   /**

@@ -51,7 +51,7 @@ public class TripPlanQueryContextProvider extends AbstractContextProvider<TripPl
 
     log.debug("여행 계획 요약 완료 - 길이: {} 자", summary.length());
 
-    return PromptMetadataAdvisor.userMetadata(
+    return PromptMetadataAdvisor.systemMetadata(
         """
         ## 여행 계획 컨텍스트 (Trip Plan Context)
 
@@ -67,7 +67,7 @@ public class TripPlanQueryContextProvider extends AbstractContextProvider<TripPl
 
   @Override
   public int getOrder() {
-    return 11;
+    return 20;
   }
 
   /**
@@ -81,12 +81,11 @@ public class TripPlanQueryContextProvider extends AbstractContextProvider<TripPl
 
     // 여행 기본 정보
     summary.append("### 기본 정보\n");
-    summary.append(String.format("- **제목**: %s\n", tripPlan.getTitle()));
-    summary.append(
-        String.format("- **기간**: %s ~ %s\n", tripPlan.getStartDate(), tripPlan.getEndDate()));
+    summary.append(String.format("- **제목**: %s\n", tripPlan.title()));
+    summary.append(String.format("- **기간**: %s ~ %s\n", tripPlan.startDate(), tripPlan.endDate()));
 
     // 일정 상세
-    if (tripPlan.getDailyPlans().isEmpty()) {
+    if (tripPlan.dailyPlans().isEmpty()) {
       summary.append("아직 생성된 일정이 없습니다.");
     } else {
       createDailyPlansSummary(summary, tripPlan);
@@ -98,7 +97,7 @@ public class TripPlanQueryContextProvider extends AbstractContextProvider<TripPl
   private void createDailyPlansSummary(StringBuilder summary, TripPlanDetailsResponse tripPlan) {
     summary.append("### 일정 상세\n\n");
 
-    for (DailyPlanResponse dailyPlan : tripPlan.getDailyPlans()) {
+    for (DailyPlanResponse dailyPlan : tripPlan.dailyPlans()) {
       summary.append(
           String.format(
               "#### %d일차: %s (%s)\n", dailyPlan.dayNumber(), dailyPlan.title(), dailyPlan.date()));
@@ -109,15 +108,9 @@ public class TripPlanQueryContextProvider extends AbstractContextProvider<TripPl
       }
 
       for (ScheduledPlaceResponse place : dailyPlan.scheduledPlaces()) {
-        String timeRange =
-            (place.startTime() != null && place.endTime() != null)
-                ? String.format("%s ~ %s", place.startTime(), place.endTime())
-                : "시간 미정";
-
-        summary.append(
-            String.format(
-                "- **[%d]** %s (%s)\n", place.visitOrder(), place.place().name(), timeRange));
+        summary.append(String.format("- **[%d]** %s\n", place.visitOrder(), place.place().name()));
       }
+
       summary.append("\n");
     }
   }

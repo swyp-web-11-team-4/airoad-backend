@@ -3,11 +3,13 @@ package com.swygbro.airoad.backend.trip.presentation.message;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.swygbro.airoad.backend.chat.domain.dto.response.ChatStreamDto;
 import com.swygbro.airoad.backend.chat.domain.dto.response.MessageStreamType;
 import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
 import com.swygbro.airoad.backend.trip.domain.dto.TripPlanProgressMessage;
+import com.swygbro.airoad.backend.trip.domain.dto.TripPlanProgressMessage.MessageType;
 import com.swygbro.airoad.backend.trip.domain.event.DailyPlanSavedEvent;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationCancelledEvent;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationCompletedEvent;
@@ -28,12 +30,15 @@ public class TripPlanNotificationListener {
   /**
    * 일차별 일정 저장 완료 이벤트를 처리합니다.
    *
-   * <p>WebSocket을 통해 일정 생성 채널과 채팅 채널로 일차별 일정 데이터를 전송합니다. 일정 생성 채널(/sub/schedule/{tripPlanId})에는 상세
-   * 일정 데이터를, 채팅 채널(/sub/chat/{chatRoomId})에는 완료 메시지를 전송합니다.
+   * <p>트랜잭션 커밋 후 WebSocket을 통해 일정 생성 채널과 채팅 채널로 일차별 일정 데이터를 전송합니다. 일정 생성
+   * 채널(/sub/schedule/{tripPlanId})에는 상세 일정 데이터를, 채팅 채널(/sub/chat/{chatRoomId})에는 완료 메시지를 전송합니다.
+   *
+   * <p>@TransactionalEventListener를 사용하여 트랜잭션 커밋 후 이벤트를 처리함으로써, 프론트엔드가 항상 최신 DB 데이터를 받을 수 있도록
+   * 보장합니다.
    *
    * @param event 일차별 일정 저장 완료 이벤트
    */
-  @EventListener
+  @TransactionalEventListener
   public void handleDailyPlanSaved(DailyPlanSavedEvent event) {
     log.info(
         "일정 저장 완료 - tripPlanId: {}, dayNumber: {}",
@@ -139,12 +144,15 @@ public class TripPlanNotificationListener {
   /**
    * 일정 수정 완료 이벤트를 처리합니다.
    *
-   * <p>WebSocket을 통해 일정 채널과 채팅 채널로 수정된 일정 데이터를 전송합니다. 일정 채널(/sub/schedule/{tripPlanId})에는 수정된 일정
-   * 데이터를, 채팅 채널(/sub/chat/{chatRoomId})에는 완료 메시지를 전송합니다.
+   * <p>트랜잭션 커밋 후 WebSocket을 통해 일정 채널과 채팅 채널로 수정된 일정 데이터를 전송합니다. 일정 채널(/sub/schedule/{tripPlanId})에는
+   * 수정된 일정 데이터를, 채팅 채널(/sub/chat/{chatRoomId})에는 완료 메시지를 전송합니다.
+   *
+   * <p>@TransactionalEventListener를 사용하여 트랜잭션 커밋 후 이벤트를 처리함으로써, 프론트엔드가 항상 최신 DB 데이터를 받을 수 있도록
+   * 보장합니다.
    *
    * @param event 일정 수정 완료 이벤트
    */
-  @EventListener
+  @TransactionalEventListener
   public void handleTripPlanUpdated(TripPlanUpdatedEvent event) {
     log.info(
         "일정 수정 완료 - tripPlanId: {}, dayNumber: {}",
@@ -153,7 +161,7 @@ public class TripPlanNotificationListener {
 
     TripPlanProgressMessage tripMessage =
         TripPlanProgressMessage.builder()
-            .type(TripPlanProgressMessage.MessageType.UPDATED)
+            .type(MessageType.DAILY_PLAN_GENERATED)
             .tripPlanId(event.tripPlanId())
             .dailyPlan(event.dailyPlan())
             .message(event.dailyPlan().dayNumber() + "일차 일정이 수정되었습니다.")

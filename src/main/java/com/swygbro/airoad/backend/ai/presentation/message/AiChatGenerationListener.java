@@ -1,12 +1,14 @@
 package com.swygbro.airoad.backend.ai.presentation.message;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import com.swygbro.airoad.backend.ai.agent.chat.dto.request.AiChatRequest;
-import com.swygbro.airoad.backend.ai.application.AiUseCase;
+import com.swygbro.airoad.backend.ai.application.common.AiUseCase;
 import com.swygbro.airoad.backend.ai.domain.entity.AgentType;
+import com.swygbro.airoad.backend.ai.domain.event.AiMessageGeneratedEvent;
 import com.swygbro.airoad.backend.chat.domain.event.AiChatGenerationRequestedEvent;
 
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AiChatGenerationListener {
 
   private final AiUseCase aiUseCase;
+  private final ApplicationEventPublisher eventPublisher;
 
   /**
    * AI 채팅 요청 이벤트를 처리합니다.
@@ -44,6 +47,17 @@ public class AiChatGenerationListener {
             .scheduledPlaceId(event.scheduledPlaceId())
             .build();
 
-    aiUseCase.agentCall(AgentType.CHAT_AGENT, request);
+    try {
+      aiUseCase.agentCall(AgentType.CHAT_AGENT, request);
+    } catch (Exception e) {
+      log.error("AI 요청 처리 중 오류 발생", e);
+      eventPublisher.publishEvent(
+          AiMessageGeneratedEvent.builder()
+              .chatRoomId(event.chatRoomId())
+              .tripPlanId(event.tripPlanId())
+              .username(event.username())
+              .aiMessage("요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+              .build());
+    }
   }
 }

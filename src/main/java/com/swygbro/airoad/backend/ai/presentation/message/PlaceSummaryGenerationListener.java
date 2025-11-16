@@ -5,7 +5,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import com.swygbro.airoad.backend.ai.agent.summary.dto.request.AiPlaceSummaryRequest;
-import com.swygbro.airoad.backend.ai.application.AiUseCase;
+import com.swygbro.airoad.backend.ai.application.common.AiUseCase;
 import com.swygbro.airoad.backend.ai.domain.entity.AgentType;
 import com.swygbro.airoad.backend.content.domain.event.PlaceSummaryRequestedEvent;
 

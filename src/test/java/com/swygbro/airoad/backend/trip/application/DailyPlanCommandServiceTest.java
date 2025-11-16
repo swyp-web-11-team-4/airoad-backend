@@ -27,6 +27,7 @@ import com.swygbro.airoad.backend.trip.domain.entity.ScheduledCategory;
 import com.swygbro.airoad.backend.trip.domain.entity.ScheduledPlace;
 import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
 import com.swygbro.airoad.backend.trip.domain.event.DailyPlanSavedEvent;
+import com.swygbro.airoad.backend.trip.domain.event.TripPlanUpdatedEvent;
 import com.swygbro.airoad.backend.trip.infrastructure.TripPlanRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -120,6 +121,6 @@ class DailyPlanCommandServiceTest {
     // then
     assertThat(scheduledPlace1.getPlace()).isEqualTo(place2);
     assertThat(scheduledPlace2.getPlace()).isEqualTo(place1);
-    verify(eventPublisher, atLeast(2)).publishEvent(any(DailyPlanSavedEvent.class));
+    verify(eventPublisher, atLeast(2)).publishEvent(any(TripPlanUpdatedEvent.class));
   }
 }

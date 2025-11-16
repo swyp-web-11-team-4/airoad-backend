@@ -24,6 +24,7 @@ public enum TripErrorCode implements ErrorCode {
 
   // 방문 장소 관련 에러
   SCHEDULED_PLACE_NOT_FOUND("TRIP104", HttpStatus.NOT_FOUND, "계획 방문 일정을 찾을 수 없습니다."),
+  TIME_SLOT_CONFLICT("TRIP105", HttpStatus.CONFLICT, "해당 시간대에 이미 다른 일정이 있습니다."),
 
   // 장소 관련 에러
   PLACE_NOT_FOUND("TRIP201", HttpStatus.NOT_FOUND, "장소를 찾을 수 없습니다");

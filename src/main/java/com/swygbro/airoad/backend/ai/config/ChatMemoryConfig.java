@@ -22,7 +22,10 @@ public class ChatMemoryConfig {
 
   @Bean
   public ChatMemory chatMemory(ChatMemoryRepository chatMemoryRepository) {
-    return MessageWindowChatMemory.builder().chatMemoryRepository(chatMemoryRepository).build();
+    return MessageWindowChatMemory.builder()
+        .chatMemoryRepository(chatMemoryRepository)
+        .maxMessages(10)
+        .build();
   }
 }
 

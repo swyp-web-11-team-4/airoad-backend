@@ -1,7 +1,6 @@
 package com.swygbro.airoad.backend.ai.agent.trip.dto.response;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -16,7 +15,12 @@ public record AiDailyPlanResponse(
         int dayNumber,
     @JsonProperty(required = true, value = "date") @JsonPropertyDescription("'yyyy-MM-dd' 형식의 날짜")
         LocalDate date,
-    @JsonProperty(required = true, value = "title") @JsonPropertyDescription("해당 일차의 소제목")
+    @JsonProperty(required = true, value = "title")
+        @JsonPropertyDescription(
+            """
+        해당 일차의 소제목, 다른 소제목과 중복되지 않게 작성하고 재밌고 재치있게 작성하세요.
+        - 예시: "오늘은 내가 만수르야!", "한옥 골목 속 숨은 서울 찾기", "도심 속 자연과 한 몸 되기", "너도 나도 이제 먹방 유튜버?!"
+        """)
         String title,
     @JsonProperty(required = true, value = "description")
         @JsonPropertyDescription(
@@ -62,12 +66,6 @@ public record AiDailyPlanResponse(
           @JsonPropertyDescription(
               "일정 카테고리. 반드시 다음 중 하나만 사용: MORNING(오전 일정, 아침~점심 전), AFTERNOON(오후 일정, 점심~저녁 전), EVENING(저녁 일정, 저녁~밤). 점심 식사 - `AFTERNOON`, 저녁 식사 - `EVENING` 으로 분류")
           ScheduledCategory category,
-      @JsonProperty(required = true, value = "startTime")
-          @JsonPropertyDescription("일정 시작 시간. 'HH:mm' 형식 (예: 09:00, 13:30)")
-          LocalTime startTime,
-      @JsonProperty(required = true, value = "endTime")
-          @JsonPropertyDescription("일정 종료 시간. 'HH:mm' 형식 (예: 11:00, 15:30)")
-          LocalTime endTime,
       @JsonProperty(required = true, value = "travelTime")
           @JsonPropertyDescription("이전 장소로부터의 이동 시간(분)")
           int travelTime,

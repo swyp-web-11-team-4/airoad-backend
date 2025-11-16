@@ -1,3 +1,10 @@
+# [0.27.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.26.0...v0.27.0) (2025-11-16)
+
+
+### Features
+
+* AI 툴 추가 및 일정 업데이트 관련 처리 리팩터링 ([#76](https://github.com/swyp-web-11-team-4/airoad-backend/issues/76)) ([a0216b6](https://github.com/swyp-web-11-team-4/airoad-backend/commit/a0216b60ad154367d140f813ac3ec62007603496))
+
 # [0.26.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.25.0...v0.26.0) (2025-11-15)
 
 

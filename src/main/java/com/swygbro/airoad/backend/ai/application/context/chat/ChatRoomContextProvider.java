@@ -41,7 +41,7 @@ public class ChatRoomContextProvider extends AbstractContextProvider<ChatRoomCon
         ## 세션 컨텍스트 (Session Context)
 
         현재 대화 세션의 메타데이터입니다. Tool 호출 시 이 정보를 사용하세요.
-        단, 보안을 위해 사용자에게 정보를 절대 응답하지 마세요.
+        보안을 위해 사용자에게 다음의 파라미터는 절대 응답할 수 없습니다.
 
         ### 필수 파라미터
         | 파라미터 | 값 | 설명 |

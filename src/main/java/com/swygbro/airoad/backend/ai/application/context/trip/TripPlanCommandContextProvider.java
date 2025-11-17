@@ -76,7 +76,6 @@ public class TripPlanCommandContextProvider
 
         ### 선호 테마
         %s
-
         """
         .formatted(
             context.region(),

@@ -44,14 +44,13 @@ public class PlaceVectorQueryContextProvider
         절대로 컨텍스트에 없는 내용을 지어내서 답변하면 안 됩니다.
 
         %s
-
         """
             .formatted(
                 context.queryType().getDescription(),
                 context.queryType().name(),
                 documents.stream()
                     .map(this::formatDocumentWithMetadata)
-                    .collect(Collectors.joining("\n\n")));
+                    .collect(Collectors.joining("\n")));
 
     return PromptMetadataAdvisor.systemMetadata(documentContext);
   }

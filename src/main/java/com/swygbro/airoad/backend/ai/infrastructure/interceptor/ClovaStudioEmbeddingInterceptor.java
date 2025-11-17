@@ -63,14 +63,12 @@ public class ClovaStudioEmbeddingInterceptor implements ClientHttpRequestInterce
         JsonNode inputArray = rootNode.get("input");
 
         if (inputArray.size() == 1) {
-          // 단일 항목 배열인 경우에만 문자열로 변환
           String singleValue = inputArray.get(0).asText();
           ((ObjectNode) rootNode).put("input", singleValue);
           String modifiedBody = objectMapper.writeValueAsString(rootNode);
 
           return modifiedBody.getBytes(StandardCharsets.UTF_8);
         } else if (inputArray.size() > 1) {
-          // 다중 항목 배열은 경고 후 원본 유지
           log.warn(
               "Multiple items in input array ({}). Clova Studio expects single string. Request may fail.",
               inputArray.size());
@@ -78,7 +76,6 @@ public class ClovaStudioEmbeddingInterceptor implements ClientHttpRequestInterce
       }
     } catch (Exception e) {
       log.error("Failed to parse request body for input transformation", e);
-      // 파싱 실패 시 원본 반환
     }
 
     return body;

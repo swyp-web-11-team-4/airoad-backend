@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.swygbro.airoad.backend.chat.domain.dto.request.ChatMessageRequest;
 import com.swygbro.airoad.backend.chat.domain.dto.response.ChatMessageResponse;
 import com.swygbro.airoad.backend.chat.domain.dto.response.ChatStreamDto;
 import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
@@ -264,10 +265,12 @@ public class SwaggerConfig {
       var tripPlanProgressSchemas =
           ModelConverters.getInstance().read(TripPlanProgressMessage.class);
       var chatStreamSchemas = ModelConverters.getInstance().read(ChatStreamDto.class);
+      var chatMessageRequestSchemas = ModelConverters.getInstance().read(ChatMessageRequest.class);
       var errorSchemas = ModelConverters.getInstance().read(ErrorResponse.class);
 
       openApi.getComponents().getSchemas().putAll(tripPlanProgressSchemas);
       openApi.getComponents().getSchemas().putAll(chatStreamSchemas);
+      openApi.getComponents().getSchemas().putAll(chatMessageRequestSchemas);
       openApi.getComponents().getSchemas().putAll(errorSchemas);
 
       // API 응답 스키마 등록

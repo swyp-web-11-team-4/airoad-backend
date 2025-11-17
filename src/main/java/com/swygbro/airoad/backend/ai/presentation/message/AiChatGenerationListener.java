@@ -44,7 +44,7 @@ public class AiChatGenerationListener {
             .tripPlanId(event.tripPlanId())
             .username(event.username())
             .userPrompt(event.userMessage())
-            .scheduledPlaceId(event.scheduledPlaceId())
+            .scheduledPlaceIdList(event.scheduledPlaceIdList())
             .build();
 
     try {

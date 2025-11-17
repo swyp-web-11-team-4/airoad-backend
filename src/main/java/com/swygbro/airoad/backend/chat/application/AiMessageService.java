@@ -64,8 +64,10 @@ public class AiMessageService implements AiMessageUseCase {
     }
 
     // 3. 태그 장소 검증
-    if (request.scheduledPlaceId() != null) {
-      scheduledPlaceCommandUseCase.validateScheduledPlace(username, request.scheduledPlaceId());
+    if (request.scheduledPlaceIdList() != null && !request.scheduledPlaceIdList().isEmpty()) {
+      for (Long scheduledPlacedId : request.scheduledPlaceIdList()) {
+        scheduledPlaceCommandUseCase.validateScheduledPlace(username, scheduledPlacedId);
+      }
     }
 
     // 4. 본문/타입 검증
@@ -86,7 +88,7 @@ public class AiMessageService implements AiMessageUseCase {
     }
     AiChatGenerationRequestedEvent aiChatGenerationRequestedEvent =
         new AiChatGenerationRequestedEvent(
-            chatRoomId, tripPlanId, username, request.content(), request.scheduledPlaceId());
+            chatRoomId, tripPlanId, username, request.content(), request.scheduledPlaceIdList());
 
     eventPublisher.publishEvent(aiChatGenerationRequestedEvent);
 

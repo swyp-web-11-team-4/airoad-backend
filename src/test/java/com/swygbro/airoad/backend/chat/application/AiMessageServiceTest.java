@@ -73,15 +73,12 @@ class AiMessageServiceTest {
           AiConversationFixture.createWithMemberAndTripPlan(member, tripPlan);
 
       ChatMessageRequest request =
-          new ChatMessageRequest("서울 3박 4일 여행 추천해주세요", MessageContentType.TEXT, 123L);
+          new ChatMessageRequest("서울 3박 4일 여행 추천해주세요", MessageContentType.TEXT, List.of(123L));
       String userEmail = member.getEmail();
       Long chatRoomId = 1L;
 
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
-      given(
-              scheduledPlaceCommandUseCase.validateScheduledPlace(
-                  userEmail, request.scheduledPlaceId()))
-          .willReturn(true);
+      given(scheduledPlaceCommandUseCase.validateScheduledPlace(userEmail, 123L)).willReturn(true);
 
       // when
       aiMessageService.processAndSendMessage(chatRoomId, userEmail, request);
@@ -104,7 +101,8 @@ class AiMessageServiceTest {
       // given
       Long chatRoomId = 999L;
       String userEmail = "test@example.com";
-      ChatMessageRequest request = new ChatMessageRequest("메시지 내용", MessageContentType.TEXT, 123L);
+      ChatMessageRequest request =
+          new ChatMessageRequest("메시지 내용", MessageContentType.TEXT, List.of(123L));
 
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.empty());
 
@@ -125,7 +123,8 @@ class AiMessageServiceTest {
       AiConversation conversation = AiConversationFixture.createWithMember(owner);
       Long chatRoomId = 1L;
       String unauthorizedEmail = "unauthorized@example.com";
-      ChatMessageRequest request = new ChatMessageRequest("메시지 내용", MessageContentType.TEXT, 123L);
+      ChatMessageRequest request =
+          new ChatMessageRequest("메시지 내용", MessageContentType.TEXT, List.of(123L));
 
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
 
@@ -145,7 +144,8 @@ class AiMessageServiceTest {
       Member member = MemberFixture.create();
       AiConversation conversation = AiConversationFixture.createWithMember(member);
       Long chatRoomId = 1L;
-      ChatMessageRequest request = new ChatMessageRequest("이미지 내용", MessageContentType.IMAGE, 123L);
+      ChatMessageRequest request =
+          new ChatMessageRequest("이미지 내용", MessageContentType.IMAGE, List.of(123L));
 
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
 
@@ -185,7 +185,8 @@ class AiMessageServiceTest {
       Member member = MemberFixture.create();
       AiConversation conversation = AiConversationFixture.createWithMember(member);
       Long chatRoomId = 1L;
-      ChatMessageRequest request = new ChatMessageRequest("   ", MessageContentType.TEXT, 123L);
+      ChatMessageRequest request =
+          new ChatMessageRequest("   ", MessageContentType.TEXT, List.of(123L));
 
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
 
@@ -206,7 +207,8 @@ class AiMessageServiceTest {
       AiConversation conversationMock = mock(AiConversation.class);
 
       Long chatRoomId = 1L;
-      ChatMessageRequest request = new ChatMessageRequest("메시지 내용", MessageContentType.TEXT, 123L);
+      ChatMessageRequest request =
+          new ChatMessageRequest("메시지 내용", MessageContentType.TEXT, List.of(123L));
 
       given(aiConversationRepository.findById(chatRoomId))
           .willReturn(Optional.of(conversationMock));
@@ -255,7 +257,7 @@ class AiMessageServiceTest {
       assertThat(publishedEvent.tripPlanId()).isEqualTo(100L);
       assertThat(publishedEvent.username()).isEqualTo(userEmail);
       assertThat(publishedEvent.userMessage()).isEqualTo(request.content());
-      assertThat(publishedEvent.scheduledPlaceId()).isNull();
+      assertThat(publishedEvent.scheduledPlaceIdList()).isNull();
     }
   }
 

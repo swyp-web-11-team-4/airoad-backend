@@ -43,18 +43,14 @@ public class PlaceVectorQueryTool {
 
     log.info(
         "검색된 장소: {}",
-        documents.stream()
-            .map(this::formatDocumentWithMetadata)
-            .collect(Collectors.joining("\n")));
+        documents.stream().map(this::formatDocumentWithMetadata).collect(Collectors.joining("\n")));
 
     if (documents.isEmpty()) {
       return ToolResponse.failure("검색 결과가 없습니다.");
     }
 
     return ToolResponse.success(
-        documents.stream()
-            .map(this::formatDocumentWithMetadata)
-            .collect(Collectors.joining("\n")));
+        documents.stream().map(this::formatDocumentWithMetadata).collect(Collectors.joining("\n")));
   }
 
   private String formatDocumentWithMetadata(Document doc) {

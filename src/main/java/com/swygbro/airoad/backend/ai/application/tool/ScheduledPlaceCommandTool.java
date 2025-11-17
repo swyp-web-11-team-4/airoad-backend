@@ -5,10 +5,14 @@ import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import com.swygbro.airoad.backend.ai.application.tool.dto.ToolResponse;
+import com.swygbro.airoad.backend.ai.application.tool.dto.common.ToolResponse;
+import com.swygbro.airoad.backend.ai.application.tool.dto.param.ScheduledPlaceCreateParam;
+import com.swygbro.airoad.backend.content.application.PlaceQueryUseCase;
+import com.swygbro.airoad.backend.content.domain.dto.response.PlaceResponse;
 import com.swygbro.airoad.backend.trip.application.ScheduledPlaceCommandUseCase;
 import com.swygbro.airoad.backend.trip.domain.dto.request.ScheduledPlaceCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.request.ScheduledPlaceUpdateRequest;
+import com.swygbro.airoad.backend.trip.domain.entity.Transportation;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanUpdateStartedEvent;
 
 import lombok.RequiredArgsConstructor;
@@ -20,44 +24,39 @@ import lombok.extern.slf4j.Slf4j;
 public class ScheduledPlaceCommandTool {
 
   private final ScheduledPlaceCommandUseCase scheduledPlaceCommandUseCase;
+  private final PlaceQueryUseCase placeQueryUseCase;
   private final ApplicationEventPublisher eventPublisher;
 
   @Tool(description = """
       여행 일정에 새로운 장소를 추가할 때 사용합니다.
-      추가된 일정은 자동으로 순서가 정렬됩니다.
       """)
   public ToolResponse addScheduledPlace(
       @ToolParam(description = "채팅방 고유 식별자") Long chatRoomId,
       @ToolParam(description = "여행 계획 고유 식별자") Long tripPlanId,
       @ToolParam(description = "사용자 이메일 주소") String username,
       @ToolParam(description = "장소를 추가할 일차 (1=첫째 날, 2=둘째 날, ...)") Integer dayNumber,
-      @ToolParam(
-              description =
-                  """
-          추가할 장소 정보를 담은 요청 객체:
-
-          [필수] placeId:
-            - 새로운 장소 추가 전 `searchPlace` 툴 호출 필요
-            - 장소/음식점 컨텍스트에 존재하는 장소 ID 사용
-            - 절대 임의 값 사용 금지
-
-          [필수] category: 반드시 다음 3가지 중 하나만 사용:
-            - MORNING: 오전 일정 (아침~오전, 아침식사, 오전 관광)
-            - AFTERNOON: 오후 일정 (점심~오후, 점심식사, 오후 관광)
-            - EVENING: 저녁 일정 (저녁~밤, 저녁식사, 야경, 밤 활동)
-            [경고] LUNCH, DINNER, BREAKFAST 같은 값 절대 사용 금지
-
-          [선택] visitOrder: 방문 순서 (일정의 마지막에 추가하는 경우에만 null 입력)
-          [선택] travelTime: 이동 소요 예상 시간 분 단위
-          [선택] transportation: 교통수단
+      @ToolParam(description = """
+          추가할 장소 정보를 담은 요청 파라미터:
           """)
-          ScheduledPlaceCreateRequest request) {
+          ScheduledPlaceCreateParam param) {
 
     log.info(
-        "[AI Tool] addScheduledPlace - username: {}, tripPlanId: {}, dayNumber: {}",
+        "[AI Tool] addScheduledPlace - username: {}, tripPlanId: {}, dayNumber: {}, param: {}",
         username,
         tripPlanId,
-        dayNumber);
+        dayNumber,
+        param.toString());
+
+    PlaceResponse placeResponse = placeQueryUseCase.findPlaceByName(param.placeName());
+
+    ScheduledPlaceCreateRequest request =
+        ScheduledPlaceCreateRequest.builder()
+            .placeId(placeResponse.id())
+            .visitOrder(param.visitOrder())
+            .category(param.category())
+            .travelTime(param.travelTime())
+            .transportation(Transportation.PUBLIC_TRANSIT)
+            .build();
 
     scheduledPlaceCommandUseCase.saveScheduledPlace(
         chatRoomId, tripPlanId, username, dayNumber, request);
@@ -74,23 +73,8 @@ public class ScheduledPlaceCommandTool {
       @ToolParam(description = "사용자 이메일 주소") String username,
       @ToolParam(description = "수정할 장소가 속한 일차 (1=첫째 날, 2=둘째 날, ...)") Integer dayNumber,
       @ToolParam(description = "수정할 장소의 현재 방문 순서 (1=첫 번째, 2=두 번째, ...)") Integer visitOrder,
-      @ToolParam(
-              description =
-                  """
+      @ToolParam(description = """
       수정할 장소 정보를 담은 요청 객체:
-
-      [선택] placeId: 장소를 다른 곳으로 교체하는 경우에만 사용
-        - 장소/음식점 컨텍스트에 존재하는 장소 ID 사용
-        - 절대 임의 값 사용 금지
-
-      [선택] category: 시간대를 변경할 경우 반드시 다음 3가지 중 하나만 사용:
-        - MORNING: 오전 일정 (아침~오전, 아침식사, 오전 관광)
-        - AFTERNOON: 오후 일정 (점심~오후, 점심식사, 오후 관광)
-        - EVENING: 저녁 일정 (저녁~밤, 저녁식사, 야경, 밤 활동)
-        [경고] LUNCH, DINNER, BREAKFAST 같은 값 절대 사용 금지!
-
-      [선택] travelTime: 이전 장소에서 이동 시간 (분 단위)
-      [선택] transportation: 교통수단
       """)
           ScheduledPlaceUpdateRequest request) {
 

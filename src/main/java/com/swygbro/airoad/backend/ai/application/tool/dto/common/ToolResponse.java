@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.ai.application.tool.dto;
+package com.swygbro.airoad.backend.ai.application.tool.dto.common;
 
 /**
  * AI Tool 실행 결과의 표준 응답 형식

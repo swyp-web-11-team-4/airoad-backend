@@ -1,6 +1,7 @@
 package com.swygbro.airoad.backend.chat.presentation.web;
 
 import java.util.Collections;
+import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -46,7 +47,7 @@ class AiMessageControllerTest {
       Long chatRoomId = 1L;
       String username = "test@example.com";
       ChatMessageRequest request =
-          new ChatMessageRequest("서울 3박 4일 여행 계획을 짜주세요", MessageContentType.TEXT, 123L);
+          new ChatMessageRequest("서울 3박 4일 여행 계획을 짜주세요", MessageContentType.TEXT, List.of(123L));
 
       // StompHeaderAccessor 생성 및 인증 정보 설정
       UserDetails userDetails =
@@ -77,7 +78,7 @@ class AiMessageControllerTest {
       // given
       Long chatRoomId = 1L;
       ChatMessageRequest request =
-          new ChatMessageRequest("서울 3박 4일 여행 계획을 짜주세요", MessageContentType.TEXT, 123L);
+          new ChatMessageRequest("서울 3박 4일 여행 계획을 짜주세요", MessageContentType.TEXT, List.of(123L));
 
       Message<ChatMessageRequest> message = new GenericMessage<>(request);
       StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(message);
@@ -97,7 +98,7 @@ class AiMessageControllerTest {
       // given
       Long chatRoomId = 1L;
       ChatMessageRequest request =
-          new ChatMessageRequest("서울 3박 4일 여행 계획을 짜주세요", MessageContentType.TEXT, 123L);
+          new ChatMessageRequest("서울 3박 4일 여행 계획을 짜주세요", MessageContentType.TEXT, List.of(123L));
 
       Message<ChatMessageRequest> message = new GenericMessage<>(request);
       StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(message);

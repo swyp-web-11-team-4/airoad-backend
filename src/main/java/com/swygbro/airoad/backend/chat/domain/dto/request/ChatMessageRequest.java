@@ -1,5 +1,7 @@
 package com.swygbro.airoad.backend.chat.domain.dto.request;
 
+import java.util.List;
+
 import jakarta.validation.constraints.NotBlank;
 
 import com.swygbro.airoad.backend.chat.domain.dto.response.MessageContentType;
@@ -14,7 +16,7 @@ public record ChatMessageRequest(
     @Schema(description = "메시지 타입", example = "TEXT", defaultValue = "TEXT")
         MessageContentType messageContentType,
     @Schema(description = "태그한 일정 장소 id (선택사항)", example = "123", nullable = true)
-        Long scheduledPlaceId) {
+        List<Long> scheduledPlaceIdList) {
 
   // 기본값을 TEXT로 설정하는 compact 생성자
   public ChatMessageRequest {

@@ -1,3 +1,11 @@
+# [0.28.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.27.0...v0.28.0) (2025-11-17)
+
+
+### Features
+
+* 채팅 장소 태그 다중 선택 기능 추가 ([6f57975](https://github.com/swyp-web-11-team-4/airoad-backend/commit/6f579750f6c542a753f3f8f4c147ca02b7670a7d))
+* 채팅 장소 태그 다중 선택 기능 추가 ([517b8a6](https://github.com/swyp-web-11-team-4/airoad-backend/commit/517b8a6f3634853302825cd4088f2d1d68605752))
+
 # [0.27.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.26.0...v0.27.0) (2025-11-16)
 
 

@@ -47,6 +47,14 @@ public class ScheduledPlaceCommandTool {
         dayNumber,
         param.toString());
 
+    publishScheduledPlaceEvent(
+        TripPlanUpdateStartedEvent.builder()
+            .chatRoomId(chatRoomId)
+            .username(username)
+            .message("%d일차 여행 일정에 장소 추가 요청을 수행합니다.".formatted(dayNumber))
+            .tripPlanId(tripPlanId)
+            .build());
+
     PlaceResponse placeResponse = placeQueryUseCase.findPlaceByName(param.placeName());
 
     ScheduledPlaceCreateRequest request =

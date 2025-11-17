@@ -33,7 +33,7 @@ public class PlaceVectorQueryTool {
       @ToolParam(description = "반환할 최대 결과 개수 - 일반적으로 3~5개 권장") int topK,
       @ToolParam(description = "유사도 임계값 (0.0~1.0) - 높을수록 더 유사한 결과만 반환, 기본값 0.45 권장, 0.6 이상은 매우 엄격")
           double similarityThreshold) {
-    log.debug(
+    log.info(
         "장소 벡터 검색 - query: {}, topK: {}, similarityThreshold: {}",
         query,
         topK,
@@ -41,11 +41,11 @@ public class PlaceVectorQueryTool {
 
     List<Document> documents = placeVectorQueryUseCase.search(query, topK, similarityThreshold);
 
-    log.debug(
+    log.info(
         "검색된 장소: {}",
         documents.stream()
             .map(this::formatDocumentWithMetadata)
-            .collect(Collectors.joining("\n\n")));
+            .collect(Collectors.joining("\n")));
 
     if (documents.isEmpty()) {
       return ToolResponse.failure("검색 결과가 없습니다.");
@@ -54,7 +54,7 @@ public class PlaceVectorQueryTool {
     return ToolResponse.success(
         documents.stream()
             .map(this::formatDocumentWithMetadata)
-            .collect(Collectors.joining("\n\n")));
+            .collect(Collectors.joining("\n")));
   }
 
   private String formatDocumentWithMetadata(Document doc) {

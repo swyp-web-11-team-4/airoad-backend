@@ -15,7 +15,10 @@ public record ChatMessageRequest(
         String content,
     @Schema(description = "메시지 타입", example = "TEXT", defaultValue = "TEXT")
         MessageContentType messageContentType,
-    @Schema(description = "태그한 일정 장소 id (선택사항)", example = "123", nullable = true)
+    @Schema(
+            description = "태그한 일정 장소 ID 리스트 (선택사항, 여러 장소 동시 참조 가능)",
+            example = "[123, 456, 789]",
+            nullable = true)
         List<Long> scheduledPlaceIdList) {
 
   // 기본값을 TEXT로 설정하는 compact 생성자

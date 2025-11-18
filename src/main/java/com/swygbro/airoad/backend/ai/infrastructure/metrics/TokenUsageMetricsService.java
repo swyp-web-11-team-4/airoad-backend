@@ -31,13 +31,7 @@ public class TokenUsageMetricsService {
       Integer completionTokens,
       Integer totalTokens) {
 
-    recordTokenUsage(
-        username,
-        operation,
-        model,
-        promptTokens,
-        completionTokens,
-        totalTokens);
+    recordTokenUsage(username, operation, model, promptTokens, completionTokens, totalTokens);
   }
 
   /**

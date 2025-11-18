@@ -1,6 +1,5 @@
 package com.swygbro.airoad.backend.ai.agent.trip;
 
-import com.swygbro.airoad.backend.ai.infrastructure.metrics.TokenUsageOperation;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,6 +30,7 @@ import com.swygbro.airoad.backend.ai.domain.entity.AgentType;
 import com.swygbro.airoad.backend.ai.domain.event.DailyPlanGeneratedEvent;
 import com.swygbro.airoad.backend.ai.exception.AiErrorCode;
 import com.swygbro.airoad.backend.ai.infrastructure.metrics.TokenUsageMetricsService;
+import com.swygbro.airoad.backend.ai.infrastructure.metrics.TokenUsageOperation;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
 import com.swygbro.airoad.backend.trip.domain.dto.request.DailyPlanCreateRequest;

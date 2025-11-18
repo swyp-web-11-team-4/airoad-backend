@@ -1,6 +1,5 @@
 package com.swygbro.airoad.backend.ai.agent.chat;
 
-import com.swygbro.airoad.backend.ai.infrastructure.metrics.TokenUsageOperation;
 import java.util.List;
 
 import org.springframework.ai.chat.client.ChatClient;
@@ -28,6 +27,7 @@ import com.swygbro.airoad.backend.ai.domain.entity.AgentType;
 import com.swygbro.airoad.backend.ai.domain.event.AiMessageGeneratedEvent;
 import com.swygbro.airoad.backend.ai.exception.AiErrorCode;
 import com.swygbro.airoad.backend.ai.infrastructure.metrics.TokenUsageMetricsService;
+import com.swygbro.airoad.backend.ai.infrastructure.metrics.TokenUsageOperation;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 
 import lombok.extern.slf4j.Slf4j;

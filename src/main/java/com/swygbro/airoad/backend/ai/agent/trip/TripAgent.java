@@ -222,7 +222,7 @@ public class TripAgent implements AiroadAgent {
       Usage usage = chatResponse.getMetadata().getUsage();
       String model = chatResponse.getMetadata().getModel();
 
-      tokenUsageMetricsService.trackTokenUsage(
+      tokenUsageMetricsService.recordTokenUsage(
           request.username(),
           model,
           TokenUsageOperation.TRIP_GENERATION,

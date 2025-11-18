@@ -122,7 +122,7 @@ public class ChatAgent implements AiroadAgent {
       Usage usage = chatResponse.getMetadata().getUsage();
       String model = chatResponse.getMetadata().getModel();
 
-      tokenUsageMetricsService.trackTokenUsage(
+      tokenUsageMetricsService.recordTokenUsage(
           request.username(),
           model,
           TokenUsageOperation.CHAT_EDIT,

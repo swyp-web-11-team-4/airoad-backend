@@ -15,26 +15,6 @@ public class TokenUsageMetricsService {
   private final MeterRegistry meterRegistry;
 
   /**
-   * 채팅(일정 수정) 시 사용된 토큰을 기록합니다.
-   *
-   * @param username 사용자 이메일
-   * @param model AI 모델명
-   * @param promptTokens 입력 토큰 수
-   * @param completionTokens 출력 토큰 수
-   * @param totalTokens 총 토큰 수
-   */
-  public void trackTokenUsage(
-      String username,
-      String model,
-      TokenUsageOperation operation,
-      Integer promptTokens,
-      Integer completionTokens,
-      Integer totalTokens) {
-
-    recordTokenUsage(username, operation, model, promptTokens, completionTokens, totalTokens);
-  }
-
-  /**
    * 토큰 사용량을 Prometheus 카운터로 기록합니다.
    *
    * @param username 사용자 이메일
@@ -44,10 +24,10 @@ public class TokenUsageMetricsService {
    * @param completionTokens 출력 토큰 수
    * @param totalTokens 총 토큰 수
    */
-  private void recordTokenUsage(
+  public void recordTokenUsage(
       String username,
-      TokenUsageOperation operation,
       String model,
+      TokenUsageOperation operation,
       Integer promptTokens,
       Integer completionTokens,
       Integer totalTokens) {

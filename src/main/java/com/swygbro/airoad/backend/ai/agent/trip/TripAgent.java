@@ -1,13 +1,17 @@
 package com.swygbro.airoad.backend.ai.agent.trip;
 
+import com.swygbro.airoad.backend.ai.infrastructure.metrics.TokenUsageOperation;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.ResponseEntity;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.client.advisor.StructuredOutputValidationAdvisor;
+import org.springframework.ai.chat.metadata.Usage;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -26,6 +30,8 @@ import com.swygbro.airoad.backend.ai.common.context.ContextManager;
 import com.swygbro.airoad.backend.ai.domain.entity.AgentType;
 import com.swygbro.airoad.backend.ai.domain.event.DailyPlanGeneratedEvent;
 import com.swygbro.airoad.backend.ai.exception.AiErrorCode;
+import com.swygbro.airoad.backend.ai.infrastructure.metrics.TokenUsageMetricsService;
+import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
 import com.swygbro.airoad.backend.trip.domain.dto.request.DailyPlanCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.request.ScheduledPlaceCreateRequest;
@@ -42,14 +48,17 @@ public class TripAgent implements AiroadAgent {
   private final ChatClient chatClient;
   private final ApplicationEventPublisher eventPublisher;
   private final ContextManager contextManager;
+  private final TokenUsageMetricsService tokenUsageMetricsService;
 
   public TripAgent(
       ApplicationEventPublisher eventPublisher,
       @Qualifier("upstageChatModel") ChatModel chatModel,
-      ContextManager contextManager) {
+      ContextManager contextManager,
+      TokenUsageMetricsService tokenUsageMetricsService) {
 
     this.eventPublisher = eventPublisher;
     this.contextManager = contextManager;
+    this.tokenUsageMetricsService = tokenUsageMetricsService;
     this.chatClient =
         ChatClient.builder(chatModel)
             .defaultAdvisors(
@@ -195,15 +204,41 @@ public class TripAgent implements AiroadAgent {
             dayNumber, targetDate);
 
     try {
-      AiDailyPlanResponse dailyPlan =
+      ResponseEntity<ChatResponse, AiDailyPlanResponse> responseEntity =
           chatClient
               .prompt()
               .user(daySpecificPrompt)
               .advisors(a -> a.param(PromptMetadataAdvisor.METADATA_KEY, contextMetadata))
               .call()
-              .entity(AiDailyPlanResponse.class);
+              .responseEntity(AiDailyPlanResponse.class);
 
-      log.debug("{}일차 AI 응답 수신 완료", dayNumber);
+      ChatResponse chatResponse = responseEntity.getResponse();
+      AiDailyPlanResponse dailyPlan = responseEntity.entity();
+
+      if (chatResponse == null) {
+        throw new BusinessException(AiErrorCode.AGENT_EXECUTION_FAILED, "AI 응답을 받지 못했습니다");
+      }
+
+      Usage usage = chatResponse.getMetadata().getUsage();
+      String model = chatResponse.getMetadata().getModel();
+
+      tokenUsageMetricsService.trackTokenUsage(
+          request.username(),
+          model,
+          TokenUsageOperation.TRIP_GENERATION,
+          usage.getPromptTokens(),
+          usage.getCompletionTokens(),
+          usage.getTotalTokens());
+
+      log.info(
+          "일정 생성 토큰 사용량 - 사용자: {}, 일차: {}, 모델: {}, 입력: {}, 출력: {}, 총: {}",
+          request.username(),
+          dayNumber,
+          model,
+          usage.getPromptTokens(),
+          usage.getCompletionTokens(),
+          usage.getTotalTokens());
+
       return dailyPlan;
 
     } catch (Exception e) {

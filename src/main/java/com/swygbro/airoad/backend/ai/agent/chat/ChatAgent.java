@@ -1,12 +1,15 @@
 package com.swygbro.airoad.backend.ai.agent.chat;
 
+import com.swygbro.airoad.backend.ai.infrastructure.metrics.TokenUsageOperation;
 import java.util.List;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.metadata.Usage;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -24,6 +27,7 @@ import com.swygbro.airoad.backend.ai.common.context.ContextManager;
 import com.swygbro.airoad.backend.ai.domain.entity.AgentType;
 import com.swygbro.airoad.backend.ai.domain.event.AiMessageGeneratedEvent;
 import com.swygbro.airoad.backend.ai.exception.AiErrorCode;
+import com.swygbro.airoad.backend.ai.infrastructure.metrics.TokenUsageMetricsService;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +48,7 @@ public class ChatAgent implements AiroadAgent {
   private final ChatClient chatClient;
   private final ApplicationEventPublisher eventPublisher;
   private final ContextManager contextManager;
+  private final TokenUsageMetricsService tokenUsageMetricsService;
 
   public ChatAgent(
       @Qualifier("openAiChatModel") ChatModel chatModel,
@@ -52,9 +57,11 @@ public class ChatAgent implements AiroadAgent {
       DailyPlanCommandTool dailyPlanCommandTool,
       ScheduledPlaceCommandTool scheduledPlaceCommandTool,
       PlaceVectorQueryTool placeVectorQueryTool,
-      ContextManager contextManager) {
+      ContextManager contextManager,
+      TokenUsageMetricsService tokenUsageMetricsService) {
     this.eventPublisher = eventPublisher;
     this.contextManager = contextManager;
+    this.tokenUsageMetricsService = tokenUsageMetricsService;
     this.chatClient =
         ChatClient.builder(chatModel)
             .defaultAdvisors(
@@ -96,7 +103,7 @@ public class ChatAgent implements AiroadAgent {
       List<MetadataEntry> contextMetadata =
           contextManager.buildContext(AgentType.CHAT_AGENT, chatRoomContext, tripPlanQueryContext);
 
-      String response =
+      ChatResponse chatResponse =
           chatClient
               .prompt()
               .user(request.userPrompt())
@@ -105,9 +112,31 @@ public class ChatAgent implements AiroadAgent {
                       a.param(ChatMemory.CONVERSATION_ID, request.chatRoomId())
                           .param(PromptMetadataAdvisor.METADATA_KEY, contextMetadata))
               .call()
-              .content();
+              .chatResponse();
 
-      log.debug("ChatAgent 응답 생성 완료 - response: {}", response);
+      if (chatResponse == null) {
+        throw new BusinessException(AiErrorCode.AGENT_EXECUTION_FAILED, "AI 응답을 받지 못했습니다");
+      }
+
+      String response = chatResponse.getResult().getOutput().toString();
+      Usage usage = chatResponse.getMetadata().getUsage();
+      String model = chatResponse.getMetadata().getModel();
+
+      tokenUsageMetricsService.trackTokenUsage(
+          request.username(),
+          model,
+          TokenUsageOperation.CHAT_EDIT,
+          usage.getPromptTokens(),
+          usage.getCompletionTokens(),
+          usage.getTotalTokens());
+
+      log.info(
+          "채팅 토큰 사용량 - 사용자: {}, 모델: {}, 입력: {}, 출력: {}, 총: {}",
+          request.username(),
+          model,
+          usage.getPromptTokens(),
+          usage.getCompletionTokens(),
+          usage.getTotalTokens());
 
       AiMessageGeneratedEvent generatedEvent =
           AiMessageGeneratedEvent.builder()

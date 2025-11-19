@@ -266,7 +266,7 @@ class TripPlanNotificationListenerTest {
               eq("testUser"), eq("/sub/schedule/100"), tripMessageCaptor.capture());
 
       TripPlanProgressMessage tripMessage = tripMessageCaptor.getValue();
-      assertThat(tripMessage.type()).isEqualTo(MessageType.DAILY_PLAN_GENERATED);
+      assertThat(tripMessage.type()).isEqualTo(MessageType.UPDATED);
       assertThat(tripMessage.tripPlanId()).isEqualTo(100L);
       assertThat(tripMessage.data()).isEqualTo(dailyPlan);
       assertThat(tripMessage.message()).contains("2일차 일정이 수정되었습니다.");

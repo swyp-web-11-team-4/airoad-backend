@@ -165,7 +165,7 @@ public class TripPlanNotificationListener {
 
     TripPlanProgressMessage<DailyPlanResponse> tripMessage =
         TripPlanProgressMessage.<DailyPlanResponse>builder()
-            .type(MessageType.DAILY_PLAN_GENERATED)
+            .type(MessageType.UPDATED)
             .tripPlanId(event.tripPlanId())
             .data(event.dailyPlan())
             .message(event.dailyPlan().dayNumber() + "일차 일정이 수정되었습니다.")

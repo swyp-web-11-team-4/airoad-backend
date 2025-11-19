@@ -3,7 +3,6 @@ package com.swygbro.airoad.backend.ai.common.advisor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
@@ -11,10 +10,8 @@ import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
 import org.springframework.ai.chat.client.advisor.api.CallAdvisorChain;
 import org.springframework.ai.chat.client.advisor.api.StreamAdvisor;
 import org.springframework.ai.chat.client.advisor.api.StreamAdvisorChain;
-import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.MessageType;
-import org.springframework.ai.chat.messages.SystemMessage;
-import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.prompt.Prompt;
 
 import lombok.Builder;
 import reactor.core.publisher.Flux;
@@ -56,12 +53,11 @@ public class PromptMetadataAdvisor implements CallAdvisor, StreamAdvisor {
   }
 
   private ChatClientRequest addMetadataMessages(ChatClientRequest chatClientRequest) {
-    Map<String, Object> context = chatClientRequest.context();
-
     @SuppressWarnings("unchecked")
-    List<MetadataEntry> paramMetadata = (List<MetadataEntry>) context.get(METADATA_KEY);
-    List<MetadataEntry> allMetadata = new ArrayList<>(this.metadata);
+    List<MetadataEntry> paramMetadata =
+        (List<MetadataEntry>) chatClientRequest.context().get(METADATA_KEY);
 
+    List<MetadataEntry> allMetadata = new ArrayList<>(this.metadata);
     if (paramMetadata != null && !paramMetadata.isEmpty()) {
       allMetadata.addAll(paramMetadata);
     }
@@ -70,19 +66,26 @@ public class PromptMetadataAdvisor implements CallAdvisor, StreamAdvisor {
       return chatClientRequest;
     }
 
-    for (MetadataEntry entry : allMetadata) {
-      Message message =
-          switch (entry.messageType()) {
-            case SYSTEM -> new SystemMessage(entry.content());
-            case USER -> new UserMessage(entry.content());
-            default ->
-                throw new IllegalArgumentException(
-                    "Unsupported message type: " + entry.messageType());
-          };
-      chatClientRequest.prompt().getInstructions().add(message);
+    String systemText = buildMessageText(allMetadata, MessageType.SYSTEM);
+    String userText = buildMessageText(allMetadata, MessageType.USER);
+
+    Prompt augmentedPrompt = chatClientRequest.prompt();
+    if (!systemText.isEmpty()) {
+      augmentedPrompt = augmentedPrompt.augmentSystemMessage(systemText);
+    }
+    if (!userText.isEmpty()) {
+      augmentedPrompt = augmentedPrompt.augmentUserMessage(userText);
     }
 
-    return chatClientRequest;
+    return chatClientRequest.mutate().prompt(augmentedPrompt).build();
+  }
+
+  private String buildMessageText(List<MetadataEntry> metadata, MessageType targetType) {
+    return metadata.stream()
+        .filter(entry -> entry.messageType() == targetType)
+        .map(MetadataEntry::content)
+        .reduce((a, b) -> a + "\n---\n" + b)
+        .orElse("");
   }
 
   /**

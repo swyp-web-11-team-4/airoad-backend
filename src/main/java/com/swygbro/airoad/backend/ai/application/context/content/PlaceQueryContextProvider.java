@@ -47,7 +47,6 @@ public class PlaceQueryContextProvider extends AbstractContextProvider<PlaceQuer
         - 운영 시간 정보: %s
         - 휴무일 정보: %s
         - 테마: %s
-
         """
             .formatted(
                 context.name(),

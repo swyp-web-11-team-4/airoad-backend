@@ -60,7 +60,6 @@ public class TripPlanQueryContextProvider extends AbstractContextProvider<TripPl
         또한 동일한 여행 소제목을 중복해서 작성하지 않도록 하세요.
 
         %s
-
         """
             .formatted(summary));
   }
@@ -80,7 +79,7 @@ public class TripPlanQueryContextProvider extends AbstractContextProvider<TripPl
     StringBuilder summary = new StringBuilder();
 
     // 여행 기본 정보
-    summary.append("### 기본 정보\n");
+    summary.append("### 기본 정보\n\n");
     summary.append(String.format("- **제목**: %s\n", tripPlan.title()));
     summary.append(String.format("- **기간**: %s ~ %s\n", tripPlan.startDate(), tripPlan.endDate()));
 
@@ -95,7 +94,7 @@ public class TripPlanQueryContextProvider extends AbstractContextProvider<TripPl
   }
 
   private void createDailyPlansSummary(StringBuilder summary, TripPlanDetailsResponse tripPlan) {
-    summary.append("### 일정 상세\n\n");
+    summary.append("### 일정 상세\n");
 
     for (DailyPlanResponse dailyPlan : tripPlan.dailyPlans()) {
       summary.append(
@@ -107,8 +106,10 @@ public class TripPlanQueryContextProvider extends AbstractContextProvider<TripPl
         continue;
       }
 
+      summary.append("| 방문 순서 (visitOrder) | 장소명 (placeName) |\n");
+      summary.append("|-------------------|---------------|\n");
       for (ScheduledPlaceResponse place : dailyPlan.scheduledPlaces()) {
-        summary.append(String.format("- **[%d]** %s\n", place.visitOrder(), place.place().name()));
+        summary.append(String.format("| %d | %s |\n", place.visitOrder(), place.place().name()));
       }
 
       summary.append("\n");

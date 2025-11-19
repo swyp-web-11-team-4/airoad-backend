@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
-import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -58,7 +57,6 @@ public class ChatAgent implements AiroadAgent {
     this.chatClient =
         ChatClient.builder(chatModel)
             .defaultAdvisors(
-                new SimpleLoggerAdvisor(),
                 MessageChatMemoryAdvisor.builder(chatMemory).build(),
                 PromptMetadataAdvisor.builder().build())
             .defaultTools(dailyPlanCommandTool, scheduledPlaceCommandTool, placeVectorQueryTool)

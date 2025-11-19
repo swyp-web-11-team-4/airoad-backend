@@ -5,14 +5,21 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.client.RestClient;
 
+import com.swygbro.airoad.backend.ai.infrastructure.interceptor.ClovaStudioChatInterceptor;
 import com.swygbro.airoad.backend.ai.infrastructure.interceptor.ClovaStudioEmbeddingInterceptor;
 
 @Configuration
 public class RestClientConfig {
-  @Bean
-  @Primary
-  public RestClient.Builder embeddingRestClientBuilder(
+  @Bean("clovaStudioEmbeddingRestClientBuilder")
+  public RestClient.Builder clovaStudioEmbeddingRestClientBuilder(
       ClovaStudioEmbeddingInterceptor clovaStudioEmbeddingInterceptor) {
     return RestClient.builder().requestInterceptor(clovaStudioEmbeddingInterceptor);
+  }
+
+  @Bean("clovaStudioChatRestClientBuilder")
+  @Primary
+  public RestClient.Builder clovaStudioChatRestClientBuilder(
+      ClovaStudioChatInterceptor clovaStudioChatRestClientBuilder) {
+    return RestClient.builder().requestInterceptor(clovaStudioChatRestClientBuilder);
   }
 }

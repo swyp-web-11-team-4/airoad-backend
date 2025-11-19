@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -98,10 +97,18 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
 
   @Query(
       """
+          SELECT p FROM Place p
+          join fetch p.themes
+          WHERE p.location.name LIKE CONCAT('%', :name, '%')
+          OR p.location.address LIKE CONCAT('%', :address, '%')
+          """)
+  List<Place> findByNameOrAddress(@Param("name") String name, @Param("address") String address);
+
+  @Query(
+      """
       SELECT p FROM Place p
+      JOIN FETCH p.themes
       WHERE p.location.name LIKE CONCAT('%', :name, '%')
-      AND p.location.address LIKE CONCAT('%', :address, '%')
       """)
-  Page<Place> findByNameAndAddress(
-      @Param("name") String name, @Param("address") String address, Pageable pageable);
+  Optional<Place> findByName(@Param("name") String name);
 }

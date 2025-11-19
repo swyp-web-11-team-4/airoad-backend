@@ -1,7 +1,5 @@
 package com.swygbro.airoad.backend.trip.domain.dto.request;
 
-import org.springframework.ai.tool.annotation.ToolParam;
-
 import com.swygbro.airoad.backend.trip.domain.entity.ScheduledCategory;
 import com.swygbro.airoad.backend.trip.domain.entity.Transportation;
 
@@ -20,8 +18,8 @@ import lombok.Builder;
  */
 @Builder
 public record ScheduledPlaceCreateRequest(
-    @ToolParam Long placeId,
-    @ToolParam Integer visitOrder,
-    @ToolParam ScheduledCategory category,
-    @ToolParam Integer travelTime,
-    @ToolParam Transportation transportation) {}
+    Long placeId,
+    Integer visitOrder,
+    ScheduledCategory category,
+    Integer travelTime,
+    Transportation transportation) {}

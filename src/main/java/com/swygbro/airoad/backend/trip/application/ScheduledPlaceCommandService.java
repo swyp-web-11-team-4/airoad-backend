@@ -30,8 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 public class ScheduledPlaceCommandService implements ScheduledPlaceCommandUseCase {
 
-  private final TripPlanRepository tripPlanRepository;
   private final PlaceRepository placeRepository;
+  private final TripPlanRepository tripPlanRepository;
   private final ScheduledPlaceRepository scheduledPlaceRepository;
   private final ApplicationEventPublisher eventPublisher;
 

@@ -7,6 +7,7 @@ import org.springframework.ai.openai.OpenAiEmbeddingModel;
 import org.springframework.ai.openai.OpenAiEmbeddingOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.ai.retry.RetryUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,11 +44,13 @@ public class NaverChatModelConfig {
   private String embeddingEncodingFormat;
 
   @Bean("naverChatModel")
-  public OpenAiChatModel naverChatModel() {
+  public OpenAiChatModel naverChatModel(
+      @Qualifier("clovaStudioChatRestClientBuilder") RestClient.Builder chatRestClientBuilder) {
     OpenAiApi openAiApi =
         OpenAiApi.builder()
             .apiKey(apiKey)
             .baseUrl(baseUrl)
+            .restClientBuilder(chatRestClientBuilder)
             .completionsPath(completionsPath)
             .embeddingsPath(embeddingsPath)
             .build();
@@ -59,7 +62,9 @@ public class NaverChatModelConfig {
   }
 
   @Bean("naverEmbeddingModel")
-  public OpenAiEmbeddingModel naverEmbeddingModel(RestClient.Builder embeddingRestClientBuilder) {
+  public OpenAiEmbeddingModel naverEmbeddingModel(
+      @Qualifier("clovaStudioEmbeddingRestClientBuilder")
+          RestClient.Builder embeddingRestClientBuilder) {
     OpenAiApi openAiApi =
         OpenAiApi.builder()
             .apiKey(apiKey)

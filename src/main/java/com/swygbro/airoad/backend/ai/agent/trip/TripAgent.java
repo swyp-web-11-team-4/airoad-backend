@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.client.advisor.StructuredOutputValidationAdvisor;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.vectorstore.SearchRequest;
@@ -53,7 +52,6 @@ public class TripAgent implements AiroadAgent {
     this.chatClient =
         ChatClient.builder(chatModel)
             .defaultAdvisors(
-                new SimpleLoggerAdvisor(),
                 PromptMetadataAdvisor.builder().build(),
                 StructuredOutputValidationAdvisor.builder()
                     .outputType(AiDailyPlanResponse.class)

@@ -5,7 +5,7 @@ import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import com.swygbro.airoad.backend.ai.application.tool.dto.ToolResponse;
+import com.swygbro.airoad.backend.ai.application.tool.dto.common.ToolResponse;
 import com.swygbro.airoad.backend.trip.application.DailyPlanCommandUseCase;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanUpdateStartedEvent;
 

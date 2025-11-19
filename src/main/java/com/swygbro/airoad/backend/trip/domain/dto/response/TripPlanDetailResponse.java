@@ -33,6 +33,10 @@ public record TripPlanDetailResponse(
     @Schema(description = "여행 일정 생성 완료 여부", example = "true") Boolean isCompleted,
     @Schema(description = "여행 기간 (일)", example = "3") Integer duration,
     @Schema(description = "여행 인원 수", example = "2") Integer peopleCount,
+    @Schema(
+            description = "여행 이미지",
+            example = "http://tong.visitkorea.or.kr/cms/resource/51/3432251_image2_1.jpg")
+        String imageUrl,
     @Schema(description = "여행 테마 목록", example = "[\"HEALING\", \"FAMOUS_SPOT\"]")
         List<PlaceThemeType> themes) {
 
@@ -54,6 +58,7 @@ public record TripPlanDetailResponse(
         .isCompleted(tripPlan.getIsCompleted())
         .duration(duration)
         .peopleCount(tripPlan.getPeopleCount())
+        .imageUrl(tripPlan.getImageUrl())
         .themes(tripPlan.getTripThemes())
         .build();
   }

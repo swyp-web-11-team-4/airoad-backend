@@ -1,7 +1,6 @@
 package com.swygbro.airoad.backend.trip.domain.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.swygbro.airoad.backend.trip.domain.dto.response.DailyPlanResponse;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
@@ -13,17 +12,17 @@ import lombok.Builder;
  *
  * @param type 메시지 타입 (DAILY_PLAN_GENERATED, COMPLETED, ERROR, CANCELLED)
  * @param tripPlanId 여행 일정 ID
- * @param dailyPlan 일차별 일정 데이터 (type이 DAILY_PLAN_GENERATED인 경우)
+ * @param data "핵심 데이터 (DailyPlanResponse 혹은 List<Long> ScheduledPlaceIdList)"
  * @param message 상태 메시지 (완료 메시지, 오류 메시지 등)
  * @param errorCode 오류 코드 (type이 ERROR인 경우)
  */
 @Builder
 @Schema(name = "TripPlanProgressMessage", description = "여행 일정 생성 진행 상황 메시지")
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public record TripPlanProgressMessage(
+public record TripPlanProgressMessage<T>(
     @Schema(description = "메시지 타입", example = "DAILY_PLAN_GENERATED") MessageType type,
     @Schema(description = "여행 일정 ID", example = "1") Long tripPlanId,
-    @Schema(description = "일차별 일정 데이터") DailyPlanResponse dailyPlan,
+    @Schema(description = "핵심 데이터 (DailyPlanResponse 혹은 List<Long> ScheduledPlaceIdList)") T data,
     @Schema(description = "상태 메시지", example = "1일차 일정이 생성되었습니다.") String message,
     @Schema(description = "오류 코드", example = "TRIP101") String errorCode) {
 

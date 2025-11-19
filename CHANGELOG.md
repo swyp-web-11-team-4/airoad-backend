@@ -1,3 +1,12 @@
+# [0.29.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.28.0...v0.29.0) (2025-11-19)
+
+
+### Features
+
+* TripPlanDetailResponse에 imageUrl 필드 추가 ([8e8721c](https://github.com/swyp-web-11-team-4/airoad-backend/commit/8e8721cff9db8a3c6f08529b2d2949b8afab202f))
+* 여행 상세 정보에 이미지 URL 필드 추가 ([fcd12d7](https://github.com/swyp-web-11-team-4/airoad-backend/commit/fcd12d7c5bea54d1120415cba559dd36ec124765))
+* 회원 이름 조회 엔드포인트 추가 ([bbd4802](https://github.com/swyp-web-11-team-4/airoad-backend/commit/bbd4802e8235225f6cdbc83d0cb2408901e4c1bd))
+
 # [0.28.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.27.0...v0.28.0) (2025-11-17)
 
 

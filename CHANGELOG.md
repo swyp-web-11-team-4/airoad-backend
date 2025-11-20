@@ -1,3 +1,15 @@
+# [0.30.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.29.0...v0.30.0) (2025-11-20)
+
+
+### Bug Fixes
+
+* 일정 수정 완료 이벤트의 메시지 타입을 UPDATED로 수정 ([97d2419](https://github.com/swyp-web-11-team-4/airoad-backend/commit/97d24195b71473ff9d36b3b68647cea2da960787))
+
+
+### Features
+
+* 여행 일정 기능 개선 및 회원 API 변경 ([84190df](https://github.com/swyp-web-11-team-4/airoad-backend/commit/84190df87200cdec7a1d1bb1c12bc9ddc0bafac1))
+
 # [0.29.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.28.0...v0.29.0) (2025-11-19)
 
 

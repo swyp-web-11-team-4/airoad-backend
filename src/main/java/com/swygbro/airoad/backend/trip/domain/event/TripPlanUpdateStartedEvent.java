@@ -1,5 +1,7 @@
 package com.swygbro.airoad.backend.trip.domain.event;
 
+import java.util.List;
+
 import lombok.Builder;
 
 /**
@@ -12,4 +14,8 @@ import lombok.Builder;
  */
 @Builder
 public record TripPlanUpdateStartedEvent(
-    Long chatRoomId, Long tripPlanId, String username, String message) {}
+    Long chatRoomId,
+    Long tripPlanId,
+    String username,
+    String message,
+    List<Long> scheduledPlaceIdList) {}

@@ -1,6 +1,7 @@
 package com.swygbro.airoad.backend.trip.presentation.message;
 
 import java.util.Collections;
+import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -78,7 +79,7 @@ class TripPlanNotificationListenerTest {
       assertThat(tripMessage.type())
           .isEqualTo(TripPlanProgressMessage.MessageType.DAILY_PLAN_GENERATED);
       assertThat(tripMessage.tripPlanId()).isEqualTo(100L);
-      assertThat(tripMessage.dailyPlan()).isEqualTo(dailyPlan);
+      assertThat(tripMessage.data()).isEqualTo(dailyPlan);
 
       // then - 채팅 채널로 ChatStreamDto 전송 검증
       ArgumentCaptor<ChatStreamDto> chatMessageCaptor =
@@ -200,6 +201,7 @@ class TripPlanNotificationListenerTest {
     void WebSocket으로_일정_채널에_수정_시작_메시지_전송() {
       // given
       String username = "testUser";
+      List<Long> scheduledPlaceIdList = List.of(1L, 2L, 3L);
 
       TripPlanUpdateStartedEvent event =
           TripPlanUpdateStartedEvent.builder()
@@ -207,6 +209,7 @@ class TripPlanNotificationListenerTest {
               .tripPlanId(100L)
               .username(username)
               .message("일정 수정을 시작합니다")
+              .scheduledPlaceIdList(scheduledPlaceIdList)
               .build();
 
       // when
@@ -221,6 +224,7 @@ class TripPlanNotificationListenerTest {
       TripPlanProgressMessage message = messageCaptor.getValue();
       assertThat(message.type()).isEqualTo(TripPlanProgressMessage.MessageType.UPDATE_STARTED);
       assertThat(message.tripPlanId()).isEqualTo(100L);
+      assertThat(message.data()).isEqualTo(scheduledPlaceIdList);
       assertThat(message.message()).isEqualTo("일정 수정을 시작합니다");
     }
   }
@@ -262,9 +266,9 @@ class TripPlanNotificationListenerTest {
               eq("testUser"), eq("/sub/schedule/100"), tripMessageCaptor.capture());
 
       TripPlanProgressMessage tripMessage = tripMessageCaptor.getValue();
-      assertThat(tripMessage.type()).isEqualTo(MessageType.DAILY_PLAN_GENERATED);
+      assertThat(tripMessage.type()).isEqualTo(MessageType.UPDATED);
       assertThat(tripMessage.tripPlanId()).isEqualTo(100L);
-      assertThat(tripMessage.dailyPlan()).isEqualTo(dailyPlan);
+      assertThat(tripMessage.data()).isEqualTo(dailyPlan);
       assertThat(tripMessage.message()).contains("2일차 일정이 수정되었습니다.");
 
       // then - 채팅 채널로 ChatStreamDto 전송 검증

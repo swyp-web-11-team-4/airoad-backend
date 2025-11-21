@@ -1,5 +1,7 @@
 package com.swygbro.airoad.backend.trip.presentation.message;
 
+import java.util.List;
+
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
@@ -10,6 +12,7 @@ import com.swygbro.airoad.backend.chat.domain.dto.response.MessageStreamType;
 import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
 import com.swygbro.airoad.backend.trip.domain.dto.TripPlanProgressMessage;
 import com.swygbro.airoad.backend.trip.domain.dto.TripPlanProgressMessage.MessageType;
+import com.swygbro.airoad.backend.trip.domain.dto.response.DailyPlanResponse;
 import com.swygbro.airoad.backend.trip.domain.event.DailyPlanSavedEvent;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationCancelledEvent;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationCompletedEvent;
@@ -45,11 +48,11 @@ public class TripPlanNotificationListener {
         event.tripPlanId(),
         event.dailyPlan().dayNumber());
 
-    TripPlanProgressMessage tripMessage =
-        TripPlanProgressMessage.builder()
+    TripPlanProgressMessage<DailyPlanResponse> tripMessage =
+        TripPlanProgressMessage.<DailyPlanResponse>builder()
             .type(TripPlanProgressMessage.MessageType.DAILY_PLAN_GENERATED)
             .tripPlanId(event.tripPlanId())
-            .dailyPlan(event.dailyPlan())
+            .data(event.dailyPlan())
             .message(event.dailyPlan().dayNumber() + "일차 일정이 생성되었습니다.")
             .build();
     ChatStreamDto chatMessage =
@@ -130,10 +133,11 @@ public class TripPlanNotificationListener {
   public void handleTripPlanUpdateStarted(TripPlanUpdateStartedEvent event) {
     log.info("일정 수정 시작 - tripPlanId: {}, message: {}", event.tripPlanId(), event.message());
 
-    TripPlanProgressMessage tripMessage =
-        TripPlanProgressMessage.builder()
+    TripPlanProgressMessage<List<Long>> tripMessage =
+        TripPlanProgressMessage.<List<Long>>builder()
             .type(TripPlanProgressMessage.MessageType.UPDATE_STARTED)
             .tripPlanId(event.tripPlanId())
+            .data(event.scheduledPlaceIdList())
             .message(event.message())
             .build();
 
@@ -159,11 +163,11 @@ public class TripPlanNotificationListener {
         event.tripPlanId(),
         event.dailyPlan().dayNumber());
 
-    TripPlanProgressMessage tripMessage =
-        TripPlanProgressMessage.builder()
-            .type(MessageType.DAILY_PLAN_GENERATED)
+    TripPlanProgressMessage<DailyPlanResponse> tripMessage =
+        TripPlanProgressMessage.<DailyPlanResponse>builder()
+            .type(MessageType.UPDATED)
             .tripPlanId(event.tripPlanId())
-            .dailyPlan(event.dailyPlan())
+            .data(event.dailyPlan())
             .message(event.dailyPlan().dayNumber() + "일차 일정이 수정되었습니다.")
             .build();
     ChatStreamDto chatMessage =

@@ -2,6 +2,7 @@ package com.swygbro.airoad.backend.auth.application;
 
 import java.time.LocalDateTime;
 
+import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ public class AuthService implements AuthUseCase {
 
   private final JwtTokenProvider jwtTokenProvider;
   private final RefreshTokenRepository refreshTokenRepository;
+  private final SHA256Hasher sha256Hasher;
 
   /** JWT 토큰 생성 및 Refresh Token 저장 */
   @Transactional
@@ -29,10 +31,13 @@ public class AuthService implements AuthUseCase {
     String accessToken = jwtTokenProvider.createAccessToken(email);
     String refreshToken = jwtTokenProvider.createRefreshToken(email);
 
-    // Refresh Token을 DB에 저장
-    saveRefreshToken(email, refreshToken);
+    String emailHash = sha256Hasher.hash(email);
+    String tokenHash = sha256Hasher.hash(refreshToken);
 
-    log.info("Tokens created for user: {}", email);
+    // Refresh Token을 DB에 저장
+    saveRefreshToken(email, emailHash, refreshToken, tokenHash);
+
+    log.info("Tokens created for user: {}", email);//&&&&
 
     return TokenResponse.of(
         accessToken, refreshToken, jwtTokenProvider.getAccessTokenValidityInSeconds());
@@ -45,11 +50,12 @@ public class AuthService implements AuthUseCase {
     if (!jwtTokenProvider.validateToken(refreshToken)) {
       throw new BusinessException(AuthErrorCode.INVALID_TOKEN);
     }
+    String tokenHash = sha256Hasher.hash(refreshToken);
 
     // DB에서 Refresh Token 조회
     RefreshToken storedToken =
         refreshTokenRepository
-            .findByToken(refreshToken)
+            .findByTokenHash(tokenHash)
             .orElseThrow(() -> new BusinessException(AuthErrorCode.UNSUPPORTED_TOKEN));
 
     // 만료 여부 확인
@@ -61,10 +67,11 @@ public class AuthService implements AuthUseCase {
     String email = storedToken.getEmail();
     String newAccessToken = jwtTokenProvider.createAccessToken(email);
     String newRefreshToken = jwtTokenProvider.createRefreshToken(email);
+    String newRefreshTokenHash = sha256Hasher.hash(newRefreshToken);
 
     // 새로운 Refresh Token으로 업데이트
     LocalDateTime expiresAt = jwtTokenProvider.getRefreshTokenExpiresAt();
-    storedToken.updateToken(newRefreshToken, expiresAt);
+    storedToken.updateToken(newRefreshToken, newRefreshTokenHash, expiresAt);
 
     return TokenResponse.of(
         newAccessToken, newRefreshToken, jwtTokenProvider.getAccessTokenValidityInSeconds());
@@ -78,8 +85,10 @@ public class AuthService implements AuthUseCase {
     }
 
     String email = jwtTokenProvider.getEmailFromToken(accessToken);
+    String emailHash = sha256Hasher.hash(email);
+
     refreshTokenRepository
-        .findByEmail(email)
+        .findByEmailHash(emailHash)
         .ifPresentOrElse(
             refreshTokenRepository::delete,
             () -> {
@@ -88,20 +97,20 @@ public class AuthService implements AuthUseCase {
   }
 
   /** Refresh Token을 DB에 저장 또는 업데이트 */
-  private void saveRefreshToken(String email, String token) {
+  private void saveRefreshToken(String email, String emailHash, String token, String tokenHash) {
     LocalDateTime expiresAt = jwtTokenProvider.getRefreshTokenExpiresAt();
 
     RefreshToken refreshToken =
         refreshTokenRepository
-            .findByEmail(email)
+            .findByEmailHash(emailHash)
             .map(
                 existing -> {
-                  existing.updateToken(token, expiresAt);
+                  existing.updateToken(token, tokenHash, expiresAt);
                   return existing;
                 })
             .orElseGet(
                 () ->
-                    RefreshToken.builder().email(email).token(token).expiresAt(expiresAt).build());
+                    RefreshToken.builder().email(email).emailHash(emailHash).token(token).tokenHash(tokenHash).expiresAt(expiresAt).build());
 
     refreshTokenRepository.save(refreshToken);
   }

@@ -3,10 +3,12 @@ package com.swygbro.airoad.backend.auth.domain.entity;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
 import com.swygbro.airoad.backend.common.domain.entity.BaseEntity;
+import com.swygbro.airoad.backend.common.infrastructure.encryption.StringEncryptor;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -22,18 +24,27 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class RefreshToken extends BaseEntity {
 
+  @Convert(converter = StringEncryptor.class)
   @Column(nullable = false, unique = true)
   private String email;
 
+  @Column(nullable = false, unique = true, length = 64)
+  private String emailHash;
+
+  @Convert(converter = StringEncryptor.class)
   @Column(nullable = false, unique = true)
   private String token;
+
+  @Column(nullable = false, unique = true)
+  private String tokenHash;
 
   @Column(nullable = false)
   private LocalDateTime expiresAt;
 
   /** 토큰 업데이트 */
-  public void updateToken(String token, LocalDateTime expiresAt) {
+  public void updateToken(String token, String tokenHash, LocalDateTime expiresAt) {
     this.token = token;
+    this.tokenHash = tokenHash;
     this.expiresAt = expiresAt;
   }
 

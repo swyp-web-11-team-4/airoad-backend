@@ -2,6 +2,7 @@ package com.swygbro.airoad.backend.auth.filter;
 
 import java.io.IOException;
 
+import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,6 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   private final JwtTokenProvider jwtTokenProvider;
   private final RefreshTokenRepository refreshTokenRepository;
   private final UserDetailsServiceImpl userDetailsService;
+  private final SHA256Hasher sha256Hasher;
 
   @Override
   protected void doFilterInternal(
@@ -46,8 +48,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       if (token != null && jwtTokenProvider.validateToken(token)) {
         String email = jwtTokenProvider.getEmailFromToken(token);
 
-        if (!refreshTokenRepository.existsByEmail(email)) {
-          log.warn("No active refresh token for user: {}", email);
+        if (!refreshTokenRepository.existsByEmailHash(sha256Hasher.hash(email))) {
+          log.warn("No active refresh token for user: {}", email); //&&&&
           SecurityContextHolder.clearContext();
           filterChain.doFilter(request, response);
           return;

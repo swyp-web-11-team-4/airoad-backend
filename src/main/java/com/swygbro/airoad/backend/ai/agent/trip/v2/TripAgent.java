@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 import com.swygbro.airoad.backend.ai.agent.common.dto.WorkerTask;
@@ -29,7 +30,8 @@ import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationErrorEvent
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Component
+@Primary
+@Component("tripAgentV2")
 @Slf4j
 @RequiredArgsConstructor
 public class TripAgent implements AiroadAgent {

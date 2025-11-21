@@ -34,7 +34,8 @@ import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationErrorEvent
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Component
+@Component("tripAgentV1")
+@Deprecated
 public class TripAgent implements AiroadAgent {
 
   private final AgentType agentType = AgentType.TRIP_AGENT;

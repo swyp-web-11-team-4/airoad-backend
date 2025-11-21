@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.ai.agent.trip;
+package com.swygbro.airoad.backend.ai.agent.trip.v1;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -62,7 +62,7 @@ public class TripAgent implements AiroadAgent {
 
   @Override
   public boolean supports(AgentType agentType) {
-    return this.agentType == agentType;
+    return false;
   }
 
   @Override

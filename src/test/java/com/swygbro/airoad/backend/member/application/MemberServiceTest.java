@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.swygbro.airoad.backend.common.exception.BusinessException;
+import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
 import com.swygbro.airoad.backend.member.domain.dto.MemberResponse;
 import com.swygbro.airoad.backend.member.domain.entity.Member;
 import com.swygbro.airoad.backend.member.domain.entity.MemberRole;
@@ -31,7 +32,14 @@ class MemberServiceTest {
 
   @Mock private MemberRepository memberRepository;
 
+  @Mock private SHA256Hasher sha256Hasher;
+
   @InjectMocks private MemberService memberService;
+
+  private static final String TEST_EMAIL = "test@example.com";
+  private static final String TEST_EMAIL_HASH = "hash_test@example.com";
+  private static final String NOTFOUND_EMAIL = "notfound@example.com";
+  private static final String NOTFOUND_EMAIL_HASH = "hash_notfound@example.com";
 
   private Member testMember;
 
@@ -39,8 +47,10 @@ class MemberServiceTest {
   void setUp() {
     testMember =
         Member.builder()
-            .email("test@example.com")
+            .email(TEST_EMAIL)
+            .emailHash(TEST_EMAIL_HASH)
             .name("Test User")
+            .nameHash("hash_Test User")
             .imageUrl("https://example.com/image.jpg")
             .provider(ProviderType.GOOGLE)
             .role(MemberRole.MEMBER)
@@ -55,34 +65,34 @@ class MemberServiceTest {
     @DisplayName("이메일로 회원을 조회하여 MemberResponse를 반환한다")
     void shouldReturnMemberResponseByEmail() {
       // given
-      String email = "test@example.com";
-      given(memberRepository.findByEmail(email)).willReturn(Optional.of(testMember));
+      given(sha256Hasher.hash(TEST_EMAIL)).willReturn(TEST_EMAIL_HASH);
+      given(memberRepository.findByEmailHash(TEST_EMAIL_HASH)).willReturn(Optional.of(testMember));
 
       // when
-      MemberResponse response = memberService.getMemberByEmail(email);
+      MemberResponse response = memberService.getMemberByEmail(TEST_EMAIL);
 
       // then
       assertThat(response).isNotNull();
-      assertThat(response.email()).isEqualTo(email);
+      assertThat(response.email()).isEqualTo(TEST_EMAIL);
       assertThat(response.name()).isEqualTo("Test User");
       assertThat(response.imageUrl()).isEqualTo("https://example.com/image.jpg");
       assertThat(response.provider()).isEqualTo("google");
       assertThat(response.role()).isEqualTo("MEMBER");
-      verify(memberRepository).findByEmail(email);
+      verify(memberRepository).findByEmailHash(TEST_EMAIL_HASH);
     }
 
     @Test
     @DisplayName("존재하지 않는 이메일로 조회 시 BusinessException을 발생시킨다")
     void shouldThrowBusinessExceptionWhenMemberNotFound() {
       // given
-      String email = "notfound@example.com";
-      given(memberRepository.findByEmail(email)).willReturn(Optional.empty());
+      given(sha256Hasher.hash(NOTFOUND_EMAIL)).willReturn(NOTFOUND_EMAIL_HASH);
+      given(memberRepository.findByEmailHash(NOTFOUND_EMAIL_HASH)).willReturn(Optional.empty());
 
       // when & then
-      assertThatThrownBy(() -> memberService.getMemberByEmail(email))
+      assertThatThrownBy(() -> memberService.getMemberByEmail(NOTFOUND_EMAIL))
           .isInstanceOf(BusinessException.class)
           .hasMessage(MemberErrorCode.MEMBER_NOT_FOUND.getDefaultMessage());
-      verify(memberRepository).findByEmail(email);
+      verify(memberRepository).findByEmailHash(NOTFOUND_EMAIL_HASH);
     }
   }
 }

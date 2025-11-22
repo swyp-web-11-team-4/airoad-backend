@@ -3,6 +3,7 @@ package com.swygbro.airoad.backend.chat.infrastructure;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import com.swygbro.airoad.backend.common.config.EncryptionConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.messages.MessageType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -39,6 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 @ActiveProfiles("test")
 @EnableJpaAuditing
+@Import(EncryptionConfig.class)
 class AiMessageRepositoryTest {
 
   @Autowired private AiMessageRepository aiMessageRepository;

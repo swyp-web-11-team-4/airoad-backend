@@ -30,6 +30,7 @@ import com.swygbro.airoad.backend.chat.application.AiMessageService;
 import com.swygbro.airoad.backend.chat.domain.dto.response.ChatMessageResponse;
 import com.swygbro.airoad.backend.chat.domain.dto.response.MessageContentType;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
+import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
 
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -76,6 +77,11 @@ class AiConversationControllerTest {
     @Bean
     public RefreshTokenRepository refreshTokenRepository() {
       return mock(RefreshTokenRepository.class);
+    }
+
+    @Bean
+    public SHA256Hasher sha256Hasher() {
+      return mock(SHA256Hasher.class);
     }
   }
 

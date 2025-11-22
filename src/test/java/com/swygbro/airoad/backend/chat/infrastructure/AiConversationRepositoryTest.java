@@ -2,6 +2,8 @@ package com.swygbro.airoad.backend.chat.infrastructure;
 
 import java.util.Optional;
 
+import com.swygbro.airoad.backend.common.config.EncryptionConfig;
+import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -9,6 +11,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -32,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 @ActiveProfiles("test")
 @EnableJpaAuditing
+@Import(EncryptionConfig.class)
 class AiConversationRepositoryTest {
 
   @Autowired private AiConversationRepository aiConversationRepository;
@@ -52,7 +56,7 @@ class AiConversationRepositoryTest {
         tripPlanRepository.save(
             TripPlanFixture.createWithMemberAndTheme(
                 testMember,
-                com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType.HEALING));
+                PlaceThemeType.HEALING));
     testConversation =
         aiConversationRepository.save(
             AiConversationFixture.createWithMemberAndTripPlan(testMember, testTripPlan));

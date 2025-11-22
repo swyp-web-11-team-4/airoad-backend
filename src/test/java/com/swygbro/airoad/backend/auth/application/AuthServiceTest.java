@@ -18,6 +18,7 @@ import com.swygbro.airoad.backend.auth.domain.entity.RefreshToken;
 import com.swygbro.airoad.backend.auth.exception.AuthErrorCode;
 import com.swygbro.airoad.backend.auth.infrastructure.RefreshTokenRepository;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
+import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
 import com.swygbro.airoad.backend.fixture.auth.RefreshTokenFixture;
 
 import static org.assertj.core.api.Assertions.*;
@@ -33,13 +34,18 @@ class AuthServiceTest {
 
   @Mock private RefreshTokenRepository refreshTokenRepository;
 
+  @Mock private SHA256Hasher sha256Hasher;
+
   @InjectMocks private AuthService authService;
 
   private static final String TEST_EMAIL = "test@example.com";
+  private static final String TEST_EMAIL_HASH = "hash_test@example.com";
   private static final String TEST_ACCESS_TOKEN = "test.access.token";
   private static final String TEST_REFRESH_TOKEN = "test.refresh.token";
+  private static final String TEST_REFRESH_TOKEN_HASH = "hash_test.refresh.token";
   private static final String NEW_ACCESS_TOKEN = "new.access.token";
   private static final String NEW_REFRESH_TOKEN = "new.refresh.token";
+  private static final String NEW_REFRESH_TOKEN_HASH = "hash_new.refresh.token";
   private static final long TOKEN_VALIDITY_SECONDS = 3600L;
 
   @Nested
@@ -55,7 +61,9 @@ class AuthServiceTest {
       given(jwtTokenProvider.getAccessTokenValidityInSeconds()).willReturn(TOKEN_VALIDITY_SECONDS);
       given(jwtTokenProvider.getRefreshTokenExpiresAt())
           .willReturn(LocalDateTime.now().plusDays(7));
-      given(refreshTokenRepository.findByEmail(TEST_EMAIL)).willReturn(Optional.empty());
+      given(sha256Hasher.hash(TEST_EMAIL)).willReturn(TEST_EMAIL_HASH);
+      given(sha256Hasher.hash(TEST_REFRESH_TOKEN)).willReturn(TEST_REFRESH_TOKEN_HASH);
+      given(refreshTokenRepository.findByEmailHash(TEST_EMAIL_HASH)).willReturn(Optional.empty());
       given(refreshTokenRepository.save(any(RefreshToken.class)))
           .willAnswer(invocation -> invocation.getArgument(0));
 
@@ -78,7 +86,9 @@ class AuthServiceTest {
       given(jwtTokenProvider.getAccessTokenValidityInSeconds()).willReturn(TOKEN_VALIDITY_SECONDS);
       given(jwtTokenProvider.getRefreshTokenExpiresAt())
           .willReturn(LocalDateTime.now().plusDays(7));
-      given(refreshTokenRepository.findByEmail(TEST_EMAIL)).willReturn(Optional.empty());
+      given(sha256Hasher.hash(TEST_EMAIL)).willReturn(TEST_EMAIL_HASH);
+      given(sha256Hasher.hash(TEST_REFRESH_TOKEN)).willReturn(TEST_REFRESH_TOKEN_HASH);
+      given(refreshTokenRepository.findByEmailHash(TEST_EMAIL_HASH)).willReturn(Optional.empty());
       given(refreshTokenRepository.save(any(RefreshToken.class)))
           .willAnswer(invocation -> invocation.getArgument(0));
 
@@ -100,12 +110,16 @@ class AuthServiceTest {
     void updatesExistingRefreshToken() {
       // given
       RefreshToken existingToken = RefreshTokenFixture.createWithEmail(TEST_EMAIL);
+
       given(jwtTokenProvider.createAccessToken(TEST_EMAIL)).willReturn(TEST_ACCESS_TOKEN);
       given(jwtTokenProvider.createRefreshToken(TEST_EMAIL)).willReturn(TEST_REFRESH_TOKEN);
       given(jwtTokenProvider.getAccessTokenValidityInSeconds()).willReturn(TOKEN_VALIDITY_SECONDS);
       given(jwtTokenProvider.getRefreshTokenExpiresAt())
           .willReturn(LocalDateTime.now().plusDays(7));
-      given(refreshTokenRepository.findByEmail(TEST_EMAIL)).willReturn(Optional.of(existingToken));
+      given(sha256Hasher.hash(TEST_EMAIL)).willReturn(TEST_EMAIL_HASH);
+      given(sha256Hasher.hash(TEST_REFRESH_TOKEN)).willReturn(TEST_REFRESH_TOKEN_HASH);
+      given(refreshTokenRepository.findByEmailHash(TEST_EMAIL_HASH))
+          .willReturn(Optional.of(existingToken));
       given(refreshTokenRepository.save(any(RefreshToken.class)))
           .willAnswer(invocation -> invocation.getArgument(0));
 
@@ -128,10 +142,12 @@ class AuthServiceTest {
       // given
       RefreshToken storedToken = RefreshTokenFixture.createWithEmail(TEST_EMAIL);
       given(jwtTokenProvider.validateToken(TEST_REFRESH_TOKEN)).willReturn(true);
-      given(refreshTokenRepository.findByToken(TEST_REFRESH_TOKEN))
+      given(sha256Hasher.hash(TEST_REFRESH_TOKEN)).willReturn(TEST_REFRESH_TOKEN_HASH);
+      given(refreshTokenRepository.findByTokenHash(TEST_REFRESH_TOKEN_HASH))
           .willReturn(Optional.of(storedToken));
       given(jwtTokenProvider.createAccessToken(TEST_EMAIL)).willReturn(NEW_ACCESS_TOKEN);
       given(jwtTokenProvider.createRefreshToken(TEST_EMAIL)).willReturn(NEW_REFRESH_TOKEN);
+      given(sha256Hasher.hash(NEW_REFRESH_TOKEN)).willReturn(NEW_REFRESH_TOKEN_HASH);
       given(jwtTokenProvider.getAccessTokenValidityInSeconds()).willReturn(TOKEN_VALIDITY_SECONDS);
       given(jwtTokenProvider.getRefreshTokenExpiresAt())
           .willReturn(LocalDateTime.now().plusDays(7));
@@ -154,10 +170,12 @@ class AuthServiceTest {
       String oldToken = storedToken.getToken();
 
       given(jwtTokenProvider.validateToken(TEST_REFRESH_TOKEN)).willReturn(true);
-      given(refreshTokenRepository.findByToken(TEST_REFRESH_TOKEN))
+      given(sha256Hasher.hash(TEST_REFRESH_TOKEN)).willReturn(TEST_REFRESH_TOKEN_HASH);
+      given(refreshTokenRepository.findByTokenHash(TEST_REFRESH_TOKEN_HASH))
           .willReturn(Optional.of(storedToken));
       given(jwtTokenProvider.createAccessToken(TEST_EMAIL)).willReturn(NEW_ACCESS_TOKEN);
       given(jwtTokenProvider.createRefreshToken(TEST_EMAIL)).willReturn(NEW_REFRESH_TOKEN);
+      given(sha256Hasher.hash(NEW_REFRESH_TOKEN)).willReturn(NEW_REFRESH_TOKEN_HASH);
       given(jwtTokenProvider.getAccessTokenValidityInSeconds()).willReturn(TOKEN_VALIDITY_SECONDS);
       given(jwtTokenProvider.getRefreshTokenExpiresAt())
           .willReturn(LocalDateTime.now().plusDays(7));
@@ -188,7 +206,9 @@ class AuthServiceTest {
     void failsWithUnregisteredToken() {
       // given
       given(jwtTokenProvider.validateToken(TEST_REFRESH_TOKEN)).willReturn(true);
-      given(refreshTokenRepository.findByToken(TEST_REFRESH_TOKEN)).willReturn(Optional.empty());
+      given(sha256Hasher.hash(TEST_REFRESH_TOKEN)).willReturn(TEST_REFRESH_TOKEN_HASH);
+      given(refreshTokenRepository.findByTokenHash(TEST_REFRESH_TOKEN_HASH))
+          .willReturn(Optional.empty());
 
       // when & then
       assertThatThrownBy(() -> authService.reissue(TEST_REFRESH_TOKEN))
@@ -202,7 +222,8 @@ class AuthServiceTest {
       // given
       RefreshToken expiredToken = RefreshTokenFixture.createExpired();
       given(jwtTokenProvider.validateToken(TEST_REFRESH_TOKEN)).willReturn(true);
-      given(refreshTokenRepository.findByToken(TEST_REFRESH_TOKEN))
+      given(sha256Hasher.hash(TEST_REFRESH_TOKEN)).willReturn(TEST_REFRESH_TOKEN_HASH);
+      given(refreshTokenRepository.findByTokenHash(TEST_REFRESH_TOKEN_HASH))
           .willReturn(Optional.of(expiredToken));
 
       // when & then
@@ -217,7 +238,8 @@ class AuthServiceTest {
       // given
       RefreshToken expiredToken = RefreshTokenFixture.createExpired();
       given(jwtTokenProvider.validateToken(TEST_REFRESH_TOKEN)).willReturn(true);
-      given(refreshTokenRepository.findByToken(TEST_REFRESH_TOKEN))
+      given(sha256Hasher.hash(TEST_REFRESH_TOKEN)).willReturn(TEST_REFRESH_TOKEN_HASH);
+      given(refreshTokenRepository.findByTokenHash(TEST_REFRESH_TOKEN_HASH))
           .willReturn(Optional.of(expiredToken));
 
       // when
@@ -244,7 +266,8 @@ class AuthServiceTest {
 
       given(jwtTokenProvider.validateToken(TEST_ACCESS_TOKEN)).willReturn(true);
       given(jwtTokenProvider.getEmailFromToken(TEST_ACCESS_TOKEN)).willReturn(TEST_EMAIL);
-      given(refreshTokenRepository.findByEmail(TEST_EMAIL))
+      given(sha256Hasher.hash(TEST_EMAIL)).willReturn(TEST_EMAIL_HASH);
+      given(refreshTokenRepository.findByEmailHash(TEST_EMAIL_HASH))
           .willReturn(Optional.ofNullable(refreshToken));
 
       // when

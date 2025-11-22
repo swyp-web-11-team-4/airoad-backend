@@ -1,3 +1,10 @@
+# [0.31.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.30.0...v0.31.0) (2025-11-22)
+
+
+### Features
+
+* 엔티티에 데이터베이스 인덱스 추가 ([8f8ef52](https://github.com/swyp-web-11-team-4/airoad-backend/commit/8f8ef52e72a7d1391c7512347fd08dff40bddb71))
+
 # [0.30.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.29.0...v0.30.0) (2025-11-20)
 
 

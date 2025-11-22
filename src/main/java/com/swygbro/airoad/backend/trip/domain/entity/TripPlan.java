@@ -17,8 +17,24 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/** 사용자의 전체 여행 계획을 나타내는 엔티티 */
+/**
+ * 사용자의 전체 여행 계획을 나타내는 엔티티
+ *
+ * <p><strong>인덱스 설명</strong>:
+ *
+ * <ul>
+ *   <li>idx_trip_plan_member_id_created_at: 사용자별 여행 목록 조회 시 생성일 역순 정렬 성능 최적화 (기본 정렬)
+ *   <li>idx_trip_plan_member_id_start_date: 사용자별 여행 목록 조회 시 출발일 역순 정렬 성능 최적화 (선택적 정렬)
+ * </ul>
+ */
 @Entity
+@Table(
+    indexes = {
+      @Index(
+          name = "idx_trip_plan_member_id_created_at",
+          columnList = "member_id, created_at DESC"),
+      @Index(name = "idx_trip_plan_member_id_start_date", columnList = "member_id, start_date DESC")
+    })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TripPlan extends BaseEntity {

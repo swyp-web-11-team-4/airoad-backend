@@ -17,8 +17,20 @@ import lombok.NoArgsConstructor;
  * <p><strong>ID 순서 보장</strong>: 이 엔티티는 {@link GenerationType#IDENTITY} 전략을 사용하여 ID를 생성합니다.
  * PostgreSQL의 SERIAL/BIGSERIAL은 단조 증가를 보장하므로, ID가 작을수록 먼저 생성된 메시지입니다. 따라서 {@code ORDER BY id DESC}는
  * 시간 역순 정렬과 동일합니다.
+ *
+ * <p><strong>인덱스 설명</strong>:
+ *
+ * <ul>
+ *   <li>idx_ai_message_conversation_id_id_desc: 대화방별 메시지 히스토리 커서 페이지네이션 성능 최적화 (최신순)
+ * </ul>
  */
 @Entity
+@Table(
+    indexes = {
+      @Index(
+          name = "idx_ai_message_conversation_id_id_desc",
+          columnList = "conversation_id, id DESC")
+    })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AiMessage extends BaseEntity {

@@ -15,6 +15,12 @@ import lombok.NoArgsConstructor;
 
 /** 일일 계획에 포함된 개별 장소 방문 일정을 나타내는 엔티티 */
 @Entity
+@Table(
+    indexes = {
+      @Index(
+          name = "idx_scheduled_place_daily_plan_id_visit_order",
+          columnList = "daily_plan_id, visit_order ASC")
+    })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ScheduledPlace extends BaseEntity {

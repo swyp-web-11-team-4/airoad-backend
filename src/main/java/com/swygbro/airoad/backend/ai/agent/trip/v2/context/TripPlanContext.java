@@ -33,7 +33,8 @@ public class TripPlanContext extends WorkerContext {
   private TripPlanContext(AiDailyPlanRequest request, int dayNumber, List<Long> previousPlaceIds) {
     this.request = request;
     this.dayNumber = dayNumber;
-    this.previousPlaceIds = previousPlaceIds;
+    this.previousPlaceIds =
+        previousPlaceIds != null ? new ArrayList<>(previousPlaceIds) : new ArrayList<>();
   }
 
   public static TripPlanContext of(AiDailyPlanRequest request, int dayNumber) {

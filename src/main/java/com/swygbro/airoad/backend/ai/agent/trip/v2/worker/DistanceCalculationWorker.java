@@ -25,7 +25,7 @@ public class DistanceCalculationWorker implements Worker<TripPlanContext, TripPl
 
   private final PlaceQueryUseCase placeQueryUseCase;
 
-  private static final double TORTUOSITY_FACTOR = 2.1;
+  private static final double TORTUOSITY_FACTOR = 1.8;
 
   private static final double AVERAGE_SPEED_KMPH = 25.0;
 

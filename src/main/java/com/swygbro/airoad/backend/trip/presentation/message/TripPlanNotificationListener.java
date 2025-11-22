@@ -2,7 +2,6 @@ package com.swygbro.airoad.backend.trip.presentation.message;
 
 import java.util.List;
 
-import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -71,7 +70,7 @@ public class TripPlanNotificationListener {
    *
    * @param event 전체 일정 생성 완료 이벤트
    */
-  @EventListener
+  @TransactionalEventListener
   public void handleTripPlanGenerationCompleted(TripPlanGenerationCompletedEvent event) {
     log.info("전체 일정 생성 완료 - tripPlanId: {}", event.tripPlanId());
 
@@ -88,7 +87,7 @@ public class TripPlanNotificationListener {
    *
    * @param event 일정 생성 오류 이벤트
    */
-  @EventListener
+  @TransactionalEventListener
   public void handleTripPlanGenerationError(TripPlanGenerationErrorEvent event) {
     log.error(
         "일정 생성 오류 발생 - tripPlanId: {}, errorCode: {}, message: {}",
@@ -111,7 +110,7 @@ public class TripPlanNotificationListener {
    *
    * @param event 일정 생성 취소 이벤트
    */
-  @EventListener
+  @TransactionalEventListener
   public void handleTripPlanGenerationCancelled(TripPlanGenerationCancelledEvent event) {
     log.info("일정 생성 취소 - tripPlanId: {}, reason: {}", event.tripPlanId(), event.reason());
 
@@ -129,7 +128,7 @@ public class TripPlanNotificationListener {
    *
    * @param event 일정 수정 시작 이벤트
    */
-  @EventListener
+  @TransactionalEventListener
   public void handleTripPlanUpdateStarted(TripPlanUpdateStartedEvent event) {
     log.info("일정 수정 시작 - tripPlanId: {}, message: {}", event.tripPlanId(), event.message());
 

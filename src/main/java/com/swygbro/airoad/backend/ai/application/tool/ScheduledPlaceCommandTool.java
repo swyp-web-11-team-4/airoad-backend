@@ -2,18 +2,17 @@ package com.swygbro.airoad.backend.ai.application.tool;
 
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import com.swygbro.airoad.backend.ai.application.tool.dto.common.ToolResponse;
 import com.swygbro.airoad.backend.ai.application.tool.dto.param.ScheduledPlaceCreateParam;
+import com.swygbro.airoad.backend.ai.application.tool.dto.param.ScheduledPlaceUpdateParam;
 import com.swygbro.airoad.backend.content.application.PlaceQueryUseCase;
 import com.swygbro.airoad.backend.content.domain.dto.response.PlaceResponse;
 import com.swygbro.airoad.backend.trip.application.ScheduledPlaceCommandUseCase;
 import com.swygbro.airoad.backend.trip.domain.dto.request.ScheduledPlaceCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.request.ScheduledPlaceUpdateRequest;
 import com.swygbro.airoad.backend.trip.domain.entity.Transportation;
-import com.swygbro.airoad.backend.trip.domain.event.TripPlanUpdateStartedEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +24,6 @@ public class ScheduledPlaceCommandTool {
 
   private final ScheduledPlaceCommandUseCase scheduledPlaceCommandUseCase;
   private final PlaceQueryUseCase placeQueryUseCase;
-  private final ApplicationEventPublisher eventPublisher;
 
   @Tool(description = """
       여행 일정에 새로운 장소를 추가할 때 사용합니다.
@@ -38,31 +36,23 @@ public class ScheduledPlaceCommandTool {
       @ToolParam(description = """
           추가할 장소 정보를 담은 요청 파라미터:
           """)
-          ScheduledPlaceCreateParam param) {
+          ScheduledPlaceCreateParam params) {
 
     log.info(
         "[AI Tool] addScheduledPlace - username: {}, tripPlanId: {}, dayNumber: {}, param: {}",
         username,
         tripPlanId,
         dayNumber,
-        param.toString());
+        params.toString());
 
-    publishScheduledPlaceEvent(
-        TripPlanUpdateStartedEvent.builder()
-            .chatRoomId(chatRoomId)
-            .username(username)
-            .message("%d일차 여행 일정에 장소 추가 요청을 수행합니다.".formatted(dayNumber))
-            .tripPlanId(tripPlanId)
-            .build());
-
-    PlaceResponse placeResponse = placeQueryUseCase.findPlaceByName(param.placeName());
+    PlaceResponse placeResponse = placeQueryUseCase.findPlaceByName(params.placeName());
 
     ScheduledPlaceCreateRequest request =
         ScheduledPlaceCreateRequest.builder()
             .placeId(placeResponse.id())
-            .visitOrder(param.visitOrder())
-            .category(param.category())
-            .travelTime(param.travelTime())
+            .visitOrder(params.visitOrder())
+            .category(params.category())
+            .travelTime(params.travelTime())
             .transportation(Transportation.PUBLIC_TRANSIT)
             .build();
 
@@ -73,7 +63,7 @@ public class ScheduledPlaceCommandTool {
   }
 
   @Tool(description = """
-      일정에 포함된 기존 장소의 속성(정보)을 수정할 때 사용합니다.
+      일정에 포함된 기존 장소를 다른 장소로 교체하거나 정보를 수정할 때 사용합니다.
       """)
   public ToolResponse updateScheduledPlace(
       @ToolParam(description = "채팅방 고유 식별자") Long chatRoomId,
@@ -84,7 +74,7 @@ public class ScheduledPlaceCommandTool {
       @ToolParam(description = """
       수정할 장소 정보를 담은 요청 객체:
       """)
-          ScheduledPlaceUpdateRequest request) {
+          ScheduledPlaceUpdateParam params) {
 
     log.info(
         "[AI Tool] updateScheduledPlace - username: {}, tripPlanId: {}, dayNumber: {}, visitOrder: {}",
@@ -93,13 +83,15 @@ public class ScheduledPlaceCommandTool {
         dayNumber,
         visitOrder);
 
-    publishScheduledPlaceEvent(
-        TripPlanUpdateStartedEvent.builder()
-            .chatRoomId(chatRoomId)
-            .username(username)
-            .message("%d일차 %d번째 장소 수정 요청을 수행합니다.".formatted(dayNumber, visitOrder))
-            .tripPlanId(tripPlanId)
-            .build());
+    PlaceResponse placeResponse = placeQueryUseCase.findPlaceByName(params.placeName());
+
+    ScheduledPlaceUpdateRequest request =
+        ScheduledPlaceUpdateRequest.builder()
+            .placeId(placeResponse.id())
+            .category(params.category())
+            .travelTime(params.travelTime())
+            .transportation(Transportation.PUBLIC_TRANSIT)
+            .build();
 
     scheduledPlaceCommandUseCase.updateScheduledPlace(
         chatRoomId, tripPlanId, username, dayNumber, visitOrder, request);
@@ -123,14 +115,6 @@ public class ScheduledPlaceCommandTool {
         tripPlanId,
         dayNumber,
         visitOrder);
-
-    publishScheduledPlaceEvent(
-        TripPlanUpdateStartedEvent.builder()
-            .chatRoomId(chatRoomId)
-            .username(username)
-            .message("%d일차 %d번째 장소 삭제 요청을 수행합니다.".formatted(dayNumber, visitOrder))
-            .tripPlanId(tripPlanId)
-            .build());
 
     scheduledPlaceCommandUseCase.deleteScheduledPlace(
         chatRoomId, tripPlanId, username, dayNumber, visitOrder);
@@ -157,24 +141,10 @@ public class ScheduledPlaceCommandTool {
         visitOrderA,
         visitOrderB);
 
-    publishScheduledPlaceEvent(
-        TripPlanUpdateStartedEvent.builder()
-            .chatRoomId(chatRoomId)
-            .username(username)
-            .message(
-                "%d일차 %d번 <-> %d번 일정 순서 교체 요청을 수행합니다."
-                    .formatted(dayNumber, visitOrderA, visitOrderB))
-            .tripPlanId(tripPlanId)
-            .build());
-
     scheduledPlaceCommandUseCase.swapScheduledPlaces(
         chatRoomId, tripPlanId, username, dayNumber, visitOrderA, visitOrderB);
 
     return ToolResponse.success(
         String.format("%d일차 %d번과 %d번 일정 순서 교체 완료", dayNumber, visitOrderA, visitOrderB));
-  }
-
-  private void publishScheduledPlaceEvent(Object event) {
-    eventPublisher.publishEvent(event);
   }
 }

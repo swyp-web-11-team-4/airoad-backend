@@ -2,7 +2,6 @@ package com.swygbro.airoad.backend.auth.application;
 
 import java.time.LocalDateTime;
 
-import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,6 +10,7 @@ import com.swygbro.airoad.backend.auth.domain.entity.RefreshToken;
 import com.swygbro.airoad.backend.auth.exception.AuthErrorCode;
 import com.swygbro.airoad.backend.auth.infrastructure.RefreshTokenRepository;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
+import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +37,7 @@ public class AuthService implements AuthUseCase {
     // Refresh Token을 DB에 저장
     saveRefreshToken(email, emailHash, refreshToken, tokenHash);
 
-    log.info("Tokens created for user: {}", email);//&&&&
+    log.info("Tokens created for user: {}", email); // &&&&
 
     return TokenResponse.of(
         accessToken, refreshToken, jwtTokenProvider.getAccessTokenValidityInSeconds());
@@ -110,7 +110,13 @@ public class AuthService implements AuthUseCase {
                 })
             .orElseGet(
                 () ->
-                    RefreshToken.builder().email(email).emailHash(emailHash).token(token).tokenHash(tokenHash).expiresAt(expiresAt).build());
+                    RefreshToken.builder()
+                        .email(email)
+                        .emailHash(emailHash)
+                        .token(token)
+                        .tokenHash(tokenHash)
+                        .expiresAt(expiresAt)
+                        .build());
 
     refreshTokenRepository.save(refreshToken);
   }

@@ -2,8 +2,6 @@ package com.swygbro.airoad.backend.chat.infrastructure;
 
 import java.util.Optional;
 
-import com.swygbro.airoad.backend.common.config.EncryptionConfig;
-import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,6 +15,8 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.swygbro.airoad.backend.chat.domain.entity.AiConversation;
 import com.swygbro.airoad.backend.chat.infrastructure.repository.AiConversationRepository;
+import com.swygbro.airoad.backend.common.config.EncryptionConfig;
+import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
 import com.swygbro.airoad.backend.fixture.chat.AiConversationFixture;
 import com.swygbro.airoad.backend.fixture.member.MemberFixture;
 import com.swygbro.airoad.backend.fixture.trip.TripPlanFixture;
@@ -54,9 +54,7 @@ class AiConversationRepositoryTest {
     testMember = memberRepository.save(MemberFixture.create());
     testTripPlan =
         tripPlanRepository.save(
-            TripPlanFixture.createWithMemberAndTheme(
-                testMember,
-                PlaceThemeType.HEALING));
+            TripPlanFixture.createWithMemberAndTheme(testMember, PlaceThemeType.HEALING));
     testConversation =
         aiConversationRepository.save(
             AiConversationFixture.createWithMemberAndTripPlan(testMember, testTripPlan));

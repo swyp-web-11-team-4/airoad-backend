@@ -1,12 +1,12 @@
 package com.swygbro.airoad.backend.auth.application;
 
-import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.swygbro.airoad.backend.auth.domain.dto.UserPrincipal;
+import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
 import com.swygbro.airoad.backend.member.domain.entity.Member;
 import com.swygbro.airoad.backend.member.infrastructure.MemberRepository;
 
@@ -25,7 +25,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     Member member =
         memberRepository
             .findByEmailHash(emailHash)
-            .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));//&&&&
+            .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email)); // &&&&
 
     return new UserPrincipal(member);
   }

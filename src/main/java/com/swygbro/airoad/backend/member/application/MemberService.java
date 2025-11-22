@@ -1,10 +1,10 @@
 package com.swygbro.airoad.backend.member.application;
 
-import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.swygbro.airoad.backend.common.exception.BusinessException;
+import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
 import com.swygbro.airoad.backend.member.domain.dto.MemberResponse;
 import com.swygbro.airoad.backend.member.domain.entity.Member;
 import com.swygbro.airoad.backend.member.exception.MemberErrorCode;
@@ -24,7 +24,7 @@ public class MemberService implements MemberUseCase {
 
   @Override
   public MemberResponse getMemberByEmail(String email) {
-      String emailHash = sha256Hasher.hash(email);
+    String emailHash = sha256Hasher.hash(email);
     Member member =
         memberRepository
             .findByEmailHash(emailHash)

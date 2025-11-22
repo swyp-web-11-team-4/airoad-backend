@@ -65,8 +65,7 @@ class UserDetailsServiceImplTest {
     void shouldReturnUserDetailsWhenMemberExists() {
       // given
       given(sha256Hasher.hash(TEST_EMAIL)).willReturn(TEST_EMAIL_HASH);
-      given(memberRepository.findByEmailHash(TEST_EMAIL_HASH))
-          .willReturn(Optional.of(testMember));
+      given(memberRepository.findByEmailHash(TEST_EMAIL_HASH)).willReturn(Optional.of(testMember));
 
       // when
       UserDetails userDetails = userDetailsService.loadUserByUsername(TEST_EMAIL);

@@ -3,7 +3,6 @@ package com.swygbro.airoad.backend.trip.infrastructure;
 import java.time.LocalDate;
 import java.util.List;
 
-import com.swygbro.airoad.backend.common.config.EncryptionConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -13,6 +12,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.test.context.ActiveProfiles;
 
+import com.swygbro.airoad.backend.common.config.EncryptionConfig;
 import com.swygbro.airoad.backend.content.domain.entity.Place;
 import com.swygbro.airoad.backend.content.infrastructure.repository.PlaceRepository;
 import com.swygbro.airoad.backend.fixture.content.PlaceFixture;

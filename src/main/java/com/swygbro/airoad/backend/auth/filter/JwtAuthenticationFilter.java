@@ -2,7 +2,6 @@ package com.swygbro.airoad.backend.auth.filter;
 
 import java.io.IOException;
 
-import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,6 +18,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.swygbro.airoad.backend.auth.application.JwtTokenProvider;
 import com.swygbro.airoad.backend.auth.application.UserDetailsServiceImpl;
 import com.swygbro.airoad.backend.auth.infrastructure.RefreshTokenRepository;
+import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String email = jwtTokenProvider.getEmailFromToken(token);
 
         if (!refreshTokenRepository.existsByEmailHash(sha256Hasher.hash(email))) {
-          log.warn("No active refresh token for user: {}", email); //&&&&
+          log.warn("No active refresh token for user: {}", email); // &&&&
           SecurityContextHolder.clearContext();
           filterChain.doFilter(request, response);
           return;

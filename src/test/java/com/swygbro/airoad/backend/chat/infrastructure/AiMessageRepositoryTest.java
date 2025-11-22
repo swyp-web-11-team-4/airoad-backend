@@ -3,7 +3,6 @@ package com.swygbro.airoad.backend.chat.infrastructure;
 import java.util.List;
 import java.util.stream.IntStream;
 
-import com.swygbro.airoad.backend.common.config.EncryptionConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,6 +22,7 @@ import com.swygbro.airoad.backend.chat.domain.entity.AiConversation;
 import com.swygbro.airoad.backend.chat.domain.entity.AiMessage;
 import com.swygbro.airoad.backend.chat.infrastructure.repository.AiConversationRepository;
 import com.swygbro.airoad.backend.chat.infrastructure.repository.AiMessageRepository;
+import com.swygbro.airoad.backend.common.config.EncryptionConfig;
 import com.swygbro.airoad.backend.fixture.chat.AiConversationFixture;
 import com.swygbro.airoad.backend.fixture.member.MemberFixture;
 import com.swygbro.airoad.backend.fixture.trip.TripPlanFixture;

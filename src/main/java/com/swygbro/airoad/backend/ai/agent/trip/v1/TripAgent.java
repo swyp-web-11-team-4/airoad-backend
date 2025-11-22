@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.ai.agent.trip;
+package com.swygbro.airoad.backend.ai.agent.trip.v1;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -34,7 +34,8 @@ import com.swygbro.airoad.backend.trip.domain.event.TripPlanGenerationErrorEvent
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Component
+@Component("tripAgentV1")
+@Deprecated
 public class TripAgent implements AiroadAgent {
 
   private final AgentType agentType = AgentType.TRIP_AGENT;
@@ -62,7 +63,7 @@ public class TripAgent implements AiroadAgent {
 
   @Override
   public boolean supports(AgentType agentType) {
-    return this.agentType == agentType;
+    return false;
   }
 
   @Override

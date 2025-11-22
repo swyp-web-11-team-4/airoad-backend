@@ -6,10 +6,12 @@ import java.util.List;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 
 import com.swygbro.airoad.backend.common.domain.entity.BaseEntity;
 import com.swygbro.airoad.backend.member.domain.entity.Member;
@@ -20,8 +22,20 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/** AI와 사용자 간의 대화 세션을 나타내는 엔티티 */
+/**
+ * AI와 사용자 간의 대화 세션을 나타내는 엔티티
+ *
+ * <p><strong>인덱스 설명</strong>:
+ *
+ * <ul>
+ *   <li>idx_ai_conversation_trip_plan_id: 여행 계획별 대화방 조회 성능 최적화 (UNIQUE - OneToOne 관계)
+ * </ul>
+ */
 @Entity
+@Table(
+    indexes = {
+      @Index(name = "idx_ai_conversation_trip_plan_id", columnList = "trip_plan_id", unique = true)
+    })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AiConversation extends BaseEntity {

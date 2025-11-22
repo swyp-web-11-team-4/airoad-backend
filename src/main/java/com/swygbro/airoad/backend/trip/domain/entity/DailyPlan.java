@@ -8,10 +8,12 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
+import jakarta.persistence.Table;
 
 import org.hibernate.annotations.BatchSize;
 
@@ -22,8 +24,22 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/** 여행의 일일 계획을 나타내는 엔티티 */
+/**
+ * 여행의 일일 계획을 나타내는 엔티티
+ *
+ * <p><strong>인덱스 설명</strong>:
+ *
+ * <ul>
+ *   <li>idx_daily_plan_trip_plan_id_day_number: 여행별 일차 조회 시 일차 번호 오름차순 정렬 성능 최적화
+ * </ul>
+ */
 @Entity
+@Table(
+    indexes = {
+      @Index(
+          name = "idx_daily_plan_trip_plan_id_day_number",
+          columnList = "trip_plan_id, day_number ASC")
+    })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class DailyPlan extends BaseEntity {

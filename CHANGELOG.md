@@ -1,3 +1,10 @@
+# [0.32.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.31.0...v0.32.0) (2025-11-22)
+
+
+### Features
+
+* 챗봇 태그 기능 추가 및 발행 이벤트 수정 ([#88](https://github.com/swyp-web-11-team-4/airoad-backend/issues/88)) ([b8863bd](https://github.com/swyp-web-11-team-4/airoad-backend/commit/b8863bdb63a16c70f76ef48458e1922cd44fa21f))
+
 # [0.31.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.30.0...v0.31.0) (2025-11-22)
 
 

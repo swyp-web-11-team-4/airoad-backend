@@ -34,7 +34,7 @@ public class PlaceQueryService implements PlaceQueryUseCase {
   public List<PlaceResponse> findAllPlaceById(List<Long> ids) {
     List<Place> places = placeRepository.findAllByIds(ids);
 
-    if (places.isEmpty()) {
+    if (places.size() != ids.size()) {
       throw new BusinessException(TripErrorCode.PLACE_NOT_FOUND);
     }
 

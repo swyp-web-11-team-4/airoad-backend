@@ -1,6 +1,7 @@
 package com.swygbro.airoad.backend.trip.application;
 
 import java.util.Comparator;
+import java.util.List;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import com.swygbro.airoad.backend.trip.domain.embeddable.TravelSegment;
 import com.swygbro.airoad.backend.trip.domain.entity.DailyPlan;
 import com.swygbro.airoad.backend.trip.domain.entity.ScheduledPlace;
 import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
+import com.swygbro.airoad.backend.trip.domain.event.TripPlanUpdateStartedEvent;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanUpdatedEvent;
 import com.swygbro.airoad.backend.trip.exception.TripErrorCode;
 import com.swygbro.airoad.backend.trip.infrastructure.ScheduledPlaceRepository;
@@ -113,6 +115,15 @@ public class ScheduledPlaceCommandService implements ScheduledPlaceCommandUseCas
     ScheduledPlace scheduledPlace = getScheduledPlace(dailyPlan, visitOrder);
     Place place = placeRepository.findById(request.placeId()).orElse(null);
 
+    publishEvent(
+        TripPlanUpdateStartedEvent.builder()
+            .chatRoomId(chatRoomId)
+            .username(username)
+            .message("%d일차 %d번째 장소 수정 요청을 수행합니다.".formatted(dayNumber, visitOrder))
+            .tripPlanId(tripPlanId)
+            .scheduledPlaceIdList(List.of(scheduledPlace.getId()))
+            .build());
+
     TravelSegment travelSegment =
         TravelSegment.builder()
             .travelTime(request.travelTime())
@@ -148,6 +159,15 @@ public class ScheduledPlaceCommandService implements ScheduledPlaceCommandUseCas
 
     DailyPlan dailyPlan = validateAndGetDailyPlan(tripPlanId, username, dayNumber);
     ScheduledPlace scheduledPlace = getScheduledPlace(dailyPlan, visitOrder);
+
+    publishEvent(
+        TripPlanUpdateStartedEvent.builder()
+            .chatRoomId(chatRoomId)
+            .username(username)
+            .message("%d일차 %d번째 장소 삭제 요청을 수행합니다.".formatted(dayNumber, visitOrder))
+            .tripPlanId(tripPlanId)
+            .scheduledPlaceIdList(List.of(scheduledPlace.getId()))
+            .build());
 
     dailyPlan.removeScheduledPlace(scheduledPlace);
 
@@ -191,6 +211,17 @@ public class ScheduledPlaceCommandService implements ScheduledPlaceCommandUseCas
 
     ScheduledPlace placeA = getScheduledPlace(dailyPlan, visitOrderA);
     ScheduledPlace placeB = getScheduledPlace(dailyPlan, visitOrderB);
+
+    publishEvent(
+        TripPlanUpdateStartedEvent.builder()
+            .chatRoomId(chatRoomId)
+            .username(username)
+            .message(
+                "%d일차 %d번 <-> %d번 일정 순서 교체 요청을 수행합니다."
+                    .formatted(dayNumber, visitOrderA, visitOrderB))
+            .tripPlanId(tripPlanId)
+            .scheduledPlaceIdList(List.of(placeA.getId(), placeB.getId()))
+            .build());
 
     Place tempPlace = placeA.getPlace();
     placeA.updatePlace(placeB.getPlace());
@@ -253,7 +284,7 @@ public class ScheduledPlaceCommandService implements ScheduledPlaceCommandUseCas
         .orElseThrow(() -> new BusinessException(TripErrorCode.SCHEDULED_PLACE_NOT_FOUND));
   }
 
-  private void publishEvent(TripPlanUpdatedEvent event) {
+  private void publishEvent(Object event) {
     eventPublisher.publishEvent(event);
   }
 }

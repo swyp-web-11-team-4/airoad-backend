@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import com.swygbro.airoad.backend.ai.agent.chat.dto.request.AiChatRequest;
 import com.swygbro.airoad.backend.ai.application.context.dto.ChatRoomContext;
+import com.swygbro.airoad.backend.ai.application.context.dto.ScheduledPlaceTagContext;
 import com.swygbro.airoad.backend.ai.application.context.dto.TripPlanQueryContext;
 import com.swygbro.airoad.backend.ai.application.tool.DailyPlanCommandTool;
 import com.swygbro.airoad.backend.ai.application.tool.PlaceVectorQueryTool;
@@ -91,8 +92,19 @@ public class ChatAgent implements AiroadAgent {
               .username(request.username())
               .build();
 
+      ScheduledPlaceTagContext scheduledPlaceTagContext =
+          ScheduledPlaceTagContext.builder()
+              .tripPlanId(request.tripPlanId())
+              .username(request.username())
+              .scheduledPlaceIdList(request.scheduledPlaceIdList())
+              .build();
+
       List<MetadataEntry> contextMetadata =
-          contextManager.buildContext(AgentType.CHAT_AGENT, chatRoomContext, tripPlanQueryContext);
+          contextManager.buildContext(
+              AgentType.CHAT_AGENT,
+              chatRoomContext,
+              tripPlanQueryContext,
+              scheduledPlaceTagContext);
 
       String response =
           chatClient

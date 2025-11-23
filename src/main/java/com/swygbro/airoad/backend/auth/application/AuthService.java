@@ -26,6 +26,8 @@ public class AuthService implements AuthUseCase {
 
   /** JWT 토큰 생성 및 Refresh Token 저장 */
   public TokenResponse createTokens(String email) {
+    log.info("[AUTH] 토큰 생성 시작 - 이메일: {}", email);
+
     String accessToken = jwtTokenProvider.createAccessToken(email);
     String refreshToken = jwtTokenProvider.createRefreshToken(email);
 
@@ -35,10 +37,12 @@ public class AuthService implements AuthUseCase {
     String encryptedRefreshToken = stringEncryptor.convertToDatabaseColumn(refreshToken);
     String tokenHash = sha256Hasher.hash(refreshToken);
 
+    log.info("[AUTH] Redis에 RefreshToken 저장 시작 - emailHash: {}", emailHash);
+
     // Redis에 저장
     saveRefreshToken(encryptedEmail, emailHash, encryptedRefreshToken, tokenHash);
 
-    log.info("Tokens created for user: {}", email);
+    log.info("[AUTH] 토큰 생성 완료 - 이메일: {}", email);
 
     return TokenResponse.of(
         accessToken, refreshToken, jwtTokenProvider.getAccessTokenValidityInSeconds());
@@ -46,12 +50,15 @@ public class AuthService implements AuthUseCase {
 
   /** Refresh Token을 사용하여 새로운 Access Token과 Refresh Token 발급 */
   public TokenResponse reissue(String refreshToken) {
+    log.info("[AUTH] 토큰 재발급 시작");
+
     // JWT 형식 검증
     if (!jwtTokenProvider.validateToken(refreshToken)) {
       throw new BusinessException(AuthErrorCode.INVALID_TOKEN);
     }
 
     String tokenHash = sha256Hasher.hash(refreshToken);
+    log.info("[AUTH] Redis에서 RefreshToken 조회 - tokenHash: {}", tokenHash);
 
     // Redis에서 Refresh Token 조회
     RedisRefreshToken storedToken =
@@ -64,6 +71,8 @@ public class AuthService implements AuthUseCase {
     String emailHash = storedToken.getEmailHash();
     String email = stringEncryptor.convertToEntityAttribute(encryptedEmail);
 
+    log.info("[AUTH] 새로운 토큰 생성 - 이메일: {}", email);
+
     // 새로운 토큰 생성
     String newAccessToken = jwtTokenProvider.createAccessToken(email);
     String newRefreshToken = jwtTokenProvider.createRefreshToken(email);
@@ -74,9 +83,11 @@ public class AuthService implements AuthUseCase {
     String newRefreshTokenHash = sha256Hasher.hash(newRefreshToken);
 
     // 기존 토큰 삭제
+    log.info("[AUTH] Redis에서 기존 RefreshToken 삭제 - tokenHash: {}", tokenHash);
     refreshTokenStore.deleteByTokenHash(tokenHash);
 
     // 새 토큰 저장
+    log.info("[AUTH] Redis에 새로운 RefreshToken 저장 - emailHash: {}", emailHash);
     RedisRefreshToken newToken =
         RedisRefreshToken.builder()
             .email(encryptedNewEmail)
@@ -87,12 +98,16 @@ public class AuthService implements AuthUseCase {
 
     refreshTokenStore.save(newToken);
 
+    log.info("[AUTH] 토큰 재발급 완료 - 이메일: {}", email);
+
     return TokenResponse.of(
         newAccessToken, newRefreshToken, jwtTokenProvider.getAccessTokenValidityInSeconds());
   }
 
   /** 로그아웃 - Refresh Token 삭제 */
   public void logout(String accessToken) {
+    log.info("[AUTH] 로그아웃 시작");
+
     if (!jwtTokenProvider.validateToken(accessToken)) {
       throw new BusinessException(AuthErrorCode.INVALID_TOKEN);
     }
@@ -100,11 +115,16 @@ public class AuthService implements AuthUseCase {
     String email = jwtTokenProvider.getEmailFromToken(accessToken);
     String emailHash = sha256Hasher.hash(email);
 
+    log.info("[AUTH] Redis에서 RefreshToken 존재 여부 확인 - emailHash: {}", emailHash);
+
     if (!refreshTokenStore.existsByEmailHash(emailHash)) {
       throw new BusinessException(AuthErrorCode.INVALID_TOKEN);
     }
 
+    log.info("[AUTH] Redis에서 RefreshToken 삭제 - emailHash: {}", emailHash);
     refreshTokenStore.deleteByEmailHash(emailHash);
+
+    log.info("[AUTH] 로그아웃 완료 - 이메일: {}", email);
   }
 
   /** Refresh Token을 Redis에 저장 */
@@ -112,7 +132,11 @@ public class AuthService implements AuthUseCase {
     // 기존 토큰이 있으면 삭제 (emailHash로 삭제하면 두 키 모두 삭제됨)
     refreshTokenStore
         .findByEmailHash(emailHash)
-        .ifPresent(oldToken -> refreshTokenStore.deleteByEmailHash(emailHash));
+        .ifPresent(
+            oldToken -> {
+              log.info("[AUTH] 기존 RefreshToken 발견, 삭제 처리 - emailHash: {}", emailHash);
+              refreshTokenStore.deleteByEmailHash(emailHash);
+            });
 
     RedisRefreshToken redisRefreshToken =
         RedisRefreshToken.builder()
@@ -122,6 +146,8 @@ public class AuthService implements AuthUseCase {
             .tokenHash(tokenHash)
             .build();
 
+    log.info("[AUTH] Redis에 RefreshToken 저장 실행 - emailHash: {}", emailHash);
     refreshTokenStore.save(redisRefreshToken);
+    log.info("[AUTH] Redis에 RefreshToken 저장 성공 - emailHash: {}", emailHash);
   }
 }

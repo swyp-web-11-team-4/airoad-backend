@@ -38,11 +38,18 @@ public class RefreshTokenStore {
 
       long ttlSeconds = jwtTokenProvider.getRefreshTokenValidityInSeconds();
 
+      log.info(
+          "[REDIS] RefreshToken 저장 시작 - emailKey: {}, tokenKey: {}, TTL: {}초",
+          emailKey,
+          tokenKey,
+          ttlSeconds);
+
       stringRedisTemplate.opsForValue().set(emailKey, value, ttlSeconds, TimeUnit.SECONDS);
       stringRedisTemplate.opsForValue().set(tokenKey, value, ttlSeconds, TimeUnit.SECONDS);
-      log.debug("RefreshToken saved with TTL: {}s", ttlSeconds);
+
+      log.info("[REDIS] RefreshToken 저장 완료 - emailHash: {}", redisRefreshToken.getEmailHash());
     } catch (Exception e) {
-      log.error("Failed to save refresh token", e);
+      log.error("[REDIS] RefreshToken 저장 실패", e);
       throw new IllegalStateException("refresh 토큰 Redis 저장 실패", e);
     }
   }
@@ -50,14 +57,19 @@ public class RefreshTokenStore {
   // 이메일 해시로 조회
   public Optional<RedisRefreshToken> findByEmailHash(String emailHash) {
     String emailKey = EMAIL_KEY_PREFIX + emailHash;
+    log.info("[REDIS] RefreshToken 조회 시도 - emailKey: {}", emailKey);
+
     String value = stringRedisTemplate.opsForValue().get(emailKey);
     if (value == null) {
+      log.info("[REDIS] RefreshToken 조회 결과: 없음 - emailHash: {}", emailHash);
       return Optional.empty();
     }
     try {
-      return Optional.of(objectMapper.readValue(value, RedisRefreshToken.class));
+      RedisRefreshToken token = objectMapper.readValue(value, RedisRefreshToken.class);
+      log.info("[REDIS] RefreshToken 조회 성공 - emailHash: {}", emailHash);
+      return Optional.of(token);
     } catch (Exception e) {
-      log.error("Failed to find refresh token by email hash", e);
+      log.error("[REDIS] RefreshToken 역직렬화 실패 - emailHash: {}", emailHash, e);
       return Optional.empty();
     }
   }
@@ -65,43 +77,60 @@ public class RefreshTokenStore {
   // 토큰 해시로 조회
   public Optional<RedisRefreshToken> findByTokenHash(String tokenHash) {
     String tokenKey = TOKEN_KEY_PREFIX + tokenHash;
+    log.info("[REDIS] RefreshToken 조회 시도 - tokenKey: {}", tokenKey);
+
     String value = stringRedisTemplate.opsForValue().get(tokenKey);
     if (value == null) {
+      log.info("[REDIS] RefreshToken 조회 결과: 없음 - tokenHash: {}", tokenHash);
       return Optional.empty();
     }
     try {
-      return Optional.of(objectMapper.readValue(value, RedisRefreshToken.class));
+      RedisRefreshToken token = objectMapper.readValue(value, RedisRefreshToken.class);
+      log.info("[REDIS] RefreshToken 조회 성공 - tokenHash: {}", tokenHash);
+      return Optional.of(token);
     } catch (Exception e) {
-      log.error("Failed to find refresh token by token hash", e);
+      log.error("[REDIS] RefreshToken 역직렬화 실패 - tokenHash: {}", tokenHash, e);
       return Optional.empty();
     }
   }
 
   // 이메일로 해시 삭제
   public void deleteByEmailHash(String emailHash) {
+    log.info("[REDIS] RefreshToken 삭제 시작 - emailHash: {}", emailHash);
 
     findByEmailHash(emailHash)
         .ifPresent(
             redisRefreshToken -> {
               String emailKey = EMAIL_KEY_PREFIX + emailHash;
               String tokenKey = TOKEN_KEY_PREFIX + redisRefreshToken.getTokenHash();
+
+              log.info(
+                  "[REDIS] RefreshToken 삭제 실행 - emailKey: {}, tokenKey: {}", emailKey, tokenKey);
+
               stringRedisTemplate.delete(emailKey);
               stringRedisTemplate.delete(tokenKey);
-              log.debug("RefreshToken deleted for email hash: {}", emailHash);
+
+              log.info("[REDIS] RefreshToken 삭제 완료 - emailHash: {}", emailHash);
             });
   }
 
   // 토큰 해시로 삭제
   public void deleteByTokenHash(String tokenHash) {
+    log.info("[REDIS] RefreshToken 삭제 시작 - tokenHash: {}", tokenHash);
 
     findByTokenHash(tokenHash)
         .ifPresent(
             redisRefreshToken -> {
               String emailKey = EMAIL_KEY_PREFIX + redisRefreshToken.getEmailHash();
               String tokenKey = TOKEN_KEY_PREFIX + tokenHash;
+
+              log.info(
+                  "[REDIS] RefreshToken 삭제 실행 - emailKey: {}, tokenKey: {}", emailKey, tokenKey);
+
               stringRedisTemplate.delete(emailKey);
               stringRedisTemplate.delete(tokenKey);
-              log.debug("RefreshToken deleted for token hash: {}", tokenHash);
+
+              log.info("[REDIS] RefreshToken 삭제 완료 - tokenHash: {}", tokenHash);
             });
   }
 

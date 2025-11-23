@@ -22,7 +22,7 @@ import org.springframework.test.context.ActiveProfiles;
 import com.swygbro.airoad.backend.auth.application.JwtTokenProvider;
 import com.swygbro.airoad.backend.auth.application.UserDetailsServiceImpl;
 import com.swygbro.airoad.backend.auth.domain.dto.UserPrincipal;
-import com.swygbro.airoad.backend.auth.infrastructure.RefreshTokenRepository;
+import com.swygbro.airoad.backend.auth.infrastructure.RefreshTokenStore;
 import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
 import com.swygbro.airoad.backend.fixture.member.MemberFixture;
 import com.swygbro.airoad.backend.member.domain.entity.Member;
@@ -37,7 +37,7 @@ class JwtAuthenticationFilterTest {
 
   @Mock private JwtTokenProvider jwtTokenProvider;
 
-  @Mock private RefreshTokenRepository refreshTokenRepository;
+  @Mock private RefreshTokenStore refreshTokenStore;
 
   @Mock private UserDetailsServiceImpl userDetailsService;
 
@@ -76,7 +76,7 @@ class JwtAuthenticationFilterTest {
       given(jwtTokenProvider.validateToken(VALID_TOKEN)).willReturn(true);
       given(jwtTokenProvider.getEmailFromToken(VALID_TOKEN)).willReturn(TEST_EMAIL);
       given(sha256Hasher.hash(TEST_EMAIL)).willReturn(TEST_EMAIL_HASH);
-      given(refreshTokenRepository.existsByEmailHash(TEST_EMAIL_HASH)).willReturn(true);
+      given(refreshTokenStore.existsByEmailHash(TEST_EMAIL_HASH)).willReturn(true);
       given(userDetailsService.loadUserByUsername(TEST_EMAIL)).willReturn(userDetails);
 
       // when
@@ -104,7 +104,7 @@ class JwtAuthenticationFilterTest {
       given(jwtTokenProvider.validateToken(VALID_TOKEN)).willReturn(true);
       given(jwtTokenProvider.getEmailFromToken(VALID_TOKEN)).willReturn(TEST_EMAIL);
       given(sha256Hasher.hash(TEST_EMAIL)).willReturn(TEST_EMAIL_HASH);
-      given(refreshTokenRepository.existsByEmailHash(TEST_EMAIL_HASH)).willReturn(true);
+      given(refreshTokenStore.existsByEmailHash(TEST_EMAIL_HASH)).willReturn(true);
       given(userDetailsService.loadUserByUsername(TEST_EMAIL)).willReturn(userDetails);
 
       // when
@@ -131,7 +131,7 @@ class JwtAuthenticationFilterTest {
       given(jwtTokenProvider.validateToken(VALID_TOKEN)).willReturn(true);
       given(jwtTokenProvider.getEmailFromToken(VALID_TOKEN)).willReturn(TEST_EMAIL);
       given(sha256Hasher.hash(TEST_EMAIL)).willReturn(TEST_EMAIL_HASH);
-      given(refreshTokenRepository.existsByEmailHash(TEST_EMAIL_HASH)).willReturn(false);
+      given(refreshTokenStore.existsByEmailHash(TEST_EMAIL_HASH)).willReturn(false);
 
       // when
       jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
@@ -237,7 +237,7 @@ class JwtAuthenticationFilterTest {
       given(jwtTokenProvider.validateToken(VALID_TOKEN)).willReturn(true);
       given(jwtTokenProvider.getEmailFromToken(VALID_TOKEN)).willReturn(TEST_EMAIL);
       given(sha256Hasher.hash(TEST_EMAIL)).willReturn(TEST_EMAIL_HASH);
-      given(refreshTokenRepository.existsByEmailHash(TEST_EMAIL_HASH))
+      given(refreshTokenStore.existsByEmailHash(TEST_EMAIL_HASH))
           .willThrow(new RuntimeException("Database error"));
 
       // when & then
@@ -259,7 +259,7 @@ class JwtAuthenticationFilterTest {
       given(jwtTokenProvider.validateToken(VALID_TOKEN)).willReturn(true);
       given(jwtTokenProvider.getEmailFromToken(VALID_TOKEN)).willReturn(TEST_EMAIL);
       given(sha256Hasher.hash(TEST_EMAIL)).willReturn(TEST_EMAIL_HASH);
-      given(refreshTokenRepository.existsByEmailHash(TEST_EMAIL_HASH)).willReturn(true);
+      given(refreshTokenStore.existsByEmailHash(TEST_EMAIL_HASH)).willReturn(true);
       given(userDetailsService.loadUserByUsername(TEST_EMAIL))
           .willThrow(new RuntimeException("User not found"));
 

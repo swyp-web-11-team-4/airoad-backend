@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
 import com.swygbro.airoad.backend.common.domain.entity.BaseEntity;
@@ -16,7 +15,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Entity
+// @Entity
 @Table(name = "refresh_token")
 @Getter
 @Builder

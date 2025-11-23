@@ -1,16 +1,14 @@
 package com.swygbro.airoad.backend.auth.application;
 
-import java.time.LocalDateTime;
-
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import com.swygbro.airoad.backend.auth.domain.dto.refreshToken.RedisRefreshToken;
 import com.swygbro.airoad.backend.auth.domain.dto.response.TokenResponse;
-import com.swygbro.airoad.backend.auth.domain.entity.RefreshToken;
 import com.swygbro.airoad.backend.auth.exception.AuthErrorCode;
-import com.swygbro.airoad.backend.auth.infrastructure.RefreshTokenRepository;
+import com.swygbro.airoad.backend.auth.infrastructure.RefreshTokenStore;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
+import com.swygbro.airoad.backend.common.infrastructure.encryption.StringEncryptor;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,63 +20,78 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthService implements AuthUseCase {
 
   private final JwtTokenProvider jwtTokenProvider;
-  private final RefreshTokenRepository refreshTokenRepository;
   private final SHA256Hasher sha256Hasher;
+  private final StringEncryptor stringEncryptor;
+  private final RefreshTokenStore refreshTokenStore;
 
   /** JWT 토큰 생성 및 Refresh Token 저장 */
-  @Transactional
   public TokenResponse createTokens(String email) {
     String accessToken = jwtTokenProvider.createAccessToken(email);
     String refreshToken = jwtTokenProvider.createRefreshToken(email);
 
+    // 암호화 및 해싱
+    String encryptedEmail = stringEncryptor.convertToDatabaseColumn(email);
     String emailHash = sha256Hasher.hash(email);
+    String encryptedRefreshToken = stringEncryptor.convertToDatabaseColumn(refreshToken);
     String tokenHash = sha256Hasher.hash(refreshToken);
 
-    // Refresh Token을 DB에 저장
-    saveRefreshToken(email, emailHash, refreshToken, tokenHash);
+    // Redis에 저장
+    saveRefreshToken(encryptedEmail, emailHash, encryptedRefreshToken, tokenHash);
 
-    log.info("Tokens created for user: {}", email); // &&&&
+    log.info("Tokens created for user: {}", email);
 
     return TokenResponse.of(
         accessToken, refreshToken, jwtTokenProvider.getAccessTokenValidityInSeconds());
   }
 
   /** Refresh Token을 사용하여 새로운 Access Token과 Refresh Token 발급 */
-  @Transactional
   public TokenResponse reissue(String refreshToken) {
     // JWT 형식 검증
     if (!jwtTokenProvider.validateToken(refreshToken)) {
       throw new BusinessException(AuthErrorCode.INVALID_TOKEN);
     }
+
     String tokenHash = sha256Hasher.hash(refreshToken);
 
-    // DB에서 Refresh Token 조회
-    RefreshToken storedToken =
-        refreshTokenRepository
+    // Redis에서 Refresh Token 조회
+    RedisRefreshToken storedToken =
+        refreshTokenStore
             .findByTokenHash(tokenHash)
             .orElseThrow(() -> new BusinessException(AuthErrorCode.UNSUPPORTED_TOKEN));
 
-    // 만료 여부 확인
-    if (storedToken.isExpired()) {
-      refreshTokenRepository.delete(storedToken);
-      throw new BusinessException(AuthErrorCode.EXPIRED_TOKEN);
-    }
+    // 복호화 및 정보 추출
+    String encryptedEmail = storedToken.getEmail();
+    String emailHash = storedToken.getEmailHash();
+    String email = stringEncryptor.convertToEntityAttribute(encryptedEmail);
 
-    String email = storedToken.getEmail();
+    // 새로운 토큰 생성
     String newAccessToken = jwtTokenProvider.createAccessToken(email);
     String newRefreshToken = jwtTokenProvider.createRefreshToken(email);
+
+    // 암호화 및 해싱
+    String encryptedNewEmail = stringEncryptor.convertToDatabaseColumn(email);
+    String encryptedNewRefreshToken = stringEncryptor.convertToDatabaseColumn(newRefreshToken);
     String newRefreshTokenHash = sha256Hasher.hash(newRefreshToken);
 
-    // 새로운 Refresh Token으로 업데이트
-    LocalDateTime expiresAt = jwtTokenProvider.getRefreshTokenExpiresAt();
-    storedToken.updateToken(newRefreshToken, newRefreshTokenHash, expiresAt);
+    // 기존 토큰 삭제
+    refreshTokenStore.deleteByTokenHash(tokenHash);
+
+    // 새 토큰 저장
+    RedisRefreshToken newToken =
+        RedisRefreshToken.builder()
+            .email(encryptedNewEmail)
+            .emailHash(emailHash)
+            .token(encryptedNewRefreshToken)
+            .tokenHash(newRefreshTokenHash)
+            .build();
+
+    refreshTokenStore.save(newToken);
 
     return TokenResponse.of(
         newAccessToken, newRefreshToken, jwtTokenProvider.getAccessTokenValidityInSeconds());
   }
 
   /** 로그아웃 - Refresh Token 삭제 */
-  @Transactional
   public void logout(String accessToken) {
     if (!jwtTokenProvider.validateToken(accessToken)) {
       throw new BusinessException(AuthErrorCode.INVALID_TOKEN);
@@ -87,37 +100,28 @@ public class AuthService implements AuthUseCase {
     String email = jwtTokenProvider.getEmailFromToken(accessToken);
     String emailHash = sha256Hasher.hash(email);
 
-    refreshTokenRepository
-        .findByEmailHash(emailHash)
-        .ifPresentOrElse(
-            refreshTokenRepository::delete,
-            () -> {
-              throw new BusinessException(AuthErrorCode.INVALID_TOKEN);
-            });
+    if (!refreshTokenStore.existsByEmailHash(emailHash)) {
+      throw new BusinessException(AuthErrorCode.INVALID_TOKEN);
+    }
+
+    refreshTokenStore.deleteByEmailHash(emailHash);
   }
 
-  /** Refresh Token을 DB에 저장 또는 업데이트 */
+  /** Refresh Token을 Redis에 저장 */
   private void saveRefreshToken(String email, String emailHash, String token, String tokenHash) {
-    LocalDateTime expiresAt = jwtTokenProvider.getRefreshTokenExpiresAt();
+    // 기존 토큰이 있으면 삭제 (emailHash로 삭제하면 두 키 모두 삭제됨)
+    refreshTokenStore
+        .findByEmailHash(emailHash)
+        .ifPresent(oldToken -> refreshTokenStore.deleteByEmailHash(emailHash));
 
-    RefreshToken refreshToken =
-        refreshTokenRepository
-            .findByEmailHash(emailHash)
-            .map(
-                existing -> {
-                  existing.updateToken(token, tokenHash, expiresAt);
-                  return existing;
-                })
-            .orElseGet(
-                () ->
-                    RefreshToken.builder()
-                        .email(email)
-                        .emailHash(emailHash)
-                        .token(token)
-                        .tokenHash(tokenHash)
-                        .expiresAt(expiresAt)
-                        .build());
+    RedisRefreshToken redisRefreshToken =
+        RedisRefreshToken.builder()
+            .email(email)
+            .emailHash(emailHash)
+            .token(token)
+            .tokenHash(tokenHash)
+            .build();
 
-    refreshTokenRepository.save(refreshToken);
+    refreshTokenStore.save(redisRefreshToken);
   }
 }

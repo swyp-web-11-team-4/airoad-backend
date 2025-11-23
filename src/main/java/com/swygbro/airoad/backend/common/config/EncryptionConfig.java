@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 
 import com.nimbusds.jose.crypto.DirectDecrypter;
 import com.nimbusds.jose.crypto.DirectEncrypter;
+import com.swygbro.airoad.backend.common.infrastructure.encryption.StringEncryptor;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -58,6 +59,11 @@ public class EncryptionConfig {
       log.error("DirectDecrypter 생성 실패", e);
       throw new IllegalStateException("복호화기 초기화 실패", e);
     }
+  }
+
+  @Bean
+  public StringEncryptor stringEncryptor(DirectEncrypter encrypter, DirectDecrypter decrypter) {
+    return new StringEncryptor(encrypter, decrypter);
   }
 
   /**

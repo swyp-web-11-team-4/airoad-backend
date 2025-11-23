@@ -22,14 +22,25 @@ public class OpenAiChatModelConfig {
   @Value("${spring.ai.openai.chat.options.model}")
   private String model;
 
+  @Value("${spring.ai.openai.chat.completions-path}")
+  private String completionsPath;
+
+  @Value("${spring.ai.openai.embedding.embeddings-path}")
+  private String embeddingsPath;
+
   @Bean("openAiChatModel")
   public OpenAiChatModel openAiChatModel() {
-    OpenAiApi openAiApi = OpenAiApi.builder().apiKey(apiKey).baseUrl(baseUrl).build();
+    OpenAiApi openAiApi =
+        OpenAiApi.builder()
+            .apiKey(apiKey)
+            .baseUrl(baseUrl)
+            .completionsPath(completionsPath)
+            .embeddingsPath(embeddingsPath)
+            .build();
 
     return OpenAiChatModel.builder()
         .openAiApi(openAiApi)
-        .defaultOptions(
-            OpenAiChatOptions.builder().model(model).temperature(0.3d).maxTokens(1500).build())
+        .defaultOptions(OpenAiChatOptions.builder().model(model).build())
         .build();
   }
 }

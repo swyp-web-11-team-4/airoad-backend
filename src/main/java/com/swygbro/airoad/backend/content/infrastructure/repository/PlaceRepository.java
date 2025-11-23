@@ -111,4 +111,7 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
       WHERE p.location.name LIKE CONCAT('%', :name, '%')
       """)
   Optional<Place> findByName(@Param("name") String name);
+
+  @Query("SELECT p FROM Place p JOIN FETCH p.themes WHERE p.id IN :ids")
+  List<Place> findAllByIds(List<Long> ids);
 }

@@ -1,5 +1,6 @@
 package com.swygbro.airoad.backend.fixture.trip;
 
+import java.lang.reflect.Field;
 import java.time.LocalTime;
 
 import com.swygbro.airoad.backend.content.domain.entity.Place;
@@ -80,5 +81,25 @@ public class ScheduledPlaceFixture {
         .startTime(LocalTime.of(9, 0))
         .endTime(LocalTime.of(11, 0))
         .travelSegment(TravelSegmentFixture.create());
+  }
+
+  /**
+   * ID가 설정된 ScheduledPlace 생성 (Reflection 사용)
+   *
+   * <p>JPA가 자동 생성하는 ID를 테스트에서 설정하기 위해 Reflection을 사용합니다.
+   *
+   * @param id 설정할 ID
+   * @param scheduledPlace ID를 설정할 ScheduledPlace 객체
+   * @return ID가 설정된 ScheduledPlace 객체
+   */
+  public static ScheduledPlace withId(Long id, ScheduledPlace scheduledPlace) {
+    try {
+      Field idField = scheduledPlace.getClass().getSuperclass().getDeclaredField("id");
+      idField.setAccessible(true);
+      idField.set(scheduledPlace, id);
+      return scheduledPlace;
+    } catch (NoSuchFieldException | IllegalAccessException e) {
+      throw new RuntimeException("ID 설정 실패", e);
+    }
   }
 }

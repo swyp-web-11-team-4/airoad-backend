@@ -1,5 +1,7 @@
 package com.swygbro.airoad.backend.content.application;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.swygbro.airoad.backend.common.exception.BusinessException;
@@ -26,5 +28,16 @@ public class PlaceQueryService implements PlaceQueryUseCase {
             .orElseThrow(() -> new BusinessException(TripErrorCode.PLACE_NOT_FOUND));
 
     return PlaceResponse.of(place);
+  }
+
+  @Override
+  public List<PlaceResponse> findAllPlaceById(List<Long> ids) {
+    List<Place> places = placeRepository.findAllByIds(ids);
+
+    if (places.size() != ids.size()) {
+      throw new BusinessException(TripErrorCode.PLACE_NOT_FOUND);
+    }
+
+    return places.stream().map(PlaceResponse::of).toList();
   }
 }

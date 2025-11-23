@@ -1,7 +1,6 @@
 package com.swygbro.airoad.backend.trip.application;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +17,7 @@ import com.swygbro.airoad.backend.content.domain.entity.Place;
 import com.swygbro.airoad.backend.content.infrastructure.repository.PlaceRepository;
 import com.swygbro.airoad.backend.fixture.content.PlaceFixture;
 import com.swygbro.airoad.backend.fixture.member.MemberFixture;
+import com.swygbro.airoad.backend.fixture.trip.ScheduledPlaceFixture;
 import com.swygbro.airoad.backend.fixture.trip.TripPlanFixture;
 import com.swygbro.airoad.backend.member.domain.entity.Member;
 import com.swygbro.airoad.backend.trip.domain.dto.request.ScheduledPlaceCreateRequest;
@@ -139,12 +139,7 @@ class ScheduledPlaceCommandServiceTest {
     // given
     DailyPlan dailyPlan = tripPlan.getDailyPlans().get(0);
     ScheduledPlace scheduledPlace =
-        ScheduledPlace.builder()
-            .dailyPlan(dailyPlan)
-            .visitOrder(1)
-            .startTime(LocalTime.of(9, 0))
-            .endTime(LocalTime.of(11, 0))
-            .build();
+        ScheduledPlaceFixture.withId(1L, ScheduledPlaceFixture.createWithDailyPlan(dailyPlan));
     dailyPlan.addScheduledPlace(scheduledPlace);
 
     Long tripPlanId = tripPlan.getId();
@@ -197,12 +192,7 @@ class ScheduledPlaceCommandServiceTest {
     // given
     DailyPlan dailyPlan = tripPlan.getDailyPlans().get(0);
     ScheduledPlace scheduledPlace =
-        ScheduledPlace.builder()
-            .dailyPlan(dailyPlan)
-            .visitOrder(1)
-            .startTime(LocalTime.of(9, 0))
-            .endTime(LocalTime.of(11, 0))
-            .build();
+        ScheduledPlaceFixture.withId(1L, ScheduledPlaceFixture.createWithDailyPlan(dailyPlan));
     dailyPlan.addScheduledPlace(scheduledPlace);
 
     Long tripPlanId = tripPlan.getId();

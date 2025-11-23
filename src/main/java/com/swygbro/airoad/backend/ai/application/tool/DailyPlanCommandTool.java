@@ -2,12 +2,10 @@ package com.swygbro.airoad.backend.ai.application.tool;
 
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import com.swygbro.airoad.backend.ai.application.tool.dto.common.ToolResponse;
 import com.swygbro.airoad.backend.trip.application.DailyPlanCommandUseCase;
-import com.swygbro.airoad.backend.trip.domain.event.TripPlanUpdateStartedEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 public class DailyPlanCommandTool {
 
   private final DailyPlanCommandUseCase dailyPlanCommandUseCase;
-  private final ApplicationEventPublisher eventPublisher;
 
   @Tool(description = """
       서로 다른 날짜(일차)에 있는 두 장소의 위치를 교환할 때 사용합니다.
@@ -41,25 +38,11 @@ public class DailyPlanCommandTool {
         dayNumberB,
         visitOrderB);
 
-    publishDailyPlanEvent(
-        TripPlanUpdateStartedEvent.builder()
-            .chatRoomId(chatRoomId)
-            .username(username)
-            .message(
-                "%d일차 %d번 <-> %d일차 %d번 장소 교환 요청을 수행합니다."
-                    .formatted(dayNumberA, visitOrderA, dayNumberB, visitOrderB))
-            .tripPlanId(tripPlanId)
-            .build());
-
     dailyPlanCommandUseCase.swapScheduledPlacesBetweenDays(
         chatRoomId, tripPlanId, username, dayNumberA, visitOrderA, dayNumberB, visitOrderB);
 
     return ToolResponse.success(
         String.format(
             "%d일차 %d번과 %d일차 %d번 장소 교환 완료", dayNumberA, visitOrderA, dayNumberB, visitOrderB));
-  }
-
-  private void publishDailyPlanEvent(Object event) {
-    eventPublisher.publishEvent(event);
   }
 }

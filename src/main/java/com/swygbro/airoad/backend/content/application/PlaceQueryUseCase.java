@@ -1,5 +1,7 @@
 package com.swygbro.airoad.backend.content.application;
 
+import java.util.List;
+
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.content.domain.dto.response.PlaceResponse;
 
@@ -13,4 +15,6 @@ public interface PlaceQueryUseCase {
    * @throws BusinessException 만약 해당 장소를 찾을 수 없다면 예외를 발생시킵니다.
    */
   PlaceResponse findPlaceByName(String name);
+
+  List<PlaceResponse> findAllPlaceById(List<Long> ids);
 }

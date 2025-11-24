@@ -34,7 +34,7 @@ public class PlaceEmbeddingService implements PlaceEmbeddingUseCase {
    *
    * <p>Naver ClovaX API의 Rate Limit (분당 60회)를 초과하지 않도록 초당 최대 1개의 요청만 허용합니다.
    */
-  private final RateLimiter rateLimiter = RateLimiter.create(55.0 / 60.0);
+  private final RateLimiter rateLimiter = RateLimiter.create(30.0 / 60.0);
 
   private final PlaceRepository placeRepository;
   private final ApplicationEventPublisher eventPublisher;
@@ -153,7 +153,7 @@ public class PlaceEmbeddingService implements PlaceEmbeddingUseCase {
   private void publishPlaceSummaryEvent(Place place) {
     rateLimiter.acquire();
 
-    List<String> themes = place.getThemes().stream().map(PlaceThemeType::getDescription).toList();
+    List<String> themes = place.getThemes().stream().map(PlaceThemeType::name).toList();
 
     PlaceSummaryRequestedEvent event =
         PlaceSummaryRequestedEvent.builder()

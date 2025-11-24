@@ -8,6 +8,7 @@ import com.swygbro.airoad.backend.ai.application.context.dto.PlaceQueryContext;
 import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor;
 import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor.MetadataEntry;
 import com.swygbro.airoad.backend.ai.common.context.AbstractContextProvider;
+import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -54,7 +55,9 @@ public class PlaceQueryContextProvider extends AbstractContextProvider<PlaceQuer
                 context.description(),
                 context.operatingHours(),
                 context.holidayInfo(),
-                context.themes());
+                context.themes().stream()
+                    .map(p -> PlaceThemeType.valueOf(p).getDescription())
+                    .toList());
 
     return PromptMetadataAdvisor.systemMetadata(placeInfo);
   }

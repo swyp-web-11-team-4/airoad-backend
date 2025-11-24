@@ -13,7 +13,9 @@ public enum PlaceThemeType {
   EXPERIENCE_ACTIVITY("체험 액티비티"),
   CULTURE_ART("문화/예술"),
   SHOPPING("쇼핑"),
-  RESTAURANT("음식점");
+  RESTAURANT("음식점"),
+  CAFE("카페"),
+  ACCOMMODATION("숙박업소");
 
   private final String description;
 }

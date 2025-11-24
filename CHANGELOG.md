@@ -1,3 +1,10 @@
+## [0.32.1](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.32.0...v0.32.1) (2025-11-24)
+
+
+### Bug Fixes
+
+* 거리 계산 로직 분리 및 워커 수정 ([#90](https://github.com/swyp-web-11-team-4/airoad-backend/issues/90)) ([8572688](https://github.com/swyp-web-11-team-4/airoad-backend/commit/8572688c9c33a12fd6aef6e792a0fcb1f44f7cbf))
+
 # [0.32.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.31.0...v0.32.0) (2025-11-22)
 
 

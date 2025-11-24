@@ -1,9 +1,11 @@
 package com.swygbro.airoad.backend.common.config;
 
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
+import java.security.spec.KeySpec;
 
 import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -61,15 +63,19 @@ public class EncryptionConfig {
   }
 
   /**
-   * 문자열 비밀키를 256비트 AES SecretKey로 변환 SHA-256 해시를 사용하여 고정된 256비트 키 생성
+   * 문자열 비밀키를 256비트 AES SecretKey로 변환 PBKDF2-HMAC-SHA256을 사용하여 안전하게 키 유도
    *
    * @param secretKey 환경변수에서 주입받은 비밀키 문자열
    * @return 256비트 AES SecretKey
    */
   private SecretKey generateSecretKey(String secretKey) {
     try {
-      MessageDigest digest = MessageDigest.getInstance("SHA-256");
-      byte[] keyBytes = digest.digest(secretKey.getBytes(StandardCharsets.UTF_8));
+      // PBKDF2로 키 유도 (반복 횟수 310000은 OWASP 2023 권장)
+      SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+      byte[] salt = "AiroadStaticSalt2024".getBytes(StandardCharsets.UTF_8);
+      KeySpec spec = new PBEKeySpec(secretKey.toCharArray(), salt, 310000, 256);
+      SecretKey temp = factory.generateSecret(spec);
+      byte[] keyBytes = temp.getEncoded();
       return new SecretKeySpec(keyBytes, "AES");
     } catch (Exception e) {
       throw new IllegalStateException("비밀키 생성 실패", e);

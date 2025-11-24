@@ -38,8 +38,6 @@ public class AuthService implements AuthUseCase {
     String tokenHash = sha256Hasher.hash(refreshToken);
 
     log.info("[AUTH] Redis에 RefreshToken 저장 시작 - emailHash: {}", emailHash);
-    log.debug("[AUTH] [로컬 테스트용] AccessToken: {}", accessToken);
-    log.debug("[AUTH] [로컬 테스트용] RefreshToken: {}", refreshToken);
 
     // Redis에 저장
     saveRefreshToken(encryptedEmail, emailHash, encryptedRefreshToken, tokenHash);
@@ -90,8 +88,6 @@ public class AuthService implements AuthUseCase {
 
     // 새 토큰 저장
     log.info("[AUTH] Redis에 새로운 RefreshToken 저장 - emailHash: {}", emailHash);
-    log.debug("[AUTH] [로컬 테스트용] 재발급된 AccessToken: {}", newAccessToken);
-    log.debug("[AUTH] [로컬 테스트용] 재발급된 RefreshToken: {}", newRefreshToken);
 
     RedisRefreshToken newToken =
         RedisRefreshToken.builder()

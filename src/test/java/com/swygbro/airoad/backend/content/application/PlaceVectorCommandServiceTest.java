@@ -2,6 +2,7 @@ package com.swygbro.airoad.backend.content.application;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -16,7 +17,10 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.swygbro.airoad.backend.content.domain.converter.PlaceDocumentConverter;
 import com.swygbro.airoad.backend.content.domain.dto.request.PlaceVectorSaveRequest;
+import com.swygbro.airoad.backend.content.domain.entity.Place;
+import com.swygbro.airoad.backend.content.infrastructure.repository.PlaceRepository;
 import com.swygbro.airoad.backend.content.infrastructure.repository.PlaceVectorStoreRepository;
+import com.swygbro.airoad.backend.fixture.content.PlaceFixture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -32,6 +36,8 @@ import static org.mockito.Mockito.times;
 class PlaceVectorCommandServiceTest {
 
   @Mock private PlaceVectorStoreRepository vectorStoreRepository;
+
+  @Mock private PlaceRepository placeRepository;
 
   @Mock private PlaceDocumentConverter placeDocumentConverter;
 
@@ -54,11 +60,32 @@ class PlaceVectorCommandServiceTest {
               .themes(List.of("교통", "관광"))
               .build();
 
-      // given: 메타데이터 생성
-      Map<String, Object> metadata = Map.of("placeId", 1L, "name", "서울역", "address", "서울특별시 용산구");
+      // given: Place 엔티티 생성 (좌표 포함)
+      Place place = PlaceFixture.create();
+      place = PlaceFixture.withId(1L, place);
+      given(placeRepository.findById(1L)).willReturn(Optional.of(place));
+
+      // given: 메타데이터 생성 (fixture의 좌표 사용)
+      Map<String, Object> metadata =
+          Map.of(
+              "placeId",
+              1L,
+              "name",
+              "서울역",
+              "address",
+              "서울특별시 용산구",
+              "latitude",
+              37.5547,
+              "longitude",
+              126.9716);
       given(
-              placeDocumentConverter.buildMetadataFromEvent(
-                  request.placeId(), request.name(), request.address(), request.themes()))
+              placeDocumentConverter.buildMetadata(
+                  eq(1L),
+                  eq("서울역"),
+                  eq("서울특별시 용산구"),
+                  eq(List.of("교통", "관광")),
+                  any(Double.class),
+                  any(Double.class)))
           .willReturn(metadata);
 
       // when: 벡터 저장 요청
@@ -74,7 +101,10 @@ class PlaceVectorCommandServiceTest {
       // then: Document 내용 검증
       Document savedDocument = documentCaptor.getValue();
       assertThat(savedDocument.getText()).isEqualTo(request.content());
-      assertThat(savedDocument.getMetadata()).containsEntry("placeId", 1L);
+      assertThat(savedDocument.getMetadata())
+          .containsEntry("placeId", 1L)
+          .containsEntry("latitude", 37.5547)
+          .containsEntry("longitude", 126.9716);
     }
 
     @Test
@@ -90,20 +120,32 @@ class PlaceVectorCommandServiceTest {
               .themes(List.of("쇼핑"))
               .build();
 
+      // given: Place 엔티티 생성 (좌표 포함)
+      Place place = PlaceFixture.createGangnam();
+      place = PlaceFixture.withId(2L, place);
+      given(placeRepository.findById(2L)).willReturn(Optional.of(place));
+
       // given: 메타데이터 생성
-      Map<String, Object> metadata = Map.of("placeId", 2L);
+      Map<String, Object> metadata =
+          Map.of("placeId", 2L, "latitude", 37.4979, "longitude", 127.0276);
       given(
-              placeDocumentConverter.buildMetadataFromEvent(
-                  eq(2L), eq("강남역"), eq("서울특별시 강남구"), eq(List.of("쇼핑"))))
+              placeDocumentConverter.buildMetadata(
+                  eq(2L),
+                  eq("강남역"),
+                  eq("서울특별시 강남구"),
+                  eq(List.of("쇼핑")),
+                  any(Double.class),
+                  any(Double.class)))
           .willReturn(metadata);
 
       // when: 벡터 저장 요청
       placeVectorCommandService.savePlaceVector(request);
 
-      // then: Converter가 올바른 인자로 호출됨
+      // then: Converter가 좌표 정보와 함께 호출됨
       then(placeDocumentConverter)
           .should(times(1))
-          .buildMetadataFromEvent(2L, "강남역", "서울특별시 강남구", List.of("쇼핑"));
+          .buildMetadata(
+              eq(2L), eq("강남역"), eq("서울특별시 강남구"), eq(List.of("쇼핑")), eq(37.4979), eq(127.0276));
     }
 
     @Test
@@ -119,9 +161,15 @@ class PlaceVectorCommandServiceTest {
               .themes(List.of("교통"))
               .build();
 
+      // given: Place 엔티티 생성 (좌표 포함)
+      Place place = PlaceFixture.createJejuAirport();
+      place = PlaceFixture.withId(3L, place);
+      given(placeRepository.findById(3L)).willReturn(Optional.of(place));
+
       // given: 메타데이터 생성
-      Map<String, Object> metadata = Map.of("placeId", 3L);
-      given(placeDocumentConverter.buildMetadataFromEvent(any(), any(), any(), any()))
+      Map<String, Object> metadata =
+          Map.of("placeId", 3L, "latitude", 33.5111, "longitude", 126.4930);
+      given(placeDocumentConverter.buildMetadata(any(), any(), any(), any(), any(), any()))
           .willReturn(metadata);
 
       // given: Repository 저장 실패

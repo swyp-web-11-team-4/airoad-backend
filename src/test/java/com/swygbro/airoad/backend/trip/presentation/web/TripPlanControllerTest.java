@@ -102,7 +102,9 @@ class TripPlanControllerTest {
     Member testMember =
         Member.builder()
             .email(TEST_EMAIL)
+            .emailHash(hashSHA256(TEST_EMAIL))
             .name("테스트 사용자")
+            .nameHash(hashSHA256("테스트 사용자"))
             .imageUrl("https://example.com/profile.jpg")
             .provider(ProviderType.GOOGLE)
             .role(MemberRole.MEMBER)
@@ -713,6 +715,24 @@ class TripPlanControllerTest {
           .andExpect(jsonPath("$.data[2].dayNumber").value(3));
 
       verify(dailyPlanQueryUseCase).getDailyPlanListByTripPlanId(eq(tripPlanId), anyLong());
+    }
+  }
+
+  private String hashSHA256(String input) {
+    try {
+      java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+      byte[] hashBytes = digest.digest(input.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+      StringBuilder hexString = new StringBuilder();
+      for (byte b : hashBytes) {
+        String hex = Integer.toHexString(0xff & b);
+        if (hex.length() == 1) {
+          hexString.append('0');
+        }
+        hexString.append(hex);
+      }
+      return hexString.toString();
+    } catch (java.security.NoSuchAlgorithmException e) {
+      throw new IllegalStateException("SHA-256 알고리즘을 찾을 수 없습니다.", e);
     }
   }
 }

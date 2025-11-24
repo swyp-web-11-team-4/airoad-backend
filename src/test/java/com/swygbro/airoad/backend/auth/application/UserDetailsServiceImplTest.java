@@ -49,7 +49,9 @@ class UserDetailsServiceImplTest {
     testMember =
         Member.builder()
             .email(TEST_EMAIL)
+            .emailHash(TEST_EMAIL_HASH)
             .name("Test User")
+            .nameHash("hash_test_user")
             .imageUrl("https://example.com/image.jpg")
             .provider(ProviderType.GOOGLE)
             .role(MemberRole.MEMBER)
@@ -101,7 +103,9 @@ class UserDetailsServiceImplTest {
       Member adminMember =
           Member.builder()
               .email(ADMIN_EMAIL)
+              .emailHash(ADMIN_EMAIL_HASH)
               .name("Admin User")
+              .nameHash("hash_admin_user")
               .imageUrl("https://example.com/admin.jpg")
               .provider(ProviderType.GOOGLE)
               .role(MemberRole.ADMIN)

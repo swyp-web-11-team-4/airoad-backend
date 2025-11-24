@@ -1,7 +1,8 @@
 package com.swygbro.airoad.backend.common.infrastructure.encryption;
 
 import jakarta.persistence.AttributeConverter;
-import jakarta.persistence.Converter;
+
+import org.springframework.stereotype.Component;
 
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.DirectDecrypter;
@@ -12,10 +13,15 @@ import com.swygbro.airoad.backend.common.exception.EncryptionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/** 문자열 필드 암호화를 위한 JPA AttributeConverter 이메일, provider, 토큰 등 모든 문자열 데이터 암호화에 사용합니다. */
-@Converter
+/**
+ * 문자열 필드 암호화를 위한 JPA AttributeConverter
+ *
+ * <p>이메일, provider, 토큰 등 모든 문자열 데이터 암호화에 사용합니다. Spring Bean으로 관리되며 Hibernate의 BeanContainer를 통해
+ * 주입됩니다.
+ */
 @Slf4j
 @RequiredArgsConstructor
+@Component
 public class StringEncryptor implements AttributeConverter<String, String> {
   private final DirectEncrypter encrypter;
   private final DirectDecrypter decrypter;

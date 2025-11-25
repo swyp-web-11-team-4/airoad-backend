@@ -1,3 +1,10 @@
+# [0.34.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.33.0...v0.34.0) (2025-11-25)
+
+
+### Features
+
+* 임베딩 메타데이터 좌표 및 장소 테마 분류 추가 ([#92](https://github.com/swyp-web-11-team-4/airoad-backend/issues/92)) ([53888ce](https://github.com/swyp-web-11-team-4/airoad-backend/commit/53888ce57158eaabfa0ec7c27473694d9418795a))
+
 # [0.33.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.32.1...v0.33.0) (2025-11-25)
 
 

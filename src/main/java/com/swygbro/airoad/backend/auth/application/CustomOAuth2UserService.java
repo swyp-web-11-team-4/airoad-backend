@@ -10,6 +10,7 @@ import org.springframework.util.StringUtils;
 import com.swygbro.airoad.backend.auth.domain.dto.UserPrincipal;
 import com.swygbro.airoad.backend.auth.domain.dto.oauth2.OAuth2UserInfo;
 import com.swygbro.airoad.backend.auth.domain.dto.oauth2.OAuth2UserInfoFactory;
+import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
 import com.swygbro.airoad.backend.member.domain.entity.Member;
 import com.swygbro.airoad.backend.member.domain.entity.MemberRole;
 import com.swygbro.airoad.backend.member.domain.entity.ProviderType;
@@ -24,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
   private final MemberRepository memberRepository;
+  private final SHA256Hasher sha256Hasher;
 
   @Override
   public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -51,7 +53,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     var member =
         memberRepository
-            .findByEmail(oAuth2UserInfo.getEmail())
+            .findByEmailHash(sha256Hasher.hash(oAuth2UserInfo.getEmail()))
             .orElseGet(() -> createNewMember(oAuth2UserInfo, providerType));
 
     return new UserPrincipal(member);
@@ -61,7 +63,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     Member newMember =
         Member.builder()
             .email(oAuth2UserInfo.getEmail())
+            .emailHash(sha256Hasher.hash(oAuth2UserInfo.getEmail()))
             .name(oAuth2UserInfo.getName())
+            .nameHash(sha256Hasher.hash(oAuth2UserInfo.getName()))
             .imageUrl(oAuth2UserInfo.getImageUrl())
             .provider(providerType)
             .role(MemberRole.MEMBER)

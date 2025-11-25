@@ -8,9 +8,11 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.test.context.ActiveProfiles;
 
+import com.swygbro.airoad.backend.common.config.EncryptionConfig;
 import com.swygbro.airoad.backend.content.domain.entity.Place;
 import com.swygbro.airoad.backend.content.infrastructure.repository.PlaceRepository;
 import com.swygbro.airoad.backend.fixture.content.PlaceFixture;
@@ -33,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 @ActiveProfiles("test")
 @EnableJpaAuditing
+@Import(EncryptionConfig.class)
 class DailyPlanRepositoryTest {
 
   @Autowired private DailyPlanRepository dailyPlanRepository;

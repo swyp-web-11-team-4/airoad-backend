@@ -53,6 +53,9 @@ spring:
     naver:
       api-key: test-naver-api-key
 
+encryption:
+  secret-key: test-encryption-secret-key-for-testing-purposes-only-min-32-chars
+
 cors:
   allowed-origins: http://localhost:3000
 tour-api:

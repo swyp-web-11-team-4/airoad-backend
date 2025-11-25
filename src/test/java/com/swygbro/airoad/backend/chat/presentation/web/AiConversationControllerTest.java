@@ -24,12 +24,13 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import com.swygbro.airoad.backend.auth.application.JwtTokenProvider;
 import com.swygbro.airoad.backend.auth.application.UserDetailsServiceImpl;
 import com.swygbro.airoad.backend.auth.domain.dto.UserPrincipal;
-import com.swygbro.airoad.backend.auth.infrastructure.RefreshTokenRepository;
+import com.swygbro.airoad.backend.auth.infrastructure.RefreshTokenStore;
 import com.swygbro.airoad.backend.auth.presentation.web.OAuth2AuthenticationSuccessHandler;
 import com.swygbro.airoad.backend.chat.application.AiMessageService;
 import com.swygbro.airoad.backend.chat.domain.dto.response.ChatMessageResponse;
 import com.swygbro.airoad.backend.chat.domain.dto.response.MessageContentType;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
+import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
 
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -74,8 +75,13 @@ class AiConversationControllerTest {
     }
 
     @Bean
-    public RefreshTokenRepository refreshTokenRepository() {
-      return mock(RefreshTokenRepository.class);
+    public RefreshTokenStore refreshTokenStore() {
+      return mock(RefreshTokenStore.class);
+    }
+
+    @Bean
+    public SHA256Hasher sha256Hasher() {
+      return mock(SHA256Hasher.class);
     }
   }
 

@@ -25,6 +25,7 @@ import com.swygbro.airoad.backend.chat.infrastructure.repository.AiConversationR
 import com.swygbro.airoad.backend.chat.infrastructure.repository.ConversationIdProjection;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
+import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
 import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
 import com.swygbro.airoad.backend.fixture.chat.AiConversationFixture;
 import com.swygbro.airoad.backend.fixture.member.MemberFixture;
@@ -64,8 +65,14 @@ class TripPlanServiceTest {
   @Mock private AiConversationRepository aiConversationRepository;
   @Mock private AiConversationCommandUseCase aiConversationCommandUseCase;
   @Mock private ApplicationEventPublisher eventPublisher;
+  @Mock private SHA256Hasher sha256Hasher;
 
   @InjectMocks private TripPlanService tripPlanService;
+
+  private static final String TEST_EMAIL = "test@example.com";
+  private static final String TEST_EMAIL_HASH = "hash_test@example.com";
+  private static final String NONEXISTENT_EMAIL = "nonexistent@example.com";
+  private static final String NONEXISTENT_EMAIL_HASH = "hash_nonexistent@example.com";
 
   @Nested
   @DisplayName("사용자가 자신의 여행 일정 목록을 조회하면")
@@ -294,8 +301,7 @@ class TripPlanServiceTest {
     @DisplayName("given 유효한 사용자와 요청 when 여행 계획 세션 생성 then 채팅방과 여행 계획이 생성되고 ID를 반환한다")
     void createTripPlanSessionSuccess() {
       // given
-      String username = "test@example.com";
-      Member member = MemberFixture.createWithEmail(username);
+      Member member = MemberFixture.createWithEmail(TEST_EMAIL);
       LocalDate startDate = LocalDate.of(2025, 12, 1);
       Integer duration = 3;
       List<PlaceThemeType> themes = List.of(PlaceThemeType.HEALING, PlaceThemeType.RESTAURANT);
@@ -313,12 +319,13 @@ class TripPlanServiceTest {
       AiConversation savedConversation =
           AiConversationFixture.createWithMemberAndTripPlan(member, savedTripPlan);
 
-      given(memberRepository.findByEmail(username)).willReturn(Optional.of(member));
+      given(sha256Hasher.hash(TEST_EMAIL)).willReturn(TEST_EMAIL_HASH);
+      given(memberRepository.findByEmailHash(TEST_EMAIL_HASH)).willReturn(Optional.of(member));
       given(tripPlanRepository.save(any(TripPlan.class))).willReturn(savedTripPlan);
       given(aiConversationRepository.save(any(AiConversation.class))).willReturn(savedConversation);
 
       // when
-      ChannelIdResponse response = tripPlanService.createTripPlanSession(username, request);
+      ChannelIdResponse response = tripPlanService.createTripPlanSession(TEST_EMAIL, request);
 
       // then
       assertThat(response).isNotNull();
@@ -353,7 +360,6 @@ class TripPlanServiceTest {
     @DisplayName("given 존재하지 않는 사용자 when 여행 계획 세션 생성 then MEMBER_NOT_FOUND 예외가 발생한다")
     void createTripPlanSessionWithNonExistentMember() {
       // given
-      String username = "nonexistent@example.com";
       TripPlanCreateRequest request =
           TripPlanCreateRequest.builder()
               .themes(List.of(PlaceThemeType.HEALING))
@@ -363,10 +369,11 @@ class TripPlanServiceTest {
               .peopleCount(2)
               .build();
 
-      given(memberRepository.findByEmail(username)).willReturn(Optional.empty());
+      given(sha256Hasher.hash(NONEXISTENT_EMAIL)).willReturn(NONEXISTENT_EMAIL_HASH);
+      given(memberRepository.findByEmailHash(NONEXISTENT_EMAIL_HASH)).willReturn(Optional.empty());
 
       // when & then
-      assertThatThrownBy(() -> tripPlanService.createTripPlanSession(username, request))
+      assertThatThrownBy(() -> tripPlanService.createTripPlanSession(NONEXISTENT_EMAIL, request))
           .isInstanceOf(BusinessException.class)
           .hasMessageContaining(MemberErrorCode.MEMBER_NOT_FOUND.getDefaultMessage());
 
@@ -378,8 +385,7 @@ class TripPlanServiceTest {
     @DisplayName("given 여러 테마 when 여행 계획 세션 생성 then 모든 테마가 추가된다")
     void createTripPlanSessionWithMultipleThemes() {
       // given
-      String username = "test@example.com";
-      Member member = MemberFixture.createWithEmail(username);
+      Member member = MemberFixture.createWithEmail(TEST_EMAIL);
       List<PlaceThemeType> themes =
           List.of(
               PlaceThemeType.HEALING,
@@ -399,12 +405,13 @@ class TripPlanServiceTest {
       AiConversation savedConversation =
           AiConversationFixture.createWithMemberAndTripPlan(member, savedTripPlan);
 
-      given(memberRepository.findByEmail(username)).willReturn(Optional.of(member));
+      given(sha256Hasher.hash(TEST_EMAIL)).willReturn(TEST_EMAIL_HASH);
+      given(memberRepository.findByEmailHash(TEST_EMAIL_HASH)).willReturn(Optional.of(member));
       given(tripPlanRepository.save(any(TripPlan.class))).willReturn(savedTripPlan);
       given(aiConversationRepository.save(any(AiConversation.class))).willReturn(savedConversation);
 
       // when
-      tripPlanService.createTripPlanSession(username, request);
+      tripPlanService.createTripPlanSession(TEST_EMAIL, request);
 
       // then
       ArgumentCaptor<TripPlan> tripPlanCaptor = ArgumentCaptor.forClass(TripPlan.class);
@@ -418,8 +425,7 @@ class TripPlanServiceTest {
     @DisplayName("given 1일 여행 when 여행 계획 세션 생성 then 시작일과 종료일이 같다")
     void createTripPlanSessionWithOneDayTrip() {
       // given
-      String username = "test@example.com";
-      Member member = MemberFixture.createWithEmail(username);
+      Member member = MemberFixture.createWithEmail(TEST_EMAIL);
       LocalDate startDate = LocalDate.of(2025, 12, 1);
 
       TripPlanCreateRequest request =
@@ -435,12 +441,13 @@ class TripPlanServiceTest {
       AiConversation savedConversation =
           AiConversationFixture.createWithMemberAndTripPlan(member, savedTripPlan);
 
-      given(memberRepository.findByEmail(username)).willReturn(Optional.of(member));
+      given(sha256Hasher.hash(TEST_EMAIL)).willReturn(TEST_EMAIL_HASH);
+      given(memberRepository.findByEmailHash(TEST_EMAIL_HASH)).willReturn(Optional.of(member));
       given(tripPlanRepository.save(any(TripPlan.class))).willReturn(savedTripPlan);
       given(aiConversationRepository.save(any(AiConversation.class))).willReturn(savedConversation);
 
       // when
-      tripPlanService.createTripPlanSession(username, request);
+      tripPlanService.createTripPlanSession(TEST_EMAIL, request);
 
       // then
       ArgumentCaptor<TripPlan> tripPlanCaptor = ArgumentCaptor.forClass(TripPlan.class);
@@ -455,8 +462,7 @@ class TripPlanServiceTest {
     @DisplayName("given 여행 계획 요청 when 세션 생성 then 제목이 '지역명 X박 Y일 여행' 형식으로 생성된다")
     void createTripPlanSessionWithAutoGeneratedTitle() {
       // given
-      String username = "test@example.com";
-      Member member = MemberFixture.createWithEmail(username);
+      Member member = MemberFixture.createWithEmail(TEST_EMAIL);
 
       TripPlanCreateRequest request =
           TripPlanCreateRequest.builder()
@@ -471,12 +477,13 @@ class TripPlanServiceTest {
       AiConversation savedConversation =
           AiConversationFixture.createWithMemberAndTripPlan(member, savedTripPlan);
 
-      given(memberRepository.findByEmail(username)).willReturn(Optional.of(member));
+      given(sha256Hasher.hash(TEST_EMAIL)).willReturn(TEST_EMAIL_HASH);
+      given(memberRepository.findByEmailHash(TEST_EMAIL_HASH)).willReturn(Optional.of(member));
       given(tripPlanRepository.save(any(TripPlan.class))).willReturn(savedTripPlan);
       given(aiConversationRepository.save(any(AiConversation.class))).willReturn(savedConversation);
 
       // when
-      tripPlanService.createTripPlanSession(username, request);
+      tripPlanService.createTripPlanSession(TEST_EMAIL, request);
 
       // then
       ArgumentCaptor<TripPlan> tripPlanCaptor = ArgumentCaptor.forClass(TripPlan.class);
@@ -487,8 +494,7 @@ class TripPlanServiceTest {
     @DisplayName("given 1박 여행 요청 when 세션 생성 then 제목이 '지역명 1박 2일 여행'으로 생성된다")
     void createTripPlanSessionWithOneDayTripTitle() {
       // given
-      String username = "test@example.com";
-      Member member = MemberFixture.createWithEmail(username);
+      Member member = MemberFixture.createWithEmail(TEST_EMAIL);
 
       TripPlanCreateRequest request =
           TripPlanCreateRequest.builder()
@@ -503,12 +509,13 @@ class TripPlanServiceTest {
       AiConversation savedConversation =
           AiConversationFixture.createWithMemberAndTripPlan(member, savedTripPlan);
 
-      given(memberRepository.findByEmail(username)).willReturn(Optional.of(member));
+      given(sha256Hasher.hash(TEST_EMAIL)).willReturn(TEST_EMAIL_HASH);
+      given(memberRepository.findByEmailHash(TEST_EMAIL_HASH)).willReturn(Optional.of(member));
       given(tripPlanRepository.save(any(TripPlan.class))).willReturn(savedTripPlan);
       given(aiConversationRepository.save(any(AiConversation.class))).willReturn(savedConversation);
 
       // when
-      tripPlanService.createTripPlanSession(username, request);
+      tripPlanService.createTripPlanSession(TEST_EMAIL, request);
 
       // then
       ArgumentCaptor<TripPlan> tripPlanCaptor = ArgumentCaptor.forClass(TripPlan.class);
@@ -519,8 +526,7 @@ class TripPlanServiceTest {
     @DisplayName("given 다양한 지역명 when 세션 생성 then 해당 지역명이 제목에 포함된다")
     void createTripPlanSessionWithVariousRegionNames() {
       // given
-      String username = "test@example.com";
-      Member member = MemberFixture.createWithEmail(username);
+      Member member = MemberFixture.createWithEmail(TEST_EMAIL);
 
       TripPlanCreateRequest request =
           TripPlanCreateRequest.builder()
@@ -535,12 +541,13 @@ class TripPlanServiceTest {
       AiConversation savedConversation =
           AiConversationFixture.createWithMemberAndTripPlan(member, savedTripPlan);
 
-      given(memberRepository.findByEmail(username)).willReturn(Optional.of(member));
+      given(sha256Hasher.hash(TEST_EMAIL)).willReturn(TEST_EMAIL_HASH);
+      given(memberRepository.findByEmailHash(TEST_EMAIL_HASH)).willReturn(Optional.of(member));
       given(tripPlanRepository.save(any(TripPlan.class))).willReturn(savedTripPlan);
       given(aiConversationRepository.save(any(AiConversation.class))).willReturn(savedConversation);
 
       // when
-      tripPlanService.createTripPlanSession(username, request);
+      tripPlanService.createTripPlanSession(TEST_EMAIL, request);
 
       // then
       ArgumentCaptor<TripPlan> tripPlanCaptor = ArgumentCaptor.forClass(TripPlan.class);

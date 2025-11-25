@@ -38,13 +38,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
       HttpServletRequest request, HttpServletResponse response, Authentication authentication)
       throws IOException {
 
-    log.debug("OAuth2 authentication success handler called");
-
     UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
     String email = userPrincipal.getUsername();
-
-    log.debug("OAuth2User attributes: {}", userPrincipal.getAttributes());
-    log.debug("Email from OAuth2User: {}", email);
 
     String baseUrl = redirectUrlResolver.resolveBaseUrl(request, "Success Handler");
 

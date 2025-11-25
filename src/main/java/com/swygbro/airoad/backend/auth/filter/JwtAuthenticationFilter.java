@@ -19,6 +19,7 @@ import com.swygbro.airoad.backend.auth.application.JwtTokenProvider;
 import com.swygbro.airoad.backend.auth.application.UserDetailsServiceImpl;
 import com.swygbro.airoad.backend.auth.infrastructure.RefreshTokenStore;
 import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
+import com.swygbro.airoad.backend.common.infrastructure.logging.SensitiveLogMasker;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String email = jwtTokenProvider.getEmailFromToken(token);
         String emailHash = sha256Hasher.hash(email);
         if (!refreshTokenStore.existsByEmailHash(emailHash)) {
-          log.warn("No active refresh token for user: {}", email); // &&&&
+          log.warn("No active refresh token for user: {}", SensitiveLogMasker.maskEmail(email));
           SecurityContextHolder.clearContext();
           filterChain.doFilter(request, response);
           return;
@@ -65,7 +66,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        log.debug("Set Authentication for user: {}", email);
+        log.debug("Set Authentication for user: {}", SensitiveLogMasker.maskEmail(email));
       }
     } catch (Exception e) {
       SecurityContextHolder.clearContext();

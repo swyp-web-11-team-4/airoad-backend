@@ -25,6 +25,7 @@ import com.swygbro.airoad.backend.common.domain.dto.ErrorResponse;
 import com.swygbro.airoad.backend.common.domain.event.WebSocketErrorEvent;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.common.exception.WebSocketErrorCode;
+import com.swygbro.airoad.backend.common.infrastructure.logging.SensitiveLogMasker;
 
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
@@ -173,7 +174,9 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
 
       accessor.setUser(authentication);
 
-      log.info("[WebSocket] STOMP CONNECT 인증 성공 - username: {}", userDetails.getUsername());
+      log.info(
+          "[WebSocket] STOMP CONNECT 인증 성공 - username: {}",
+          SensitiveLogMasker.maskEmail(userDetails.getUsername()));
 
     } catch (BusinessException e) {
       log.error("[WebSocket] JWT 검증 실패 (BusinessException): {}", e.getMessage());

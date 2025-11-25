@@ -1,3 +1,20 @@
+# [0.33.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.32.1...v0.33.0) (2025-11-25)
+
+
+### Bug Fixes
+
+* StringEncryptor 의존성 주입 방식 개선 및 테스트 코드 수정 ([05c41f2](https://github.com/swyp-web-11-team-4/airoad-backend/commit/05c41f2a792cf4b1812ad8b5e5b1f87ca84e09f1))
+
+
+### Features
+
+* DB 암호화 기능 구현 ([690ae48](https://github.com/swyp-web-11-team-4/airoad-backend/commit/690ae48dfefecd9a9d9df1ea119b2ee4c35cc195))
+* Redis RefreshToken 작업 추적을 위한 상세 로깅 추가 ([7be28f1](https://github.com/swyp-web-11-team-4/airoad-backend/commit/7be28f1dc69e7602dc517155a2e10c807bb6b22d))
+* Redis 기반 RefreshToken 저장소 구현 ([edc0295](https://github.com/swyp-web-11-team-4/airoad-backend/commit/edc029582c6aa73555410f85a6360bcd9a4749a8))
+* Redis 및 암호화 설정 추가 ([c81fa5b](https://github.com/swyp-web-11-team-4/airoad-backend/commit/c81fa5bd0c5178e4ce9d0a452bf07ff1d3038288))
+* RefreshToken 저장소를 PostgreSQL에서 Redis로 마이그레이션 ([972d73c](https://github.com/swyp-web-11-team-4/airoad-backend/commit/972d73c94e893ae711c013a00a15afe435a16892))
+* RefreshToken 저장소를 PostgreSQL에서 Redis로 마이그레이션 ([741b230](https://github.com/swyp-web-11-team-4/airoad-backend/commit/741b230495a9f4e1438c228e61899c708d7d9c8b))
+
 ## [0.32.1](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.32.0...v0.32.1) (2025-11-24)
 
 

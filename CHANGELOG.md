@@ -1,3 +1,10 @@
+## [0.34.1](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.34.0...v0.34.1) (2025-11-25)
+
+
+### Bug Fixes
+
+* 테마 필터 생성 시 잘못된 값을 참조하던 문제 수정 ([#93](https://github.com/swyp-web-11-team-4/airoad-backend/issues/93)) ([ebdbddf](https://github.com/swyp-web-11-team-4/airoad-backend/commit/ebdbddf78e3a878d7aa20d58959f50e60f0c9196))
+
 # [0.34.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.33.0...v0.34.0) (2025-11-25)
 
 

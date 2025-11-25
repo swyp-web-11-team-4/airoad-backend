@@ -6,4 +6,10 @@ import lombok.Builder;
 
 @Builder
 public record PlaceVectorSaveRequest(
-    Long placeId, String name, String address, List<String> themes, String content) {}
+    Long placeId,
+    String name,
+    String address,
+    List<String> themes,
+    String content,
+    Double latitude,
+    Double longitude) {}

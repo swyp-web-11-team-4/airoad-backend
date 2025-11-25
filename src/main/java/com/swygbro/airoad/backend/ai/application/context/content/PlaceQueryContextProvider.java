@@ -38,17 +38,17 @@ public class PlaceQueryContextProvider extends AbstractContextProvider<PlaceQuer
 
     String placeInfo =
         """
-        ## 장소 컨텍스트 (Place Context)
+            ## 장소 컨텍스트 (Place Context)
 
-        다음의 장소 정보를 활용하여 응답하세요.
+            다음의 장소 정보를 활용하여 응답하세요.
 
-        - 이름: %s
-        - 주소: %s
-        - 설명: %s
-        - 운영 시간 정보: %s
-        - 휴무일 정보: %s
-        - 테마: %s
-        """
+            - 이름: %s
+            - 주소: %s
+            - 설명: %s
+            - 운영 시간 정보: %s
+            - 휴무일 정보: %s
+            - 테마: %s
+            """
             .formatted(
                 context.name(),
                 context.address(),
@@ -56,7 +56,15 @@ public class PlaceQueryContextProvider extends AbstractContextProvider<PlaceQuer
                 context.operatingHours(),
                 context.holidayInfo(),
                 context.themes().stream()
-                    .map(p -> PlaceThemeType.valueOf(p).getDescription())
+                    .map(
+                        p -> {
+                          try {
+                            return PlaceThemeType.valueOf(p).getDescription();
+                          } catch (IllegalArgumentException e) {
+                            log.warn("Invalid theme type: {}", p);
+                            return p;
+                          }
+                        })
                     .toList());
 
     return PromptMetadataAdvisor.systemMetadata(placeInfo);

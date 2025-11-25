@@ -12,4 +12,6 @@ public record AiPlaceSummaryRequest(
     String description,
     String operatingHours,
     String holidayInfo,
-    List<String> themes) {}
+    List<String> themes,
+    Double latitude,
+    Double longitude) {}

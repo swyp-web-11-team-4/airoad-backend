@@ -32,6 +32,8 @@ public class PlaceSummaryGenerationListener {
             .operatingHours(event.operatingHours())
             .holidayInfo(event.holidayInfo())
             .themes(event.themes())
+            .latitude(event.latitude())
+            .longitude(event.longitude())
             .build();
 
     aiUseCase.agentCall(AgentType.PLACE_SUMMARY_AGENT, request);

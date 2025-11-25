@@ -31,8 +31,13 @@ public class PlaceVectorCommandService implements PlaceVectorCommandUseCase {
       log.debug("기존 임베딩 삭제 완료 - placeId: {}", request.placeId());
 
       Map<String, Object> metadata =
-          placeDocumentConverter.buildMetadataFromEvent(
-              request.placeId(), request.name(), request.address(), request.themes());
+          placeDocumentConverter.buildMetadata(
+              request.placeId(),
+              request.name(),
+              request.address(),
+              request.themes(),
+              request.latitude(),
+              request.longitude());
 
       Document document = new Document(request.content(), metadata);
       vectorStoreRepository.save(document);

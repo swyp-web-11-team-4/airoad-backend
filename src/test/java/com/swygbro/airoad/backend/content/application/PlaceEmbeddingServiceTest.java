@@ -135,6 +135,8 @@ class PlaceEmbeddingServiceTest {
       assertThat(event.placeId()).isEqualTo(placeId);
       assertThat(event.name()).isEqualTo(place.getLocation().getName());
       assertThat(event.address()).isEqualTo(place.getLocation().getAddress());
+      assertThat(event.latitude()).isEqualTo(place.getLocation().getPoint().getY());
+      assertThat(event.longitude()).isEqualTo(place.getLocation().getPoint().getX());
     }
 
     @Test

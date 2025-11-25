@@ -14,8 +14,13 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class PlaceDocumentConverter {
 
-  public Map<String, Object> buildMetadataFromEvent(
-      Long placeId, String name, String address, List<String> themes) {
+  public Map<String, Object> buildMetadata(
+      Long placeId,
+      String name,
+      String address,
+      List<String> themes,
+      Double latitude,
+      Double longitude) {
     Map<String, Object> metadata = new HashMap<>();
 
     metadata.put("placeId", placeId);
@@ -23,6 +28,13 @@ public class PlaceDocumentConverter {
     metadata.put("address", address);
     metadata.put("themes", themes);
     metadata.put("embeddedAt", LocalDateTime.now(ZoneOffset.UTC).toString());
+
+    if (latitude != null) {
+      metadata.put("latitude", latitude);
+    }
+    if (longitude != null) {
+      metadata.put("longitude", longitude);
+    }
 
     String[] addressParts = address.split(" ");
     if (addressParts.length >= 1) {

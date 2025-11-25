@@ -44,7 +44,7 @@ class PlaceVectorCommandServiceTest {
     @Test
     @DisplayName("기존 벡터를 삭제하고 새로운 벡터를 저장한다")
     void givenRequest_whenSave_thenDeleteOldAndSaveNew() {
-      // given: 벡터 저장 요청
+      // given: 벡터 저장 요청 (좌표 포함)
       PlaceVectorSaveRequest request =
           PlaceVectorSaveRequest.builder()
               .placeId(1L)
@@ -52,13 +52,31 @@ class PlaceVectorCommandServiceTest {
               .address("서울특별시 용산구")
               .content("서울특별시 용산구에 위치한 서울역은 서울의 중심 역입니다.")
               .themes(List.of("교통", "관광"))
+              .latitude(37.5547)
+              .longitude(126.9716)
               .build();
 
       // given: 메타데이터 생성
-      Map<String, Object> metadata = Map.of("placeId", 1L, "name", "서울역", "address", "서울특별시 용산구");
+      Map<String, Object> metadata =
+          Map.of(
+              "placeId",
+              1L,
+              "name",
+              "서울역",
+              "address",
+              "서울특별시 용산구",
+              "latitude",
+              37.5547,
+              "longitude",
+              126.9716);
       given(
-              placeDocumentConverter.buildMetadataFromEvent(
-                  request.placeId(), request.name(), request.address(), request.themes()))
+              placeDocumentConverter.buildMetadata(
+                  eq(1L),
+                  eq("서울역"),
+                  eq("서울특별시 용산구"),
+                  eq(List.of("교통", "관광")),
+                  eq(37.5547),
+                  eq(126.9716)))
           .willReturn(metadata);
 
       // when: 벡터 저장 요청
@@ -74,13 +92,16 @@ class PlaceVectorCommandServiceTest {
       // then: Document 내용 검증
       Document savedDocument = documentCaptor.getValue();
       assertThat(savedDocument.getText()).isEqualTo(request.content());
-      assertThat(savedDocument.getMetadata()).containsEntry("placeId", 1L);
+      assertThat(savedDocument.getMetadata())
+          .containsEntry("placeId", 1L)
+          .containsEntry("latitude", 37.5547)
+          .containsEntry("longitude", 126.9716);
     }
 
     @Test
     @DisplayName("메타데이터가 정상적으로 생성되어 저장된다")
     void givenRequest_whenSave_thenMetadataIsCorrectlyBuilt() {
-      // given: 벡터 저장 요청
+      // given: 벡터 저장 요청 (좌표 포함)
       PlaceVectorSaveRequest request =
           PlaceVectorSaveRequest.builder()
               .placeId(2L)
@@ -88,28 +109,32 @@ class PlaceVectorCommandServiceTest {
               .address("서울특별시 강남구")
               .content("강남역 설명")
               .themes(List.of("쇼핑"))
+              .latitude(37.4979)
+              .longitude(127.0276)
               .build();
 
       // given: 메타데이터 생성
-      Map<String, Object> metadata = Map.of("placeId", 2L);
+      Map<String, Object> metadata =
+          Map.of("placeId", 2L, "latitude", 37.4979, "longitude", 127.0276);
       given(
-              placeDocumentConverter.buildMetadataFromEvent(
-                  eq(2L), eq("강남역"), eq("서울특별시 강남구"), eq(List.of("쇼핑"))))
+              placeDocumentConverter.buildMetadata(
+                  eq(2L), eq("강남역"), eq("서울특별시 강남구"), eq(List.of("쇼핑")), eq(37.4979), eq(127.0276)))
           .willReturn(metadata);
 
       // when: 벡터 저장 요청
       placeVectorCommandService.savePlaceVector(request);
 
-      // then: Converter가 올바른 인자로 호출됨
+      // then: Converter가 좌표 정보와 함께 호출됨
       then(placeDocumentConverter)
           .should(times(1))
-          .buildMetadataFromEvent(2L, "강남역", "서울특별시 강남구", List.of("쇼핑"));
+          .buildMetadata(
+              eq(2L), eq("강남역"), eq("서울특별시 강남구"), eq(List.of("쇼핑")), eq(37.4979), eq(127.0276));
     }
 
     @Test
     @DisplayName("VectorStore 저장 실패 시 예외를 발생시킨다")
     void givenRepositoryFailure_whenSave_thenThrowException() {
-      // given: 벡터 저장 요청
+      // given: 벡터 저장 요청 (좌표 포함)
       PlaceVectorSaveRequest request =
           PlaceVectorSaveRequest.builder()
               .placeId(3L)
@@ -117,11 +142,14 @@ class PlaceVectorCommandServiceTest {
               .address("제주특별자치도")
               .content("제주공항 설명")
               .themes(List.of("교통"))
+              .latitude(33.5111)
+              .longitude(126.4930)
               .build();
 
       // given: 메타데이터 생성
-      Map<String, Object> metadata = Map.of("placeId", 3L);
-      given(placeDocumentConverter.buildMetadataFromEvent(any(), any(), any(), any()))
+      Map<String, Object> metadata =
+          Map.of("placeId", 3L, "latitude", 33.5111, "longitude", 126.4930);
+      given(placeDocumentConverter.buildMetadata(any(), any(), any(), any(), any(), any()))
           .willReturn(metadata);
 
       // given: Repository 저장 실패

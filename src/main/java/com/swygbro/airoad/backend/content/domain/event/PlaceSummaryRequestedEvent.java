@@ -14,6 +14,8 @@ import lombok.Builder;
  * @param address 주소 (지역 정보 추출용)
  * @param description 장소 설명
  * @param themes 테마 목록
+ * @param latitude 위도 (장소의 지리적 좌표)
+ * @param longitude 경도 (장소의 지리적 좌표)
  */
 @Builder
 public record PlaceSummaryRequestedEvent(
@@ -23,4 +25,6 @@ public record PlaceSummaryRequestedEvent(
     String description,
     String operatingHours,
     String holidayInfo,
-    List<String> themes) {}
+    List<String> themes,
+    Double latitude,
+    Double longitude) {}

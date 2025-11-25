@@ -30,11 +30,11 @@ public class PlaceEmbeddingService implements PlaceEmbeddingUseCase {
   private static final int BATCH_SIZE = 1;
 
   /**
-   * API Rate Limiter (초당 최대 1개로 제한)
+   * API Rate Limiter
    *
-   * <p>Naver ClovaX API의 Rate Limit (분당 60회)를 초과하지 않도록 초당 최대 1개의 요청만 허용합니다.
+   * <p>Naver ClovaX API의 Rate Limit를 초과하지 않도록 요청 횟수를 제한합니다.
    */
-  private final RateLimiter rateLimiter = RateLimiter.create(55.0 / 60.0);
+  private final RateLimiter rateLimiter = RateLimiter.create(30.0 / 60.0);
 
   private final PlaceRepository placeRepository;
   private final ApplicationEventPublisher eventPublisher;
@@ -153,7 +153,10 @@ public class PlaceEmbeddingService implements PlaceEmbeddingUseCase {
   private void publishPlaceSummaryEvent(Place place) {
     rateLimiter.acquire();
 
-    List<String> themes = place.getThemes().stream().map(PlaceThemeType::getDescription).toList();
+    List<String> themes = place.getThemes().stream().map(PlaceThemeType::name).toList();
+
+    Double latitude = place.getLocation().getPoint().getY();
+    Double longitude = place.getLocation().getPoint().getX();
 
     PlaceSummaryRequestedEvent event =
         PlaceSummaryRequestedEvent.builder()
@@ -164,6 +167,8 @@ public class PlaceEmbeddingService implements PlaceEmbeddingUseCase {
             .operatingHours(place.getOperatingHours())
             .holidayInfo(place.getHolidayInfo())
             .themes(themes)
+            .latitude(latitude)
+            .longitude(longitude)
             .build();
 
     eventPublisher.publishEvent(event);

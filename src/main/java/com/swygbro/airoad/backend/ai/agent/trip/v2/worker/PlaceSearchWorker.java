@@ -111,7 +111,7 @@ public class PlaceSearchWorker implements Worker<TripPlanContext, TripPlanTaskTy
   }
 
   private Filter.Expression createThemeFilter(List<PlaceThemeType> userThemes) {
-    List<String> allowedThemes = userThemes.stream().map(PlaceThemeType::getDescription).toList();
+    List<String> allowedThemes = userThemes.stream().map(PlaceThemeType::name).toList();
 
     String filterExpressionStr =
         allowedThemes.stream()

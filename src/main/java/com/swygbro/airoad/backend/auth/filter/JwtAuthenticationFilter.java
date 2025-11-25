@@ -17,7 +17,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.swygbro.airoad.backend.auth.application.JwtTokenProvider;
 import com.swygbro.airoad.backend.auth.application.UserDetailsServiceImpl;
-import com.swygbro.airoad.backend.auth.infrastructure.RefreshTokenRepository;
+import com.swygbro.airoad.backend.auth.infrastructure.RefreshTokenStore;
+import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,8 +33,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   private static final String BEARER_PREFIX = "Bearer ";
 
   private final JwtTokenProvider jwtTokenProvider;
-  private final RefreshTokenRepository refreshTokenRepository;
+  private final RefreshTokenStore refreshTokenStore;
   private final UserDetailsServiceImpl userDetailsService;
+  private final SHA256Hasher sha256Hasher;
 
   @Override
   protected void doFilterInternal(
@@ -45,9 +47,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
       if (token != null && jwtTokenProvider.validateToken(token)) {
         String email = jwtTokenProvider.getEmailFromToken(token);
-
-        if (!refreshTokenRepository.existsByEmail(email)) {
-          log.warn("No active refresh token for user: {}", email);
+        String emailHash = sha256Hasher.hash(email);
+        if (!refreshTokenStore.existsByEmailHash(emailHash)) {
+          log.warn("No active refresh token for user: {}", email); // &&&&
           SecurityContextHolder.clearContext();
           filterChain.doFilter(request, response);
           return;

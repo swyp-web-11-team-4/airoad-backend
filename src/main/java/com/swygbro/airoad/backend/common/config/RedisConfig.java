@@ -5,6 +5,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -14,6 +15,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 /**
  * Redis 캐싱 및 Pub/Sub 설정
@@ -51,6 +55,7 @@ public class RedisConfig {
   }
 
   @Bean
+  @Primary
   public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
     RedisTemplate<String, Object> template = new RedisTemplate<>();
     template.setConnectionFactory(connectionFactory);
@@ -67,6 +72,18 @@ public class RedisConfig {
     template.afterPropertiesSet();
 
     return template;
+  }
+
+  /**
+   * JSON 직렬화/역직렬화용 ObjectMapper
+   *
+   * <p>RefreshToken 등 Redis에 저장되는 객체의 JSON 변환에 사용
+   */
+  @Bean
+  public ObjectMapper objectMapper() {
+    return new ObjectMapper()
+        .findAndRegisterModules()
+        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
   }
 
   @Bean

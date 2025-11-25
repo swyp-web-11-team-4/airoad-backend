@@ -11,7 +11,9 @@ public class MemberFixture {
   public static Member create() {
     return Member.builder()
         .email("test@example.com")
+        .emailHash("hash_test@example.com")
         .name("테스트 사용자")
+        .nameHash("hash_테스트 사용자")
         .imageUrl("https://example.com/profile.jpg")
         .provider(ProviderType.GOOGLE)
         .role(MemberRole.MEMBER)
@@ -21,7 +23,9 @@ public class MemberFixture {
   public static Member createAdmin() {
     return Member.builder()
         .email("admin@example.com")
+        .emailHash("hash_admin@example.com")
         .name("관리자")
+        .nameHash("hash_관리자")
         .imageUrl("https://example.com/admin.jpg")
         .provider(ProviderType.GOOGLE)
         .role(MemberRole.ADMIN)
@@ -29,9 +33,12 @@ public class MemberFixture {
   }
 
   public static Member createWithEmail(String email) {
+    String name = "User_" + email.split("@")[0];
     return Member.builder()
         .email(email)
-        .name("테스트 사용자")
+        .emailHash("hash_" + email)
+        .name(name)
+        .nameHash("hash_" + name)
         .imageUrl("https://example.com/profile.jpg")
         .provider(ProviderType.GOOGLE)
         .role(MemberRole.MEMBER)
@@ -41,7 +48,9 @@ public class MemberFixture {
   public static Member.MemberBuilder builder() {
     return Member.builder()
         .email("test@example.com")
+        .emailHash("hash_test@example.com")
         .name("테스트 사용자")
+        .nameHash("hash_테스트 사용자")
         .imageUrl("https://example.com/profile.jpg")
         .provider(ProviderType.GOOGLE)
         .role(MemberRole.MEMBER);

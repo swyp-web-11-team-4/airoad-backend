@@ -12,5 +12,10 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
   Optional<Member> findByEmailAndProvider(
       @Param("email") String email, @Param("provider") ProviderType provider);
 
+  Optional<Member> findByEmailHashAndProvider(
+      @Param("emailHash") String emailHash, @Param("provider") ProviderType provider);
+
   Optional<Member> findByEmail(String email);
+
+  Optional<Member> findByEmailHash(String emailHash);
 }

@@ -21,6 +21,7 @@ import com.swygbro.airoad.backend.chat.infrastructure.repository.AiConversationR
 import com.swygbro.airoad.backend.chat.infrastructure.repository.ConversationIdProjection;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
+import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
 import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
 import com.swygbro.airoad.backend.member.domain.entity.Member;
 import com.swygbro.airoad.backend.member.exception.MemberErrorCode;
@@ -50,6 +51,8 @@ public class TripPlanService implements TripPlanUseCase {
 
   // 회원 관련 레포지토리
   private final MemberRepository memberRepository;
+
+  private final SHA256Hasher sha256Hasher;
 
   // 채팅 관련 레포지토리 및 유스케이스
   private final AiConversationRepository aiConversationRepository;
@@ -167,7 +170,7 @@ public class TripPlanService implements TripPlanUseCase {
     // 사용자 조회
     Member member =
         memberRepository
-            .findByEmail(username)
+            .findByEmailHash(sha256Hasher.hash(username))
             .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
 
     // 여행 종료일 계산

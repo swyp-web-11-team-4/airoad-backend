@@ -99,6 +99,11 @@ public class JwtTokenProvider {
     return accessTokenValidityInMilliseconds / 1000;
   }
 
+  /** Refresh Token 유효 시간 (초 단위) */
+  public long getRefreshTokenValidityInSeconds() {
+    return refreshTokenValidityInMilliseconds / 1000;
+  }
+
   /** Refresh Token 만료 시간 계산 */
   public LocalDateTime getRefreshTokenExpiresAt() {
     return LocalDateTime.now().plusSeconds(refreshTokenValidityInMilliseconds / 1000);

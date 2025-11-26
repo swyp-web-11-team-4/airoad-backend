@@ -21,7 +21,8 @@ import lombok.Builder;
  * @param duration 여행 기간 (일)
  * @param region 선호 지역 (예: "제주", "서울", "부산")
  * @param peopleCount 여행 인원 수
- * @param transportation 선호 이동 수단 `` * @param userMessage 사용자 요청사항
+ * @param transportation 선호 이동 수단
+ * @param userMessage 사용자 요청사항
  */
 @Builder
 public record AiDailyPlanRequest(

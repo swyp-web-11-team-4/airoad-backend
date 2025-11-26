@@ -8,8 +8,8 @@ import com.swygbro.airoad.backend.ai.agent.trip.dto.response.AiDailyPlanResponse
 import com.swygbro.airoad.backend.ai.agent.trip.dto.response.AiDailyPlanResponse.AiScheduledPlace;
 import com.swygbro.airoad.backend.ai.agent.trip.v3.context.ExecutionContext;
 import com.swygbro.airoad.backend.ai.agent.trip.v3.context.TripPlanContextKey;
-import com.swygbro.airoad.backend.ai.agent.trip.v3.dto.ScheduleCreationResponse;
 import com.swygbro.airoad.backend.ai.agent.trip.v3.dto.DistanceCalculationResponse;
+import com.swygbro.airoad.backend.ai.agent.trip.v3.dto.ScheduleCreationResponse;
 import com.swygbro.airoad.backend.ai.agent.trip.v3.pipeline.PipelineStep;
 import com.swygbro.airoad.backend.trip.domain.entity.Transportation;
 

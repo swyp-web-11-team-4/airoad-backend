@@ -10,9 +10,9 @@ import org.springframework.stereotype.Component;
 
 import com.swygbro.airoad.backend.ai.agent.trip.v3.context.ExecutionContext;
 import com.swygbro.airoad.backend.ai.agent.trip.v3.context.TripPlanContextKey;
+import com.swygbro.airoad.backend.ai.agent.trip.v3.dto.DistanceCalculationResponse;
 import com.swygbro.airoad.backend.ai.agent.trip.v3.dto.ScheduleCreationResponse;
 import com.swygbro.airoad.backend.ai.agent.trip.v3.dto.ScheduleCreationResponse.ScheduledPlaceInfo;
-import com.swygbro.airoad.backend.ai.agent.trip.v3.dto.DistanceCalculationResponse;
 import com.swygbro.airoad.backend.ai.agent.trip.v3.pipeline.PipelineStep;
 import com.swygbro.airoad.backend.content.application.DistanceCalculationUseCase;
 import com.swygbro.airoad.backend.content.application.PlaceQueryUseCase;

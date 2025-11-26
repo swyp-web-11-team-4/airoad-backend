@@ -161,7 +161,7 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
     try {
       // JWT 토큰 검증
       if (!jwtTokenProvider.validateToken(token)) {
-        log.error("[WebSocket] JWT 검증 실패 - token: {}", token);
+        log.error("[WebSocket] JWT 검증 실패 - token: {}", SensitiveLogMasker.maskJwt(token));
         throw new BusinessException(WebSocketErrorCode.UNAUTHORIZED_CONNECTION);
       }
 

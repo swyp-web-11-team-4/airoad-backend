@@ -90,6 +90,7 @@ public class DailyPlanCommandService implements DailyPlanCommandUseCase {
                       .visitOrder(visitOrder)
                       .category(scheduledPlaceCreateRequest.category())
                       .travelSegment(travelSegment)
+                      .summary(scheduledPlaceCreateRequest.summary())
                       .build();
 
               dailyPlan.addScheduledPlace(scheduledPlace);

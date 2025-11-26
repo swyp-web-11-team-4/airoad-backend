@@ -110,6 +110,7 @@ public class DistanceCalculationWorker implements Worker<TripPlanContext, TripPl
   private AiScheduledPlace createNewPlace(AiScheduledPlace original, int minutes) {
     return new AiScheduledPlace(
         original.placeId(),
+        original.summary(),
         original.visitOrder(),
         original.category(),
         minutes,

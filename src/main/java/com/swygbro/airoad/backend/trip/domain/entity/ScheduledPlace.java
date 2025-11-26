@@ -36,7 +36,7 @@ public class ScheduledPlace extends BaseEntity {
   private Place place;
 
   /** 일일 계획 내 방문 순서 */
-  @Column(nullable = false, unique = true)
+  @Column(nullable = false)
   private Integer visitOrder;
 
   /** 일정 분류 (아침, 점심, 저녁 등) */
@@ -53,6 +53,9 @@ public class ScheduledPlace extends BaseEntity {
   /** 해당 장소까지의 이동 정보 (이동 시간, 수단) */
   @Embedded private TravelSegment travelSegment;
 
+  /** 장소 요약 */
+  @Column private String summary;
+
   @Builder
   private ScheduledPlace(
       DailyPlan dailyPlan,
@@ -61,7 +64,8 @@ public class ScheduledPlace extends BaseEntity {
       ScheduledCategory category,
       LocalTime startTime,
       LocalTime endTime,
-      TravelSegment travelSegment) {
+      TravelSegment travelSegment,
+      String summary) {
     this.dailyPlan = dailyPlan;
     this.place = place;
     this.visitOrder = visitOrder;
@@ -69,6 +73,7 @@ public class ScheduledPlace extends BaseEntity {
     this.startTime = startTime;
     this.endTime = endTime;
     this.travelSegment = travelSegment;
+    this.summary = summary;
   }
 
   public void update(

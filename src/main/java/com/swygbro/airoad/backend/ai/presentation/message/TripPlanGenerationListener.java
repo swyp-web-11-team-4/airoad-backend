@@ -45,6 +45,7 @@ public class TripPlanGenerationListener {
             .region(event.request().region())
             .peopleCount(event.request().peopleCount())
             .transportation(Transportation.PUBLIC_TRANSIT)
+            .userMessage(event.request().userMessage())
             .build();
 
     aiUseCase.agentCall(AgentType.TRIP_AGENT, request);

@@ -7,7 +7,10 @@ import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.swygbro.airoad.backend.trip.domain.entity.ScheduledCategory;
 import com.swygbro.airoad.backend.trip.domain.entity.Transportation;
 
+import lombok.Builder;
+
 /** AI가 생성한 일별 계획 DTO */
+@Builder
 public record AiDailyPlanResponse(
     @JsonPropertyDescription("1부터 N까지 순차적으로 증가하는 일차 번호") int dayNumber,
     @JsonPropertyDescription("'yyyy-MM-dd' 형식의 날짜") LocalDate date,
@@ -50,8 +53,10 @@ public record AiDailyPlanResponse(
     @JsonPropertyDescription("방문 장소 배열") List<AiScheduledPlace> places) {
 
   /** AI가 생성한 방문 장소 DTO */
+  @Builder
   public record AiScheduledPlace(
       @JsonPropertyDescription("DB에 저장된 장소 식별자 ID, null 값을 가질 수 없음") Long placeId,
+      @JsonPropertyDescription("장소 한 줄 요약") String summary,
       @JsonPropertyDescription("일정 방문 순서 (1부터 시작)") int visitOrder,
       @JsonPropertyDescription("일정 카테고리") ScheduledCategory category,
       @JsonPropertyDescription("다음 장소까지 예상 이동 시간(분)") int travelTime,

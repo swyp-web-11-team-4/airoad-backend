@@ -8,6 +8,7 @@ import com.swygbro.airoad.backend.ai.application.context.dto.TripPlanQueryContex
 import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor;
 import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor.MetadataEntry;
 import com.swygbro.airoad.backend.ai.common.context.AbstractContextProvider;
+import com.swygbro.airoad.backend.common.infrastructure.logging.SensitiveLogMasker;
 import com.swygbro.airoad.backend.trip.application.TripPlanQueryUseCase;
 import com.swygbro.airoad.backend.trip.domain.dto.response.DailyPlanResponse;
 import com.swygbro.airoad.backend.trip.domain.dto.response.ScheduledPlaceResponse;
@@ -42,7 +43,10 @@ public class TripPlanQueryContextProvider extends AbstractContextProvider<TripPl
       return List.of();
     }
 
-    log.debug("여행 계획 조회 - tripPlanId: {}, username: {}", context.tripPlanId(), context.username());
+    log.debug(
+        "여행 계획 조회 - tripPlanId: {}, username: {}",
+        context.tripPlanId(),
+        SensitiveLogMasker.maskEmail(context.username()));
 
     TripPlanDetailsResponse tripPlan =
         tripPlanQueryUseCase.findTripPlanDetailsById(context.tripPlanId(), context.username());

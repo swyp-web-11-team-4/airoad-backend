@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.swygbro.airoad.backend.common.exception.BusinessException;
+import com.swygbro.airoad.backend.common.infrastructure.logging.SensitiveLogMasker;
 import com.swygbro.airoad.backend.content.domain.entity.Place;
 import com.swygbro.airoad.backend.content.infrastructure.repository.PlaceRepository;
 import com.swygbro.airoad.backend.trip.domain.dto.request.ScheduledPlaceCreateRequest;
@@ -253,11 +254,17 @@ public class ScheduledPlaceCommandService implements ScheduledPlaceCommandUseCas
     boolean isOwner = scheduledPlaceRepository.existsByIdAndOwner(scheduledPlaceId, username);
 
     if (!isOwner) {
-      log.warn("[검증 실패] 사용자 {}는 scheduledPlaceId {}에 대한 권한이 없습니다", username, scheduledPlaceId);
+      log.warn(
+          "[검증 실패] 사용자 {}는 scheduledPlaceId {}에 대한 권한이 없습니다",
+          SensitiveLogMasker.maskEmail(username),
+          scheduledPlaceId);
       throw new BusinessException(TripErrorCode.SCHEDULED_PLACE_NOT_FOUND);
     }
 
-    log.debug("[검증 성공] scheduledPlaceId {}는 사용자 {}의 소유입니다", scheduledPlaceId, username);
+    log.debug(
+        "[검증 성공] scheduledPlaceId {}는 사용자 {}의 소유입니다",
+        scheduledPlaceId,
+        SensitiveLogMasker.maskEmail(username));
     return true;
   }
 

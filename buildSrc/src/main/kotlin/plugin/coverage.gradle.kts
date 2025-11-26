@@ -9,6 +9,7 @@ val excludePatterns =
         "**/domain/**",
         "**/dto/**",
         "**/exception/**",
+        "**/logging/**", // 로깅 유틸리티는 커버리지 제외
         "**/ai/**", // AI는 E2E 테스트로 대체
         "**/tourapi/**", // Tour API 데이터 동기화 도메인 제외
         "**/*Application*",

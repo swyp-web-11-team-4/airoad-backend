@@ -70,7 +70,12 @@ class ScheduledPlaceCommandServiceTest {
     Integer dayNumber = 1;
     ScheduledPlaceCreateRequest request =
         new ScheduledPlaceCreateRequest(
-            place.getId(), 1, ScheduledCategory.MORNING, 30, Transportation.PUBLIC_TRANSIT);
+            place.getId(),
+            1,
+            ScheduledCategory.MORNING,
+            30,
+            Transportation.PUBLIC_TRANSIT,
+            "테스트 요약");
 
     given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
     given(placeRepository.findById(place.getId())).willReturn(Optional.of(place));
@@ -95,7 +100,12 @@ class ScheduledPlaceCommandServiceTest {
     Long invalidTripPlanId = 999L;
     ScheduledPlaceCreateRequest request =
         new ScheduledPlaceCreateRequest(
-            place.getId(), 1, ScheduledCategory.MORNING, 30, Transportation.PUBLIC_TRANSIT);
+            place.getId(),
+            1,
+            ScheduledCategory.MORNING,
+            30,
+            Transportation.PUBLIC_TRANSIT,
+            "테스트 요약");
 
     given(tripPlanRepository.findByIdWithDetails(invalidTripPlanId)).willReturn(Optional.empty());
 
@@ -118,7 +128,12 @@ class ScheduledPlaceCommandServiceTest {
     String otherUserEmail = "other@example.com";
     ScheduledPlaceCreateRequest request =
         new ScheduledPlaceCreateRequest(
-            place.getId(), 1, ScheduledCategory.MORNING, 30, Transportation.PUBLIC_TRANSIT);
+            place.getId(),
+            1,
+            ScheduledCategory.MORNING,
+            30,
+            Transportation.PUBLIC_TRANSIT,
+            "테스트 요약");
 
     given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
 

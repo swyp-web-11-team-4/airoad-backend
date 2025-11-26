@@ -31,4 +31,5 @@ public record TripPlanCreateRequest(
         Integer duration,
     @NotBlank(message = "여행 지역은 필수입니다.") String region,
     @NotNull(message = "여행 인원은 필수입니다.") @Min(value = 1, message = "여행 인원은 최소 1명 이상이어야 합니다.")
-        Integer peopleCount) {}
+        Integer peopleCount,
+    String userMessage) {}

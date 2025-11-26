@@ -20,7 +20,7 @@ public record ScheduledPlaceResponse(
         .category(scheduledPlace.getCategory().name())
         .travelTime(scheduledPlace.getTravelSegment().getTravelTime())
         .transportation(scheduledPlace.getTravelSegment().getTransportation().name())
-        .place(PlaceResponse.of(scheduledPlace.getPlace()))
+        .place(PlaceResponse.of(scheduledPlace.getPlace(), scheduledPlace.getSummary()))
         .build();
   }
 }

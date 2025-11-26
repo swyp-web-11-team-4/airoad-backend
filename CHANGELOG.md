@@ -1,3 +1,10 @@
+# [0.35.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.34.1...v0.35.0) (2025-11-26)
+
+
+### Features
+
+* AI 일정 생성 유저 메시지 추가 및 장소 별 설명 요약 구현 ([#94](https://github.com/swyp-web-11-team-4/airoad-backend/issues/94)) ([c2daaa1](https://github.com/swyp-web-11-team-4/airoad-backend/commit/c2daaa1fb95c905fac62a929559d80605e6bf97a))
+
 ## [0.34.1](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.34.0...v0.34.1) (2025-11-25)
 
 

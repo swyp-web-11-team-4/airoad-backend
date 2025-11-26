@@ -15,6 +15,7 @@ import lombok.Builder;
  * @param category 일정 분류
  * @param travelTime 이전 장소로부터의 이동 시간 (분)
  * @param transportation 이동 수단
+ * @param summary 장소 한 줄 요약
  */
 @Builder
 public record ScheduledPlaceCreateRequest(
@@ -22,4 +23,5 @@ public record ScheduledPlaceCreateRequest(
     Integer visitOrder,
     ScheduledCategory category,
     Integer travelTime,
-    Transportation transportation) {}
+    Transportation transportation,
+    String summary) {}

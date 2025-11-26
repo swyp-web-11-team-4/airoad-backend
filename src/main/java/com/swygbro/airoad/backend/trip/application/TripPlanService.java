@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import org.springframework.ai.chat.messages.MessageType;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.swygbro.airoad.backend.chat.application.AiConversationCommandUseCase;
 import com.swygbro.airoad.backend.chat.domain.entity.AiConversation;
+import com.swygbro.airoad.backend.chat.domain.entity.AiMessage;
 import com.swygbro.airoad.backend.chat.exception.ChatErrorCode;
 import com.swygbro.airoad.backend.chat.infrastructure.repository.AiConversationRepository;
 import com.swygbro.airoad.backend.chat.infrastructure.repository.ConversationIdProjection;
@@ -216,6 +218,19 @@ public class TripPlanService implements TripPlanUseCase {
     // 채팅방 생성
     AiConversation aiConversation =
         AiConversation.builder().member(member).tripPlan(savedTripPlan).build();
+
+    // 일정 생성 시 유저 프롬프트가 있으면 추가
+    if (request.userMessage() != null) {
+      aiConversation
+          .getAiMessage()
+          .add(
+              AiMessage.builder()
+                  .messageType(MessageType.USER)
+                  .content(request.userMessage())
+                  .conversation(aiConversation)
+                  .build());
+    }
+
     aiConversationRepository.save(aiConversation);
 
     return new ChannelIdResponse(aiConversation.getId(), savedTripPlan.getId());
@@ -246,6 +261,15 @@ public class TripPlanService implements TripPlanUseCase {
     // TripPlan으로부터 TripPlanCreateRequest 재구성
     int duration =
         (int) (tripPlan.getEndDate().toEpochDay() - tripPlan.getStartDate().toEpochDay() + 1);
+
+    // AiConversation에서 사용자 메시지 조회
+    String userMessage =
+        aiConversation.getAiMessage().stream()
+            .filter(msg -> msg.getMessageType() == MessageType.USER)
+            .map(AiMessage::getContent)
+            .findFirst()
+            .orElse(null);
+
     TripPlanCreateRequest request =
         TripPlanCreateRequest.builder()
             .themes(tripPlan.getTripThemes())
@@ -253,6 +277,7 @@ public class TripPlanService implements TripPlanUseCase {
             .duration(duration)
             .region(tripPlan.getRegion())
             .peopleCount(tripPlan.getPeopleCount())
+            .userMessage(userMessage)
             .build();
 
     // 이벤트 발행 (TripPlan은 이미 생성되어 있음)

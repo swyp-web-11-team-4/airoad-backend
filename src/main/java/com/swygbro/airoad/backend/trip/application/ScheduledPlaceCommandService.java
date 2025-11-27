@@ -2,8 +2,8 @@ package com.swygbro.airoad.backend.trip.application;
 
 import java.util.Comparator;
 import java.util.List;
-
 import java.util.Objects;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

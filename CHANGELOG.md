@@ -1,3 +1,11 @@
+## [0.36.2](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.36.1...v0.36.2) (2025-11-27)
+
+
+### Bug Fixes
+
+* 리스너 트랜잭션 수정 ([e8a621b](https://github.com/swyp-web-11-team-4/airoad-backend/commit/e8a621b2deff0744dde33286c0c508c044502383))
+* 암호화된 email 대신 emailHash를 사용하여 권한 검증 ([6194a1b](https://github.com/swyp-web-11-team-4/airoad-backend/commit/6194a1b4ce1a79a48d378d462df5ab2b27d30777))
+
 ## [0.36.1](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.36.0...v0.36.1) (2025-11-27)
 
 

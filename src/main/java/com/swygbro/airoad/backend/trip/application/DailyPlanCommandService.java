@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.swygbro.airoad.backend.common.exception.BusinessException;
+import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
 import com.swygbro.airoad.backend.content.domain.entity.Place;
 import com.swygbro.airoad.backend.content.infrastructure.repository.PlaceRepository;
 import com.swygbro.airoad.backend.trip.domain.dto.request.DailyPlanCreateRequest;
@@ -37,6 +38,7 @@ public class DailyPlanCommandService implements DailyPlanCommandUseCase {
   private final TripPlanRepository tripPlanRepository;
   private final PlaceRepository placeRepository;
   private final ApplicationEventPublisher eventPublisher;
+  private final SHA256Hasher sha256Hasher;
 
   @Override
   public void saveDailyPlan(
@@ -195,7 +197,7 @@ public class DailyPlanCommandService implements DailyPlanCommandUseCase {
             .findByIdWithDetails(tripPlanId)
             .orElseThrow(() -> new BusinessException(TripErrorCode.TRIP_PLAN_NOT_FOUND));
 
-    if (!tripPlan.getMember().getEmail().equals(username)) {
+    if (!tripPlan.getMember().getEmailHash().equals(sha256Hasher.hash(username))) {
       throw new BusinessException(TripErrorCode.TRIP_PLAN_FORBIDDEN);
     }
 

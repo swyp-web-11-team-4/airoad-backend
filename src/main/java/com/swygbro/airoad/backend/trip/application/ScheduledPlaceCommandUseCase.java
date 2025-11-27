@@ -29,6 +29,4 @@ public interface ScheduledPlaceCommandUseCase {
       Integer dayNumber,
       Integer visitOrderA,
       Integer visitOrderB);
-
-  boolean validateScheduledPlace(String username, Long scheduledPlaceId);
 }

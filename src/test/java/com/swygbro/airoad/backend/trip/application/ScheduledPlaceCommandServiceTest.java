@@ -65,10 +65,6 @@ class ScheduledPlaceCommandServiceTest {
     place = PlaceFixture.withId(1L, PlaceFixture.create());
   }
 
-  private void givenMemberEmailHashMocked() {
-    given(sha256Hasher.hash(member.getEmail())).willReturn(member.getEmailHash());
-  }
-
   @Test
   @DisplayName("여행 일정에 새로운 장소를 추가하면, 해당 일차에 장소가 추가되어야 한다.")
   void saveScheduledPlace_Success() {
@@ -84,7 +80,7 @@ class ScheduledPlaceCommandServiceTest {
             Transportation.PUBLIC_TRANSIT,
             "테스트 요약");
 
-    givenMemberEmailHashMocked();
+    given(sha256Hasher.hash(member.getEmail())).willReturn(member.getEmailHash());
     given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
     given(placeRepository.findById(place.getId())).willReturn(Optional.of(place));
 
@@ -143,9 +139,8 @@ class ScheduledPlaceCommandServiceTest {
             Transportation.PUBLIC_TRANSIT,
             "테스트 요약");
 
-    given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
-    // 다른 사용자의 이메일을 해시하면 다른 해시값이 반환되도록 설정
     given(sha256Hasher.hash(otherUserEmail)).willReturn("hash_other@example.com");
+    given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
 
     // when & then
     assertThatThrownBy(
@@ -174,7 +169,7 @@ class ScheduledPlaceCommandServiceTest {
         new ScheduledPlaceUpdateRequest(
             1L, ScheduledCategory.AFTERNOON, 20, Transportation.WALKING);
 
-    givenMemberEmailHashMocked();
+    given(sha256Hasher.hash(member.getEmail())).willReturn(member.getEmailHash());
     given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
     given(placeRepository.findById(any())).willReturn(Optional.of(place));
 
@@ -200,8 +195,8 @@ class ScheduledPlaceCommandServiceTest {
         new ScheduledPlaceUpdateRequest(
             1L, ScheduledCategory.AFTERNOON, 20, Transportation.WALKING);
 
-    givenMemberEmailHashMocked();
     given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
+    given(sha256Hasher.hash(member.getEmail())).willReturn(member.getEmailHash());
 
     // when & then
     assertThatThrownBy(
@@ -226,7 +221,7 @@ class ScheduledPlaceCommandServiceTest {
     Integer dayNumber = 1;
     Integer visitOrder = 1;
 
-    givenMemberEmailHashMocked();
+    given(sha256Hasher.hash(member.getEmail())).willReturn(member.getEmailHash());
     given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
 
     // when
@@ -246,8 +241,8 @@ class ScheduledPlaceCommandServiceTest {
     Integer dayNumber = 1;
     Integer invalidVisitOrder = 999;
 
-    givenMemberEmailHashMocked();
     given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
+    given(sha256Hasher.hash(member.getEmail())).willReturn(member.getEmailHash());
 
     // when & then
     assertThatThrownBy(

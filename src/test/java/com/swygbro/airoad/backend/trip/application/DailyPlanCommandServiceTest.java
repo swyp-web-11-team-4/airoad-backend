@@ -13,8 +13,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
+import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
 import com.swygbro.airoad.backend.content.domain.entity.Place;
-import com.swygbro.airoad.backend.content.infrastructure.repository.PlaceRepository;
 import com.swygbro.airoad.backend.fixture.content.PlaceFixture;
 import com.swygbro.airoad.backend.fixture.member.MemberFixture;
 import com.swygbro.airoad.backend.fixture.trip.DailyPlanFixture;
@@ -41,9 +41,9 @@ class DailyPlanCommandServiceTest {
 
   @InjectMocks private DailyPlanCommandService dailyPlanCommandService;
 
-  @Mock private TripPlanRepository tripPlanRepository;
+  @Mock private SHA256Hasher sha256Hasher;
 
-  @Mock private PlaceRepository placeRepository;
+  @Mock private TripPlanRepository tripPlanRepository;
 
   @Mock private ApplicationEventPublisher eventPublisher;
 
@@ -113,6 +113,8 @@ class DailyPlanCommandServiceTest {
 
     given(tripPlanRepository.findByIdWithDetails(tripPlan.getId()))
         .willReturn(Optional.of(tripPlan));
+
+    given(sha256Hasher.hash(member.getEmail())).willReturn(member.getEmailHash());
 
     // when
     dailyPlanCommandService.swapScheduledPlacesBetweenDays(

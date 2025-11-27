@@ -1,3 +1,22 @@
+## [0.36.1](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.36.0...v0.36.1) (2025-11-27)
+
+
+### Bug Fixes
+
+* 툴 사용 시 유저 정보 암호화로 인한 유효성 검증 실패 문제 개선 ([#97](https://github.com/swyp-web-11-team-4/airoad-backend/issues/97)) ([c8bd33c](https://github.com/swyp-web-11-team-4/airoad-backend/commit/c8bd33c21319b4b81403501100ff9ec50de4827c))
+
+# [0.36.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.35.0...v0.36.0) (2025-11-26)
+
+
+### Bug Fixes
+
+* WebSocket JWT 검증 실패 로그에서 토큰 노출 방지 ([6cccb5b](https://github.com/swyp-web-11-team-4/airoad-backend/commit/6cccb5bcf8e81fc5edc8b27ed64735bb6ffddb8a))
+
+
+### Features
+
+* 로그 마스킹 기능 추가 및 과도한 로그 제거 ([322b8bd](https://github.com/swyp-web-11-team-4/airoad-backend/commit/322b8bd573c7d0a94ad8cb062bb59d0c712be3ec))
+
 # [0.35.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.34.1...v0.35.0) (2025-11-26)
 
 

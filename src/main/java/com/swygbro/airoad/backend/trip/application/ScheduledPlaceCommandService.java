@@ -3,6 +3,7 @@ package com.swygbro.airoad.backend.trip.application;
 import java.util.Comparator;
 import java.util.List;
 
+import java.util.Objects;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -249,7 +250,7 @@ public class ScheduledPlaceCommandService implements ScheduledPlaceCommandUseCas
             .findByIdWithDetails(tripPlanId)
             .orElseThrow(() -> new BusinessException(TripErrorCode.TRIP_PLAN_NOT_FOUND));
 
-    if (!tripPlan.getMember().getEmailHash().equals(sha256Hasher.hash(username))) {
+    if (!Objects.equals(tripPlan.getMember().getEmailHash(), sha256Hasher.hash(username))) {
       throw new BusinessException(TripErrorCode.TRIP_PLAN_FORBIDDEN);
     }
 

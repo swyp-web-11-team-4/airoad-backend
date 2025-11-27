@@ -2,6 +2,7 @@ package com.swygbro.airoad.backend.trip.application;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -197,7 +198,7 @@ public class DailyPlanCommandService implements DailyPlanCommandUseCase {
             .findByIdWithDetails(tripPlanId)
             .orElseThrow(() -> new BusinessException(TripErrorCode.TRIP_PLAN_NOT_FOUND));
 
-    if (!tripPlan.getMember().getEmailHash().equals(sha256Hasher.hash(username))) {
+    if (!Objects.equals(tripPlan.getMember().getEmailHash(), sha256Hasher.hash(username))) {
       throw new BusinessException(TripErrorCode.TRIP_PLAN_FORBIDDEN);
     }
 

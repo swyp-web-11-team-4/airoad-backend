@@ -14,8 +14,8 @@ spring:
         physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
     properties:
       hibernate:
-        show_sql: true
-        format_sql: true
+        show_sql: false
+        format_sql: false
     open-in-view: false
   data:
     redis:
@@ -76,3 +76,7 @@ logging:
   level:
     com.swygbro.airoad.backend: DEBUG
     org.springframework.ai.chat.client.advisor: DEBUG
+    org.springframework.web.client.RestClient: DEBUG
+    org.springframework.http.client: DEBUG
+    org.springframework.ai.openai: DEBUG
+    org.springframework.ai.openai.api: TRACE # 더 상세한 로그

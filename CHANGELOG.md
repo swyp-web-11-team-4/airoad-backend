@@ -1,3 +1,10 @@
+## [0.36.1](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.36.0...v0.36.1) (2025-11-27)
+
+
+### Bug Fixes
+
+* 툴 사용 시 유저 정보 암호화로 인한 유효성 검증 실패 문제 개선 ([#97](https://github.com/swyp-web-11-team-4/airoad-backend/issues/97)) ([c8bd33c](https://github.com/swyp-web-11-team-4/airoad-backend/commit/c8bd33c21319b4b81403501100ff9ec50de4827c))
+
 # [0.36.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.35.0...v0.36.0) (2025-11-26)
 
 

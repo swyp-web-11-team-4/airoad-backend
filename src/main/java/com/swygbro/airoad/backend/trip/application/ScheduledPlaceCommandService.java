@@ -2,13 +2,14 @@ package com.swygbro.airoad.backend.trip.application;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.swygbro.airoad.backend.common.exception.BusinessException;
-import com.swygbro.airoad.backend.common.infrastructure.logging.SensitiveLogMasker;
+import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
 import com.swygbro.airoad.backend.content.domain.entity.Place;
 import com.swygbro.airoad.backend.content.infrastructure.repository.PlaceRepository;
 import com.swygbro.airoad.backend.trip.domain.dto.request.ScheduledPlaceCreateRequest;
@@ -21,7 +22,6 @@ import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanUpdateStartedEvent;
 import com.swygbro.airoad.backend.trip.domain.event.TripPlanUpdatedEvent;
 import com.swygbro.airoad.backend.trip.exception.TripErrorCode;
-import com.swygbro.airoad.backend.trip.infrastructure.ScheduledPlaceRepository;
 import com.swygbro.airoad.backend.trip.infrastructure.TripPlanRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -35,8 +35,8 @@ public class ScheduledPlaceCommandService implements ScheduledPlaceCommandUseCas
 
   private final PlaceRepository placeRepository;
   private final TripPlanRepository tripPlanRepository;
-  private final ScheduledPlaceRepository scheduledPlaceRepository;
   private final ApplicationEventPublisher eventPublisher;
+  private final SHA256Hasher sha256Hasher;
 
   @Override
   public void saveScheduledPlace(
@@ -244,37 +244,13 @@ public class ScheduledPlaceCommandService implements ScheduledPlaceCommandUseCas
             .build());
   }
 
-  @Override
-  public boolean validateScheduledPlace(String username, Long scheduledPlaceId) {
-    log.debug(
-        "[검증] validateScheduledPlace - username: {}, scheduledPlaceId: {}",
-        username,
-        scheduledPlaceId);
-
-    boolean isOwner = scheduledPlaceRepository.existsByIdAndOwner(scheduledPlaceId, username);
-
-    if (!isOwner) {
-      log.warn(
-          "[검증 실패] 사용자 {}는 scheduledPlaceId {}에 대한 권한이 없습니다",
-          SensitiveLogMasker.maskEmail(username),
-          scheduledPlaceId);
-      throw new BusinessException(TripErrorCode.SCHEDULED_PLACE_NOT_FOUND);
-    }
-
-    log.debug(
-        "[검증 성공] scheduledPlaceId {}는 사용자 {}의 소유입니다",
-        scheduledPlaceId,
-        SensitiveLogMasker.maskEmail(username));
-    return true;
-  }
-
   private DailyPlan validateAndGetDailyPlan(Long tripPlanId, String username, Integer dayNumber) {
     TripPlan tripPlan =
         tripPlanRepository
             .findByIdWithDetails(tripPlanId)
             .orElseThrow(() -> new BusinessException(TripErrorCode.TRIP_PLAN_NOT_FOUND));
 
-    if (!tripPlan.getMember().getEmail().equals(username)) {
+    if (!Objects.equals(tripPlan.getMember().getEmailHash(), sha256Hasher.hash(username))) {
       throw new BusinessException(TripErrorCode.TRIP_PLAN_FORBIDDEN);
     }
 

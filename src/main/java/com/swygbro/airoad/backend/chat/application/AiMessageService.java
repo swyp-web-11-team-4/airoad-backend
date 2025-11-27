@@ -1,7 +1,9 @@
 package com.swygbro.airoad.backend.chat.application;
 
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -18,7 +20,6 @@ import com.swygbro.airoad.backend.chat.infrastructure.repository.AiMessageReposi
 import com.swygbro.airoad.backend.chat.presentation.message.ChatNotificationListener;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
 import com.swygbro.airoad.backend.common.exception.BusinessException;
-import com.swygbro.airoad.backend.trip.application.ScheduledPlaceCommandUseCase;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +45,6 @@ public class AiMessageService implements AiMessageUseCase {
   private final AiMessageRepository aiMessageRepository;
   private final AiConversationRepository aiConversationRepository;
   private final ApplicationEventPublisher eventPublisher;
-  private final ScheduledPlaceCommandUseCase scheduledPlaceCommandUseCase;
 
   @Override
   @Transactional
@@ -63,24 +63,18 @@ public class AiMessageService implements AiMessageUseCase {
       throw new BusinessException(ChatErrorCode.CONVERSATION_ACCESS_DENIED);
     }
 
-    // 3. 태그 장소 검증
-    if (request.scheduledPlaceIdList() != null && !request.scheduledPlaceIdList().isEmpty()) {
-      for (Long scheduledPlacedId : request.scheduledPlaceIdList()) {
-        scheduledPlaceCommandUseCase.validateScheduledPlace(username, scheduledPlacedId);
-      }
-    }
-
-    // 4. 본문/타입 검증
+    // 3. 본문/타입 검증
     if (request.messageContentType() != MessageContentType.TEXT) {
       log.warn("[Message] TEXT 타입이 아닌 메시지는 현재 지원하지 않습니다 - type: {}", request.messageContentType());
       throw new BusinessException(ChatErrorCode.INVALID_MESSAGE_FORMAT);
     }
+
     if (!StringUtils.hasText(request.content())) {
       log.warn("[Message] 빈 메시지는 허용되지 않습니다");
       throw new BusinessException(ChatErrorCode.INVALID_MESSAGE_FORMAT);
     }
 
-    // 5. AI 서버에 메시지 전송 요청 이벤트 발행
+    // 4. AI 서버에 메시지 전송 요청 이벤트 발행
     Long tripPlanId = aiConversation.getTripPlanId();
     if (tripPlanId == null) {
       log.warn("[Message] 여행 계획 id 없음");

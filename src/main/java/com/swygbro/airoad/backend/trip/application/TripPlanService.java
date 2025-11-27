@@ -220,7 +220,7 @@ public class TripPlanService implements TripPlanUseCase {
         AiConversation.builder().member(member).tripPlan(savedTripPlan).build();
 
     // 일정 생성 시 유저 프롬프트가 있으면 추가
-    if (request.userMessage() != null) {
+    if (request.userMessage() != null && !request.userMessage().isEmpty()) {
       aiConversation
           .getAiMessage()
           .add(

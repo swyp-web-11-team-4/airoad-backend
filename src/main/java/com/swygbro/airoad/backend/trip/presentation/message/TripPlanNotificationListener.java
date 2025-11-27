@@ -2,6 +2,7 @@ package com.swygbro.airoad.backend.trip.presentation.message;
 
 import java.util.List;
 
+import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -70,7 +71,7 @@ public class TripPlanNotificationListener {
    *
    * @param event 전체 일정 생성 완료 이벤트
    */
-  @TransactionalEventListener
+  @EventListener
   public void handleTripPlanGenerationCompleted(TripPlanGenerationCompletedEvent event) {
     log.info("전체 일정 생성 완료 - tripPlanId: {}", event.tripPlanId());
 

@@ -36,7 +36,6 @@ import com.swygbro.airoad.backend.fixture.chat.AiMessageFixture;
 import com.swygbro.airoad.backend.fixture.member.MemberFixture;
 import com.swygbro.airoad.backend.fixture.trip.TripPlanFixture;
 import com.swygbro.airoad.backend.member.domain.entity.Member;
-import com.swygbro.airoad.backend.trip.application.ScheduledPlaceCommandUseCase;
 import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
 
 import static org.assertj.core.api.Assertions.*;
@@ -52,8 +51,6 @@ class AiMessageServiceTest {
   @Mock private AiConversationRepository aiConversationRepository;
 
   @Mock private ApplicationEventPublisher eventPublisher;
-
-  @Mock private ScheduledPlaceCommandUseCase scheduledPlaceCommandUseCase;
 
   @InjectMocks private AiMessageService aiMessageService;
 
@@ -78,7 +75,6 @@ class AiMessageServiceTest {
       Long chatRoomId = 1L;
 
       given(aiConversationRepository.findById(chatRoomId)).willReturn(Optional.of(conversation));
-      given(scheduledPlaceCommandUseCase.validateScheduledPlace(userEmail, 123L)).willReturn(true);
 
       // when
       aiMessageService.processAndSendMessage(chatRoomId, userEmail, request);
@@ -246,8 +242,6 @@ class AiMessageServiceTest {
       aiMessageService.processAndSendMessage(chatRoomId, userEmail, request);
 
       // then
-      verify(scheduledPlaceCommandUseCase, never()).validateScheduledPlace(any(), any());
-
       ArgumentCaptor<AiChatGenerationRequestedEvent> eventCaptor =
           ArgumentCaptor.forClass(AiChatGenerationRequestedEvent.class);
       verify(eventPublisher).publishEvent(eventCaptor.capture());

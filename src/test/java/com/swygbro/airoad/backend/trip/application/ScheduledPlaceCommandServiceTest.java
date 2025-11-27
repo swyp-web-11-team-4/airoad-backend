@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
 import com.swygbro.airoad.backend.common.exception.BusinessException;
+import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
 import com.swygbro.airoad.backend.content.domain.entity.Place;
 import com.swygbro.airoad.backend.content.infrastructure.repository.PlaceRepository;
 import com.swygbro.airoad.backend.fixture.content.PlaceFixture;
@@ -48,6 +49,8 @@ class ScheduledPlaceCommandServiceTest {
 
   @Mock private PlaceRepository placeRepository;
 
+  @Mock private SHA256Hasher sha256Hasher;
+
   private Member member;
   private TripPlan tripPlan;
   private Place place;
@@ -77,6 +80,7 @@ class ScheduledPlaceCommandServiceTest {
             Transportation.PUBLIC_TRANSIT,
             "테스트 요약");
 
+    given(sha256Hasher.hash(member.getEmail())).willReturn(member.getEmailHash());
     given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
     given(placeRepository.findById(place.getId())).willReturn(Optional.of(place));
 
@@ -135,6 +139,7 @@ class ScheduledPlaceCommandServiceTest {
             Transportation.PUBLIC_TRANSIT,
             "테스트 요약");
 
+    given(sha256Hasher.hash(otherUserEmail)).willReturn("hash_other@example.com");
     given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
 
     // when & then
@@ -164,6 +169,7 @@ class ScheduledPlaceCommandServiceTest {
         new ScheduledPlaceUpdateRequest(
             1L, ScheduledCategory.AFTERNOON, 20, Transportation.WALKING);
 
+    given(sha256Hasher.hash(member.getEmail())).willReturn(member.getEmailHash());
     given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
     given(placeRepository.findById(any())).willReturn(Optional.of(place));
 
@@ -190,6 +196,7 @@ class ScheduledPlaceCommandServiceTest {
             1L, ScheduledCategory.AFTERNOON, 20, Transportation.WALKING);
 
     given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
+    given(sha256Hasher.hash(member.getEmail())).willReturn(member.getEmailHash());
 
     // when & then
     assertThatThrownBy(
@@ -214,6 +221,7 @@ class ScheduledPlaceCommandServiceTest {
     Integer dayNumber = 1;
     Integer visitOrder = 1;
 
+    given(sha256Hasher.hash(member.getEmail())).willReturn(member.getEmailHash());
     given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
 
     // when
@@ -234,6 +242,7 @@ class ScheduledPlaceCommandServiceTest {
     Integer invalidVisitOrder = 999;
 
     given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
+    given(sha256Hasher.hash(member.getEmail())).willReturn(member.getEmailHash());
 
     // when & then
     assertThatThrownBy(

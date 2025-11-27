@@ -24,8 +24,8 @@ public interface ScheduledPlaceRepository extends JpaRepository<ScheduledPlace, 
       JOIN dp.tripPlan tp
       JOIN tp.member m
       WHERE sp.id = :scheduledPlaceId
-      AND m.email = :username
+      AND m.emailHash = :emailHash
       """)
   boolean existsByIdAndOwner(
-      @Param("scheduledPlaceId") Long scheduledPlaceId, @Param("username") String username);
+      @Param("scheduledPlaceId") Long scheduledPlaceId, @Param("emailHash") String emailHash);
 }

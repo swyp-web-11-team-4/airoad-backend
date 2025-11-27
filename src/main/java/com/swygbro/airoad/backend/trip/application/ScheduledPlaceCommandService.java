@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.swygbro.airoad.backend.common.exception.BusinessException;
+import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
 import com.swygbro.airoad.backend.common.infrastructure.logging.SensitiveLogMasker;
 import com.swygbro.airoad.backend.content.domain.entity.Place;
 import com.swygbro.airoad.backend.content.infrastructure.repository.PlaceRepository;
@@ -37,6 +38,7 @@ public class ScheduledPlaceCommandService implements ScheduledPlaceCommandUseCas
   private final TripPlanRepository tripPlanRepository;
   private final ScheduledPlaceRepository scheduledPlaceRepository;
   private final ApplicationEventPublisher eventPublisher;
+  private final SHA256Hasher sha256Hasher;
 
   @Override
   public void saveScheduledPlace(
@@ -251,7 +253,8 @@ public class ScheduledPlaceCommandService implements ScheduledPlaceCommandUseCas
         username,
         scheduledPlaceId);
 
-    boolean isOwner = scheduledPlaceRepository.existsByIdAndOwner(scheduledPlaceId, username);
+    String emailHash = sha256Hasher.hash(username);
+    boolean isOwner = scheduledPlaceRepository.existsByIdAndOwner(scheduledPlaceId, emailHash);
 
     if (!isOwner) {
       log.warn(
@@ -274,7 +277,8 @@ public class ScheduledPlaceCommandService implements ScheduledPlaceCommandUseCas
             .findByIdWithDetails(tripPlanId)
             .orElseThrow(() -> new BusinessException(TripErrorCode.TRIP_PLAN_NOT_FOUND));
 
-    if (!tripPlan.getMember().getEmail().equals(username)) {
+    String emailHash = sha256Hasher.hash(username);
+    if (!tripPlan.getMember().getEmailHash().equals(emailHash)) {
       throw new BusinessException(TripErrorCode.TRIP_PLAN_FORBIDDEN);
     }
 

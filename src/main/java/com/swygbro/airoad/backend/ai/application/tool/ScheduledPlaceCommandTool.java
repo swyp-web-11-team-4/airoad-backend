@@ -5,14 +5,9 @@ import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Component;
 
 import com.swygbro.airoad.backend.ai.application.tool.dto.common.ToolResponse;
-import com.swygbro.airoad.backend.ai.application.tool.dto.param.ScheduledPlaceCreateParam;
-import com.swygbro.airoad.backend.ai.application.tool.dto.param.ScheduledPlaceUpdateParam;
 import com.swygbro.airoad.backend.content.application.PlaceQueryUseCase;
 import com.swygbro.airoad.backend.content.domain.dto.response.PlaceResponse;
 import com.swygbro.airoad.backend.trip.application.ScheduledPlaceCommandUseCase;
-import com.swygbro.airoad.backend.trip.domain.dto.request.ScheduledPlaceCreateRequest;
-import com.swygbro.airoad.backend.trip.domain.dto.request.ScheduledPlaceUpdateRequest;
-import com.swygbro.airoad.backend.trip.domain.entity.Transportation;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,100 +21,31 @@ public class ScheduledPlaceCommandTool {
   private final PlaceQueryUseCase placeQueryUseCase;
 
   @Tool(description = """
-      여행 일정에 새로운 장소를 추가할 때 사용합니다.
+      일정에 포함된 기존 장소를 다른 장소로 교체할 때 사용합니다.
       """)
-  public ToolResponse addScheduledPlace(
+  public ToolResponse replaceScheduledPlace(
       @ToolParam(description = "채팅방 고유 식별자") Long chatRoomId,
       @ToolParam(description = "여행 계획 고유 식별자") Long tripPlanId,
       @ToolParam(description = "사용자 이메일 주소") String username,
-      @ToolParam(description = "장소를 추가할 일차 (1=첫째 날, 2=둘째 날, ...)") Integer dayNumber,
-      @ToolParam(description = """
-          추가할 장소 정보를 담은 요청 파라미터:
-          """)
-          ScheduledPlaceCreateParam params) {
+      @ToolParam(description = "교체할 장소가 속한 일차 (1=첫째 날, 2=둘째 날, ...)") Integer dayNumber,
+      @ToolParam(description = "교체할 장소의 현재 방문 순서 (1=첫 번째, 2=두 번째, ...)") Integer visitOrder,
+      @ToolParam(description = "새로운 장소의 이름") String placeName) {
 
     log.info(
-        "[AI Tool] addScheduledPlace - username: {}, tripPlanId: {}, dayNumber: {}, param: {}",
+        "[AI Tool] replaceScheduledPlace - username: {}, tripPlanId: {}, dayNumber: {}, visitOrder: {}, placeName: {}",
         username,
         tripPlanId,
         dayNumber,
-        params.toString());
+        visitOrder,
+        placeName);
 
-    PlaceResponse placeResponse = placeQueryUseCase.findPlaceByName(params.placeName());
+    PlaceResponse placeResponse = placeQueryUseCase.findPlaceByName(placeName);
 
-    ScheduledPlaceCreateRequest request =
-        ScheduledPlaceCreateRequest.builder()
-            .placeId(placeResponse.id())
-            .visitOrder(params.visitOrder())
-            .category(params.category())
-            .travelTime(params.travelTime())
-            .transportation(Transportation.PUBLIC_TRANSIT)
-            .build();
+    scheduledPlaceCommandUseCase.replaceScheduledPlace(
+        chatRoomId, tripPlanId, username, dayNumber, visitOrder, placeResponse.id());
 
-    scheduledPlaceCommandUseCase.saveScheduledPlace(
-        chatRoomId, tripPlanId, username, dayNumber, request);
-
-    return ToolResponse.success(String.format("%d일차 여행 일정에 장소 추가 완료", dayNumber));
-  }
-
-  @Tool(description = """
-      일정에 포함된 기존 장소를 다른 장소로 교체하거나 정보를 수정할 때 사용합니다.
-      """)
-  public ToolResponse updateScheduledPlace(
-      @ToolParam(description = "채팅방 고유 식별자") Long chatRoomId,
-      @ToolParam(description = "여행 계획 고유 식별자") Long tripPlanId,
-      @ToolParam(description = "사용자 이메일 주소") String username,
-      @ToolParam(description = "수정할 장소가 속한 일차 (1=첫째 날, 2=둘째 날, ...)") Integer dayNumber,
-      @ToolParam(description = "수정할 장소의 현재 방문 순서 (1=첫 번째, 2=두 번째, ...)") Integer visitOrder,
-      @ToolParam(description = """
-      수정할 장소 정보를 담은 요청 객체:
-      """)
-          ScheduledPlaceUpdateParam params) {
-
-    log.info(
-        "[AI Tool] updateScheduledPlace - username: {}, tripPlanId: {}, dayNumber: {}, visitOrder: {}",
-        username,
-        tripPlanId,
-        dayNumber,
-        visitOrder);
-
-    PlaceResponse placeResponse = placeQueryUseCase.findPlaceByName(params.placeName());
-
-    ScheduledPlaceUpdateRequest request =
-        ScheduledPlaceUpdateRequest.builder()
-            .placeId(placeResponse.id())
-            .category(params.category())
-            .travelTime(params.travelTime())
-            .transportation(Transportation.PUBLIC_TRANSIT)
-            .build();
-
-    scheduledPlaceCommandUseCase.updateScheduledPlace(
-        chatRoomId, tripPlanId, username, dayNumber, visitOrder, request);
-
-    return ToolResponse.success(String.format("%d일차 %d번째 장소 수정 완료", dayNumber, visitOrder));
-  }
-
-  @Tool(description = """
-      여행 일정에서 특정 장소를 삭제할 때 사용합니다.
-      """)
-  public ToolResponse deleteScheduledPlace(
-      @ToolParam(description = "채팅방 고유 식별자") Long chatRoomId,
-      @ToolParam(description = "여행 계획 고유 식별자") Long tripPlanId,
-      @ToolParam(description = "사용자 이메일 주소") String username,
-      @ToolParam(description = "삭제할 장소가 속한 일차 (1=첫째 날, 2=둘째 날, ...)") Integer dayNumber,
-      @ToolParam(description = "삭제할 장소의 방문 순서 (1=첫 번째, 2=두 번째, ...)") Integer visitOrder) {
-
-    log.info(
-        "[AI Tool] deleteScheduledPlace - username: {}, tripPlanId: {}, dayNumber: {}, visitOrder: {}",
-        username,
-        tripPlanId,
-        dayNumber,
-        visitOrder);
-
-    scheduledPlaceCommandUseCase.deleteScheduledPlace(
-        chatRoomId, tripPlanId, username, dayNumber, visitOrder);
-
-    return ToolResponse.success(String.format("%d일차 %d번째 장소 삭제 완료", dayNumber, visitOrder));
+    return ToolResponse.success(
+        String.format("%d일차 %d번째 장소를 '%s'로 교체 완료", dayNumber, visitOrder, placeName));
   }
 
   @Tool(description = """

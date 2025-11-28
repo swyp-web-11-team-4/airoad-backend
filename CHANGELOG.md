@@ -1,3 +1,10 @@
+## [0.36.3](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.36.2...v0.36.3) (2025-11-28)
+
+
+### Bug Fixes
+
+* 챗봇 에이전트 툴 관련 버그 수정 ([#100](https://github.com/swyp-web-11-team-4/airoad-backend/issues/100)) ([6ee7350](https://github.com/swyp-web-11-team-4/airoad-backend/commit/6ee7350c9b90c4943232d9466a77aa4eadd0c8ff))
+
 ## [0.36.2](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.36.1...v0.36.2) (2025-11-27)
 
 

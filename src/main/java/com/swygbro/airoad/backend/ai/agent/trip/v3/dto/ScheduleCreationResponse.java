@@ -23,7 +23,7 @@ public record ScheduleCreationResponse(
 
         ## 작성 형식
         다음의 마크다운 템플릿을 준수해서 작성하세요.
-        ```markdown
+        ```
         **n일차 - {제목}**
         - **{일정 카테고리}**: {장소 이름}
           {요약 설명}
@@ -36,7 +36,7 @@ public record ScheduleCreationResponse(
         ```
 
         ## 출력 예시
-        ```markdown
+        ```
         **1일차 - 제주 동부 해안 탐방**
         - **오전 일정**: 성산일출봉
           제주를 대표하는 일출 명소로, 유네스코 세계자연유산입니다. 정상까지 약 30분 소요됩니다.

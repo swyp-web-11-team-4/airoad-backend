@@ -114,7 +114,7 @@ public class ScheduledPlaceCommandService implements ScheduledPlaceCommandUseCas
 
     DailyPlan dailyPlan = validateAndGetDailyPlan(tripPlanId, username, dayNumber);
     ScheduledPlace scheduledPlace = getScheduledPlace(dailyPlan, visitOrder);
-    Place place = placeRepository.findById(request.placeId()).orElse(null);
+    Place place = placeRepository.findByIdWithThemes(request.placeId()).orElse(null);
 
     publishEvent(
         TripPlanUpdateStartedEvent.builder()
@@ -135,6 +135,52 @@ public class ScheduledPlaceCommandService implements ScheduledPlaceCommandUseCas
 
     log.info(
         "[완료] updateScheduledPlace - 여행 계획 ID: {}, 일차: {}, 방문 순서: {} 장소 수정 완료",
+        tripPlanId,
+        dayNumber,
+        visitOrder);
+
+    publishEvent(
+        TripPlanUpdatedEvent.builder()
+            .chatRoomId(chatRoomId)
+            .tripPlanId(tripPlanId)
+            .username(username)
+            .dailyPlan(DailyPlanResponse.of(dailyPlan))
+            .build());
+  }
+
+  @Override
+  public void replaceScheduledPlace(
+      Long chatRoomId,
+      Long tripPlanId,
+      String username,
+      Integer dayNumber,
+      Integer visitOrder,
+      Long placeId) {
+    log.info(
+        "[시작] replaceScheduledPlace - 사용자: {}, 여행 계획 ID: {}, 일차: {}, 방문 순서: {}, placeId: {}",
+        username,
+        tripPlanId,
+        dayNumber,
+        visitOrder,
+        placeId);
+
+    DailyPlan dailyPlan = validateAndGetDailyPlan(tripPlanId, username, dayNumber);
+    ScheduledPlace scheduledPlace = getScheduledPlace(dailyPlan, visitOrder);
+    Place place = placeRepository.findByIdWithThemes(placeId).orElse(null);
+
+    publishEvent(
+        TripPlanUpdateStartedEvent.builder()
+            .chatRoomId(chatRoomId)
+            .username(username)
+            .message("%d일차 %d번째 장소 교체 요청을 수행합니다.".formatted(dayNumber, visitOrder))
+            .tripPlanId(tripPlanId)
+            .scheduledPlaceIdList(List.of(scheduledPlace.getId()))
+            .build());
+
+    scheduledPlace.updatePlace(place);
+
+    log.info(
+        "[완료] replaceScheduledPlace - 여행 계획 ID: {}, 일차: {}, 방문 순서: {} 장소 교체 완료",
         tripPlanId,
         dayNumber,
         visitOrder);

@@ -19,6 +19,14 @@ public interface ScheduledPlaceCommandUseCase {
       Integer visitOrder,
       ScheduledPlaceUpdateRequest request);
 
+  void replaceScheduledPlace(
+      Long chatRoomId,
+      Long tripPlanId,
+      String username,
+      Integer dayNumber,
+      Integer visitOrder,
+      Long placeId);
+
   void deleteScheduledPlace(
       Long chatRoomId, Long tripPlanId, String username, Integer dayNumber, Integer visitOrder);
 

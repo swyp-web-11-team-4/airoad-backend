@@ -46,6 +46,9 @@ application*.properties
 ### Claude Code ###
 .claude/settings.local.json
 
+### Gemini CLI ###
+.gemini/
+
 ### Docker Compose ###
 /docker-compose.local.yml
 

@@ -1,3 +1,10 @@
+## [0.36.4](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.36.3...v0.36.4) (2025-11-28)
+
+
+### Bug Fixes
+
+* 챗봇을 이용한 일정 변경 시 거리 계산이 이뤄지지 않는 버그 수정 ([#101](https://github.com/swyp-web-11-team-4/airoad-backend/issues/101)) ([f042f2c](https://github.com/swyp-web-11-team-4/airoad-backend/commit/f042f2c72e74da7a94e6fb1a44c9573d51ec9aa7))
+
 ## [0.36.3](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.36.2...v0.36.3) (2025-11-28)
 
 

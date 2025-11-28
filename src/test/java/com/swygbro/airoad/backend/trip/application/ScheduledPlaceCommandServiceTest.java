@@ -171,7 +171,7 @@ class ScheduledPlaceCommandServiceTest {
 
     given(sha256Hasher.hash(member.getEmail())).willReturn(member.getEmailHash());
     given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
-    given(placeRepository.findById(any())).willReturn(Optional.of(place));
+    given(placeRepository.findByIdWithThemes(any())).willReturn(Optional.of(place));
 
     // when
     scheduledPlaceCommandService.updateScheduledPlace(
@@ -206,6 +206,37 @@ class ScheduledPlaceCommandServiceTest {
         .isInstanceOf(BusinessException.class)
         .extracting("errorCode")
         .isEqualTo(TripErrorCode.DAILY_PLAN_NOT_FOUND);
+  }
+
+  @Test
+  @DisplayName("예정된 장소를 다른 장소로 교체하면, 장소만 변경되어야 한다.")
+  void replaceScheduledPlace_Success() {
+    // given
+    DailyPlan dailyPlan = tripPlan.getDailyPlans().get(0);
+    ScheduledPlace scheduledPlace =
+        ScheduledPlaceFixture.withId(1L, ScheduledPlaceFixture.createWithDailyPlan(dailyPlan));
+    scheduledPlace.updateVisitOrder(1);
+    dailyPlan.addScheduledPlace(scheduledPlace);
+
+    Place newPlace = PlaceFixture.withId(2L, PlaceFixture.create());
+
+    Long tripPlanId = tripPlan.getId();
+    Integer dayNumber = 1;
+    Integer visitOrder = 1;
+    Long newPlaceId = newPlace.getId();
+
+    given(sha256Hasher.hash(member.getEmail())).willReturn(member.getEmailHash());
+    given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
+    given(placeRepository.findByIdWithThemes(newPlaceId)).willReturn(Optional.of(newPlace));
+
+    // when
+    scheduledPlaceCommandService.replaceScheduledPlace(
+        0L, tripPlanId, member.getEmail(), dayNumber, visitOrder, newPlaceId);
+
+    // then
+    assertThat(scheduledPlace.getPlace().getId()).isEqualTo(newPlace.getId());
+    verify(tripPlanRepository).findByIdWithDetails(tripPlanId);
+    verify(placeRepository).findByIdWithThemes(newPlaceId);
   }
 
   @Test

@@ -354,7 +354,10 @@ public class ScheduledPlaceCommandService implements ScheduledPlaceCommandUseCas
     TravelSegment updatedTravelSegment =
         TravelSegment.builder()
             .travelTime(distance.estimatedMinutes())
-            .transportation(scheduledPlace.getTravelSegment().getTransportation())
+            .transportation(
+                scheduledPlace.getTravelSegment() != null
+                    ? scheduledPlace.getTravelSegment().getTransportation()
+                    : null)
             .build();
 
     scheduledPlace.updateTravelSegment(updatedTravelSegment);

@@ -103,6 +103,15 @@ public class ScheduledPlace extends BaseEntity {
   }
 
   /**
+   * 이동 정보(소요시간, 이동수단)를 업데이트합니다.
+   *
+   * @param travelSegment 업데이트할 이동 정보
+   */
+  public void updateTravelSegment(TravelSegment travelSegment) {
+    this.travelSegment = travelSegment;
+  }
+
+  /**
    * DailyPlan과의 양방향 관계 설정을 위한 메서드입니다.
    *
    * <p>DailyPlan.addScheduledPlace()에서만 호출되어야 합니다.

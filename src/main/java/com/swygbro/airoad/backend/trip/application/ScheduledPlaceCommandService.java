@@ -166,7 +166,10 @@ public class ScheduledPlaceCommandService implements ScheduledPlaceCommandUseCas
 
     DailyPlan dailyPlan = validateAndGetDailyPlan(tripPlanId, username, dayNumber);
     ScheduledPlace scheduledPlace = getScheduledPlace(dailyPlan, visitOrder);
-    Place place = placeRepository.findByIdWithThemes(placeId).orElse(null);
+    Place place =
+        placeRepository
+            .findByIdWithThemes(placeId)
+            .orElseThrow(() -> new BusinessException(TripErrorCode.PLACE_NOT_FOUND));
 
     publishEvent(
         TripPlanUpdateStartedEvent.builder()

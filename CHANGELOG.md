@@ -1,3 +1,10 @@
+## [0.36.5](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.36.4...v0.36.5) (2025-11-29)
+
+
+### Bug Fixes
+
+* AI 일정 생성 파이프라인 경로 최적화 로직 개선 ([#102](https://github.com/swyp-web-11-team-4/airoad-backend/issues/102)) ([51e2602](https://github.com/swyp-web-11-team-4/airoad-backend/commit/51e2602f435825000712dce4a77446fa9a9dab69))
+
 ## [0.36.4](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.36.3...v0.36.4) (2025-11-28)
 
 

@@ -1,3 +1,10 @@
+## [0.36.6](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.36.5...v0.36.6) (2025-11-29)
+
+
+### Bug Fixes
+
+* 간혹 시/군/구를 영어로 반환하는 문제 관련 프롬프트 수정 ([#103](https://github.com/swyp-web-11-team-4/airoad-backend/issues/103)) ([d1510a5](https://github.com/swyp-web-11-team-4/airoad-backend/commit/d1510a5960358d69aeefef07cef37bde1d0b1e10))
+
 ## [0.36.5](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.36.4...v0.36.5) (2025-11-29)
 
 

@@ -1,6 +1,6 @@
-package com.swygbro.airoad.backend.ai.agent.trip.v3.pipeline;
+package com.swygbro.airoad.backend.ai.agent.trip.pipeline;
 
-import com.swygbro.airoad.backend.ai.agent.trip.v3.context.ExecutionContext;
+import com.swygbro.airoad.backend.ai.agent.trip.context.ExecutionContext;
 
 /**
  * 파이프라인의 단일 Step을 정의하는 인터페이스

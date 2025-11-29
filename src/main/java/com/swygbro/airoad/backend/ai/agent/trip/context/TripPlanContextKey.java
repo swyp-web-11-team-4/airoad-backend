@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.ai.agent.trip.v3.context;
+package com.swygbro.airoad.backend.ai.agent.trip.context;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -13,12 +13,13 @@ import lombok.RequiredArgsConstructor;
 public enum TripPlanContextKey {
   REQUEST("request", "여행 일정 생성 요청"),
   DAY_NUMBER("dayNumber", "현재 생성 중인 날짜 번호"),
-  KEYWORDS("keywords", "생성된 검색 키워드 (Step 1 출력)"),
-  SEARCH_RESULTS("searchResults", "벡터 검색 결과 (Step 2 출력)"),
-  DEDUP_RESULT("dedupResult", "중복 제거 결과 (Step 3 출력)"),
-  SCHEDULE_CREATION_RESULT("scheduleCreationResult", "일정 선택 결과 (Step 5 출력)"),
-  DISTANCE_CALCULATED_PLACES("distanceCalculatedPlaces", "거리 계산 완료된 장소 목록 (Step 6 출력)"),
-  SCHEDULE("schedule", "생성된 여행 일정 (Step 7 출력)"),
+  KEYWORDS("keywords", "생성된 검색 키워드"),
+  SEARCH_RESULTS("searchResults", "벡터 검색 결과"),
+  DEDUP_RESULT("dedupResult", "중복 제거 결과"),
+  ROUTE_OPTIMIZATION_RESULT("routeOptimizationResult", "경로 최적화 결과"),
+  SCHEDULE_SUMMARY_RESULT("scheduleSummaryResult", "일정 요약 결과"),
+  DISTANCE_CALCULATED_PLACES("distanceCalculatedPlaces", "거리 계산 완료된 장소 목록"),
+  SCHEDULE("schedule", "생성된 여행 일정"),
   PREVIOUS_PLACE_IDS("previousPlaceIds", "이전 날짜 방문 장소 ID 목록"),
   VISITED_DISTRICTS("visitedDistricts", "이전 날짜 방문 구역 목록"),
   SELECTED_DISTRICT("selectedDistrict", "현재 날짜 선택된 구역"),

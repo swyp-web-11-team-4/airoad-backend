@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.ai.agent.trip.v3.step;
+package com.swygbro.airoad.backend.ai.agent.trip.step;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,12 +11,12 @@ import org.springframework.ai.vectorstore.filter.Filter;
 import org.springframework.ai.vectorstore.filter.FilterExpressionTextParser;
 import org.springframework.stereotype.Component;
 
+import com.swygbro.airoad.backend.ai.agent.trip.context.ExecutionContext;
+import com.swygbro.airoad.backend.ai.agent.trip.context.TripPlanContextKey;
 import com.swygbro.airoad.backend.ai.agent.trip.dto.request.AiDailyPlanRequest;
 import com.swygbro.airoad.backend.ai.agent.trip.dto.response.KeywordResponse;
-import com.swygbro.airoad.backend.ai.agent.trip.v3.context.ExecutionContext;
-import com.swygbro.airoad.backend.ai.agent.trip.v3.context.TripPlanContextKey;
-import com.swygbro.airoad.backend.ai.agent.trip.v3.dto.PlaceSearchResponse;
-import com.swygbro.airoad.backend.ai.agent.trip.v3.pipeline.PipelineStep;
+import com.swygbro.airoad.backend.ai.agent.trip.dto.response.PlaceSearchResponse;
+import com.swygbro.airoad.backend.ai.agent.trip.pipeline.PipelineStep;
 import com.swygbro.airoad.backend.content.domain.entity.PlaceThemeType;
 
 import lombok.RequiredArgsConstructor;
@@ -38,7 +38,7 @@ public class PlaceSearchStep implements PipelineStep {
   public ExecutionContext execute(ExecutionContext context) {
     KeywordResponse keywords = context.get(TripPlanContextKey.KEYWORDS);
     AiDailyPlanRequest request = context.get(TripPlanContextKey.REQUEST);
-    String selectedProvince = keywords.selectedProvince();
+    String selectedProvince = keywords.selectedProvince().getOfficialName();
     String selectedDistrict = keywords.selectedDistrict();
 
     List<PlaceThemeType> userThemes = request.themes();
@@ -77,16 +77,25 @@ public class PlaceSearchStep implements PipelineStep {
               .similaritySearch(
                   SearchRequest.builder()
                       .query(keyword)
-                      .topK(6)
+                      .topK(10)
                       .similarityThreshold(0.45d)
                       .filterExpression(filter)
                       .build())
               .stream()
-              .distinct()
               .toList());
     }
 
-    return documents;
+    // placeId 기준 중복 제거 (유사도 점수가 가장 높은 Document 유지)
+    return documents.stream()
+        .collect(
+            Collectors.toMap(
+                doc -> ((Integer) doc.getMetadata().get("placeId")).longValue(),
+                doc -> doc,
+                (existing, replacement) ->
+                    existing.getScore() >= replacement.getScore() ? existing : replacement))
+        .values()
+        .stream()
+        .toList();
   }
 
   private String createDistrictFilterStr(String province, String district) {

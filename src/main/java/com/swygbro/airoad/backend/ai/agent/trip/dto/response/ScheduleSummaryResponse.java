@@ -1,14 +1,13 @@
-package com.swygbro.airoad.backend.ai.agent.trip.v3.dto;
+package com.swygbro.airoad.backend.ai.agent.trip.dto.response;
 
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.swygbro.airoad.backend.trip.domain.entity.ScheduledCategory;
 
 import lombok.Builder;
 
 @Builder
-public record ScheduleCreationResponse(
+public record ScheduleSummaryResponse(
     @JsonPropertyDescription(
             "해당 일차의 소제목, 다른 소제목과 중복되지 않게 작성하고 재밌고 재치있게 작성하세요. 예: '오늘은 내가 만수르야!', '한옥 골목 속 숨은 서울 찾기'")
         String title,
@@ -49,17 +48,24 @@ public record ScheduleCreationResponse(
         ```
         """)
         String description,
-    @JsonPropertyDescription("일정에 포함될 장소 목록") List<ScheduledPlaceInfo> places) {
+    @JsonPropertyDescription("각 장소별 요약 정보") List<PlaceSummary> placeSummaries) {
 
   @Builder
-  public record ScheduledPlaceInfo(
-      @JsonPropertyDescription("DB에 저장된 장소 식별자 ID, null 값을 가질 수 없음") Long placeId,
+  public record PlaceSummary(
+      @JsonPropertyDescription("장소 ID") Long placeId,
       @JsonPropertyDescription(
               """
-          장소에 대한 설명 및 선정 이유를 150~200자로 작성
+          장소에 대한 설명 및 선정 이유를 100~130자로 작성
           - 예시: "한라수목원은 자연형 수목원으로 한라산 자생 식물과 숲속 산책로를 즐길 수 있는 힐링 명소입니다. 도심과 가까워 여행 중 여유롭게 산책하기 좋은 장소입니다."
           """)
-          String summary,
-      @JsonPropertyDescription("일정 방문 순서 (1부터 시작)") int visitOrder,
-      @JsonPropertyDescription("일정 카테고리") ScheduledCategory category) {}
+          String summary) {}
+
+  public static ScheduleSummaryResponse of(
+      String title, String description, List<PlaceSummary> placeSummaries) {
+    return ScheduleSummaryResponse.builder()
+        .title(title)
+        .description(description)
+        .placeSummaries(placeSummaries)
+        .build();
+  }
 }

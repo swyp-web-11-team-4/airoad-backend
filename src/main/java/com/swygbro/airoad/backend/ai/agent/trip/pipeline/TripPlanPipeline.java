@@ -1,22 +1,22 @@
-package com.swygbro.airoad.backend.ai.agent.trip.v3.pipeline;
+package com.swygbro.airoad.backend.ai.agent.trip.pipeline;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import com.swygbro.airoad.backend.ai.agent.trip.context.ExecutionContext;
+import com.swygbro.airoad.backend.ai.agent.trip.context.TripPlanContextKey;
+import com.swygbro.airoad.backend.ai.agent.trip.dto.common.ExecutionResult;
 import com.swygbro.airoad.backend.ai.agent.trip.dto.request.AiDailyPlanRequest;
 import com.swygbro.airoad.backend.ai.agent.trip.dto.response.AiDailyPlanResponse;
-import com.swygbro.airoad.backend.ai.agent.trip.v3.context.ExecutionContext;
-import com.swygbro.airoad.backend.ai.agent.trip.v3.context.TripPlanContextKey;
-import com.swygbro.airoad.backend.ai.agent.trip.v3.dto.ExecutionResult;
-import com.swygbro.airoad.backend.ai.agent.trip.v3.step.DeduplicationStep;
-import com.swygbro.airoad.backend.ai.agent.trip.v3.step.DistanceCalculationStep;
-import com.swygbro.airoad.backend.ai.agent.trip.v3.step.KeywordGenerationStep;
-import com.swygbro.airoad.backend.ai.agent.trip.v3.step.LocationFilteringStep;
-import com.swygbro.airoad.backend.ai.agent.trip.v3.step.PlaceSearchStep;
-import com.swygbro.airoad.backend.ai.agent.trip.v3.step.ScheduleCompletionStep;
-import com.swygbro.airoad.backend.ai.agent.trip.v3.step.ScheduleCreationStep;
+import com.swygbro.airoad.backend.ai.agent.trip.step.DeduplicationStep;
+import com.swygbro.airoad.backend.ai.agent.trip.step.DistanceCalculationStep;
+import com.swygbro.airoad.backend.ai.agent.trip.step.KeywordGenerationStep;
+import com.swygbro.airoad.backend.ai.agent.trip.step.PlaceSearchStep;
+import com.swygbro.airoad.backend.ai.agent.trip.step.RouteOptimizationStep;
+import com.swygbro.airoad.backend.ai.agent.trip.step.ScheduleCompletionStep;
+import com.swygbro.airoad.backend.ai.agent.trip.step.ScheduleSummaryStep;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,8 +30,8 @@ public class TripPlanPipeline {
       KeywordGenerationStep keywordStep,
       PlaceSearchStep placeSearchStep,
       DeduplicationStep deduplicationStep,
-      LocationFilteringStep locationFilteringStep,
-      ScheduleCreationStep scheduleStep,
+      RouteOptimizationStep routeOptimizationStep,
+      ScheduleSummaryStep scheduleSummaryStep,
       DistanceCalculationStep distanceStep,
       ScheduleCompletionStep completionStep) {
 
@@ -40,8 +40,8 @@ public class TripPlanPipeline {
             keywordStep,
             placeSearchStep,
             deduplicationStep,
-            locationFilteringStep,
-            scheduleStep,
+            routeOptimizationStep,
+            scheduleSummaryStep,
             distanceStep,
             completionStep);
   }

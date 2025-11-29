@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.ai.agent.trip.v3.dto;
+package com.swygbro.airoad.backend.ai.agent.trip.dto.common;
 
 import com.swygbro.airoad.backend.ai.agent.trip.dto.response.AiDailyPlanResponse;
 

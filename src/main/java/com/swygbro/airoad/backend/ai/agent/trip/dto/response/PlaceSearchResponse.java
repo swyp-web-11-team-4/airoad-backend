@@ -4,7 +4,9 @@ import java.util.List;
 
 import org.springframework.ai.document.Document;
 
-import lombok.Builder;
+public record PlaceSearchResponse(List<Document> places, List<Document> restaurants) {
 
-@Builder
-public record PlaceSearchResponse(List<Document> places, List<Document> restaurants) {}
+  public static PlaceSearchResponse of(List<Document> places, List<Document> restaurants) {
+    return new PlaceSearchResponse(places, restaurants);
+  }
+}

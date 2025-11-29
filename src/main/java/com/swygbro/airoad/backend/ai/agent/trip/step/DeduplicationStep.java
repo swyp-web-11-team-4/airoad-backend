@@ -1,15 +1,15 @@
-package com.swygbro.airoad.backend.ai.agent.trip.v3.step;
+package com.swygbro.airoad.backend.ai.agent.trip.step;
 
 import java.util.List;
 
 import org.springframework.ai.document.Document;
 import org.springframework.stereotype.Component;
 
-import com.swygbro.airoad.backend.ai.agent.trip.v3.context.ExecutionContext;
-import com.swygbro.airoad.backend.ai.agent.trip.v3.context.TripPlanContextKey;
-import com.swygbro.airoad.backend.ai.agent.trip.v3.dto.DeduplicationResponse;
-import com.swygbro.airoad.backend.ai.agent.trip.v3.dto.PlaceSearchResponse;
-import com.swygbro.airoad.backend.ai.agent.trip.v3.pipeline.PipelineStep;
+import com.swygbro.airoad.backend.ai.agent.trip.context.ExecutionContext;
+import com.swygbro.airoad.backend.ai.agent.trip.context.TripPlanContextKey;
+import com.swygbro.airoad.backend.ai.agent.trip.dto.response.DeduplicationResponse;
+import com.swygbro.airoad.backend.ai.agent.trip.dto.response.PlaceSearchResponse;
+import com.swygbro.airoad.backend.ai.agent.trip.pipeline.PipelineStep;
 
 import lombok.extern.slf4j.Slf4j;
 

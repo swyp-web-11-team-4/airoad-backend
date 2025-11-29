@@ -1,4 +1,4 @@
-package com.swygbro.airoad.backend.ai.agent.trip.v3.context;
+package com.swygbro.airoad.backend.ai.agent.trip.context;
 
 import java.util.HashMap;
 import java.util.Map;

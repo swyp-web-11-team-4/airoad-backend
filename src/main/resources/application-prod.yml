@@ -2,6 +2,13 @@ server:
   port: 8080
 
 spring:
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT:5672}
+    stomp-port: ${RABBITMQ_STOMP_PORT:61613}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+
   datasource:
     driver-class-name: org.postgresql.Driver
     url: ${DB_URL}

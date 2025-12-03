@@ -20,9 +20,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
 /**
- * Redis 캐싱 및 Pub/Sub 설정
+ * Redis 캐싱 설정
  *
- * <p>Lettuce 클라이언트를 사용하여 Redis 연결을 관리합니다.
+ * <p>Lettuce 클라이언트를 사용하여 Redis 연결을 관리합니다. RefreshToken 저장 및 캐싱 용도로 사용됩니다.
  */
 @Configuration
 @EnableCaching

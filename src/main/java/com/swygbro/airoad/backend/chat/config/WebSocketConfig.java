@@ -50,14 +50,32 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     registry.addEndpoint("/ws-stomp").setAllowedOriginPatterns(allowedOriginPatterns).withSockJS();
   }
 
+  @Value("${spring.rabbitmq.host:localhost}")
+  private String rabbitHost;
+
+  @Value("${spring.rabbitmq.stomp-port:61613}")
+  private int rabbitStompPort;
+
+  @Value("${spring.rabbitmq.username:guest}")
+  private String rabbitUsername;
+
+  @Value("${spring.rabbitmq.password:guest}")
+  private String rabbitPassword;
+
   @Override
   public void configureMessageBroker(MessageBrokerRegistry registry) {
-    // Simple Broker 사용 (AI와의 1:1 채팅을 위한 /sub prefix)
-    // TaskScheduler는 Spring Boot가 자동으로 생성하므로 명시적 설정 불필요
+    // RabbitMQ STOMP Broker Relay 사용 (다중 서버 지원)
     registry
-        .enableSimpleBroker("/sub")
-        .setTaskScheduler(wsHeartbeatScheduler())
-        .setHeartbeatValue(new long[] {10000, 10000}); // 10초마다 ping/pong
+        .enableStompBrokerRelay("/sub")
+        .setRelayHost(rabbitHost)
+        .setRelayPort(rabbitStompPort)
+        .setClientLogin(rabbitUsername)
+        .setClientPasscode(rabbitPassword)
+        .setSystemLogin(rabbitUsername)
+        .setSystemPasscode(rabbitPassword)
+        .setSystemHeartbeatSendInterval(10000)
+        .setSystemHeartbeatReceiveInterval(10000);
+
     registry.setApplicationDestinationPrefixes("/pub");
     registry.setUserDestinationPrefix("/user");
   }

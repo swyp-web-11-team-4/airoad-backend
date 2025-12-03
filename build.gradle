@@ -48,6 +48,10 @@ dependencies {
     // Redis (Lettuce)
     implementation libs.lettuce.core
 
+    // RabbitMQ
+    implementation libs.spring.boot.starter.amqp
+    implementation libs.reactor.netty
+
     // Guava (RateLimiter)
     implementation libs.guava
 
@@ -77,6 +81,7 @@ dependencies {
     testCompileOnly libs.lombok
     testAnnotationProcessor libs.lombok
     testImplementation libs.spring.security.test
+    testImplementation libs.spring.rabbit.test
 }
 
 tasks.named('test') {

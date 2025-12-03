@@ -50,6 +50,12 @@ spring-boot-starter-devtools = { module = "org.springframework.boot:spring-boot-
 spring-boot-starter-websocket = { module = "org.springframework.boot:spring-boot-starter-websocket" }
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator"}
 spring-boot-starter-data-redis = { module = "org.springframework.boot:spring-boot-starter-data-redis" }
+
+# RabbitMQ
+spring-boot-starter-amqp = { module = "org.springframework.boot:spring-boot-starter-amqp" }
+spring-rabbit-test = { module = "org.springframework.amqp:spring-rabbit-test" }
+reactor-netty = { module = "io.projectreactor.netty:reactor-netty" }
+
 spring-boot-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "spring-doc" }
 
 # Spring AI

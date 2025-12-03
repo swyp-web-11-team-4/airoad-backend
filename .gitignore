@@ -46,6 +46,10 @@ application*.properties
 ### Claude Code ###
 .claude/settings.local.json
 
+### Documentation (local only) ###
+DDD_IMPROVEMENT_PLAN.md
+DDD_TO_HEXAGONAL_MIGRATION.md
+
 ### Gemini CLI ###
 .gemini/
 

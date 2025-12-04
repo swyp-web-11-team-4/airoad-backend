@@ -30,7 +30,9 @@ public class WebSocketPayloadTypeInterceptor implements ChannelInterceptor {
       accessor.setContentType(MimeTypeUtils.APPLICATION_JSON);
     }
 
-    accessor.setLeaveMutable(true);
+    if (accessor.isMutable()) {
+      accessor.setLeaveMutable(true);
+    }
     return message;
   }
 }

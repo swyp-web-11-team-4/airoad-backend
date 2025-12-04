@@ -58,10 +58,11 @@ public class TripPlanNotificationListener {
     ChatStreamDto chatMessage =
         ChatStreamDto.of(event.dailyPlan().description(), true, MessageStreamType.CHAT);
 
-    String tripDestination = "/sub/schedule/" + event.tripPlanId();
-    String chatDestination = "/sub/chat/" + event.chatRoomId();
-    sendToUser(event.username(), tripDestination, tripMessage);
-    sendToUser(event.username(), chatDestination, chatMessage);
+    String tripDestination =
+        "/queue/schedule-" + event.tripPlanId() + "-" + event.username();
+    String chatDestination = "/queue/chat-" + event.chatRoomId() + "-" + event.username();
+    sendMessage(tripDestination, tripMessage);
+    sendMessage(chatDestination, chatMessage);
   }
 
   /**
@@ -77,8 +78,8 @@ public class TripPlanNotificationListener {
 
     ChatStreamDto message = ChatStreamDto.of(event.message(), true, MessageStreamType.COMPLETED);
 
-    String destination = "/sub/chat/" + event.chatRoomId();
-    sendToUser(event.username(), destination, message);
+    String destination = "/queue/chat-" + event.chatRoomId() + "-" + event.username();
+    sendMessage(destination, message);
   }
 
   /**
@@ -96,12 +97,12 @@ public class TripPlanNotificationListener {
         event.errorCode().getCode(),
         event.errorCode().getDefaultMessage());
 
-    String destination = "/sub/errors/" + event.chatRoomId();
+    String destination = "/queue/errors-" + event.chatRoomId() + "-" + event.username();
     ErrorResponse message =
         ErrorResponse.of(
             event.errorCode().getCode(), event.errorCode().getDefaultMessage(), destination);
 
-    sendToUser(event.username(), destination, message);
+    sendMessage(destination, message);
   }
 
   /**
@@ -118,8 +119,8 @@ public class TripPlanNotificationListener {
     ChatStreamDto message =
         ChatStreamDto.of("일정 생성이 취소되었습니다: " + event.reason(), true, MessageStreamType.CANCELLED);
 
-    String destination = "/sub/chat/" + event.chatRoomId();
-    sendToUser(event.username(), destination, message);
+    String destination = "/queue/chat-" + event.chatRoomId() + "-" + event.username();
+    sendMessage(destination, message);
   }
 
   /**
@@ -141,15 +142,15 @@ public class TripPlanNotificationListener {
             .message(event.message())
             .build();
 
-    String destination = "/sub/schedule/" + event.tripPlanId();
-    sendToUser(event.username(), destination, tripMessage);
+    String destination = "/queue/schedule-" + event.tripPlanId() + "-" + event.username();
+    sendMessage(destination, tripMessage);
   }
 
   /**
    * 일정 수정 완료 이벤트를 처리합니다.
    *
-   * <p>트랜잭션 커밋 후 WebSocket을 통해 일정 채널과 채팅 채널로 수정된 일정 데이터를 전송합니다. 일정 채널(/sub/schedule/{tripPlanId})에는
-   * 수정된 일정 데이터를, 채팅 채널(/sub/chat/{chatRoomId})에는 완료 메시지를 전송합니다.
+   * <p>트랜잭션 커밋 후 WebSocket을 통해 일정 채널과 채팅 채널로 수정된 일정 데이터를 전송합니다. 일정 채널(/queue/schedule-{tripPlanId}-{username})에는
+   * 수정된 일정 데이터를, 채팅 채널(/queue/chat-{chatRoomId}-{username})에는 완료 메시지를 전송합니다.
    *
    * <p>@TransactionalEventListener를 사용하여 트랜잭션 커밋 후 이벤트를 처리함으로써, 프론트엔드가 항상 최신 DB 데이터를 받을 수 있도록
    * 보장합니다.
@@ -173,21 +174,21 @@ public class TripPlanNotificationListener {
     ChatStreamDto chatMessage =
         ChatStreamDto.of(event.dailyPlan().description(), true, MessageStreamType.UPDATED);
 
-    String tripDestination = "/sub/schedule/" + event.tripPlanId();
-    String chatDestination = "/sub/chat/" + event.chatRoomId();
-    sendToUser(event.username(), tripDestination, tripMessage);
-    sendToUser(event.username(), chatDestination, chatMessage);
+    String tripDestination =
+        "/queue/schedule-" + event.tripPlanId() + "-" + event.username();
+    String chatDestination = "/queue/chat-" + event.chatRoomId() + "-" + event.username();
+    sendMessage(tripDestination, tripMessage);
+    sendMessage(chatDestination, chatMessage);
   }
 
   /**
-   * 특정 사용자에게 WebSocket 메시지를 전송합니다.
+   * WebSocket 메시지를 전송합니다.
    *
-   * @param username 사용자 이메일
-   * @param destination WebSocket 목적지 경로 (예: /sub/chat/1, /sub/schedule/1, /sub/errors/1)
+   * @param destination WebSocket 목적지 경로 (예: /queue/chat-370-username)
    * @param message 전송할 메시지
    */
-  private void sendToUser(String username, String destination, Object message) {
-    messagingTemplate.convertAndSendToUser(username, destination, message);
+  private void sendMessage(String destination, Object message) {
+    messagingTemplate.convertAndSend(destination, message);
     log.debug(
         "WebSocket 메시지 전송 - destination: {}, type: {}",
         destination,

@@ -48,11 +48,11 @@ public class ChatNotificationListener {
       // ChatStreamDto로 변환 (완료된 메시지)
       ChatStreamDto response = ChatStreamDto.ofChat(event.aiMessage(), true);
 
-      // WebSocket 목적지 결정
-      String destination = "/sub/chat/" + event.chatRoomId();
+      // WebSocket 목적지 결정 (username 포함)
+      String destination = "/queue/chat-" + event.chatRoomId() + "-" + event.username();
 
       // 사용자에게 전송
-      messagingTemplate.convertAndSendToUser(event.username(), destination, response);
+      messagingTemplate.convertAndSend(destination, response);
 
       log.debug(
           "[Chat Notification] WebSocket 전송 성공 - chatRoomId: {}, destination: {}",
@@ -73,7 +73,7 @@ public class ChatNotificationListener {
   /**
    * WebSocket 전송 실패 시 클라이언트에게 에러 메시지 전송
    *
-   * <p>/user/sub/errors/{chatRoomId} 채널로 에러를 전송하여 클라이언트가 스트리밍 중단을 인지할 수 있도록 합니다.
+   * <p>/queue/errors-{chatRoomId}-{username} 채널로 에러를 전송하여 클라이언트가 스트리밍 중단을 인지할 수 있도록 합니다.
    *
    * @param username 사용자 이름, 이메일
    * @param chatRoomId 채팅방 ID (null이면 "unknown" 사용)
@@ -87,8 +87,11 @@ public class ChatNotificationListener {
               "/ws-stomp");
 
       // chatRoomId가 있으면 해당 채팅방의 에러 채널로 전송
-      String destination = chatRoomId != null ? "/sub/errors/" + chatRoomId : "/sub/errors/unknown";
-      messagingTemplate.convertAndSendToUser(username, destination, errorResponse);
+      String destination =
+          chatRoomId != null
+              ? "/queue/errors-" + chatRoomId + "-" + username
+              : "/queue/errors-unknown-" + username;
+      messagingTemplate.convertAndSend(destination, errorResponse);
 
       log.info("[WebSocket] 에러 메시지 전송 완료, destination: {}", destination);
     } catch (Exception e) {

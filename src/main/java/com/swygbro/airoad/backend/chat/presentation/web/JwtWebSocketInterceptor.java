@@ -47,9 +47,9 @@ import lombok.extern.slf4j.Slf4j;
  *
  * <ul>
  *   <li>Principal null 체크
- *   <li>구독 경로 검증 (허용 패턴: {@code ^(/user)?/sub/(chat|schedule|errors)/\d+$})
- *   <li>허용 경로: /user/sub/chat/*, /user/sub/schedule/*, /user/sub/errors/* (클라이언트)
- *   <li>허용 경로: /sub/chat/*, /sub/schedule/*, /sub/errors/* (서버 내부 변환)
+ *   <li>구독 경로 검증 (허용 패턴: {@code ^(/user)?/(queue/(errors|schedule|chat)|topic/chat)/\d+$})
+ *   <li>허용 경로: /topic/chat/* (브로드캐스트), /queue/errors/*, /queue/schedule/* (개인 메시지)
+ *   <li>허용 경로: /user/queue/chat/*, /user/queue/errors/*, /user/queue/schedule/* (사용자별 개인 메시지)
  * </ul>
  *
  * <h3>SEND</h3>
@@ -223,9 +223,12 @@ public class JwtWebSocketInterceptor implements ChannelInterceptor {
     log.debug("[WebSocket] SUBSCRIBE 요청 - destination: {}", destination);
 
     // 구독 경로 검증
-    // /user prefix 있든 없든 모두 허용 (Spring이 내부적으로 변환)
-    // 허용 패턴: /sub/{채널타입}/{ID} 또는 /user/sub/{채널타입}/{ID}
-    if (destination != null && !destination.matches("^(/user)?/sub/(chat|schedule|errors)/\\d+$")) {
+    // 허용 패턴:
+    // - /queue/errors-{chatRoomId}-{username} (에러 채널)
+    // - /queue/chat-{chatRoomId}-{username} (채팅 채널)
+    // - /queue/schedule-{tripPlanId}-{username} (일정 채널)
+    if (destination != null
+        && !destination.matches("^/queue/(errors|chat|schedule)-\\d+-[^/]+$")) {
       log.error("[WebSocket] 허용되지 않은 구독 경로, destination: {}", destination);
       throw new BusinessException(WebSocketErrorCode.FORBIDDEN_SUBSCRIPTION);
     }

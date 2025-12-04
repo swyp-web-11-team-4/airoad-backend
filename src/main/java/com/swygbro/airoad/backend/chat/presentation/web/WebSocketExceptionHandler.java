@@ -163,9 +163,12 @@ public class WebSocketExceptionHandler {
    */
   private void sendErrorToUser(String username, Long chatRoomId, ErrorResponse errorResponse) {
     // chatRoomId가 있으면 해당 채팅방의 에러 채널로 전송
-    String destination = chatRoomId != null ? "/sub/errors/" + chatRoomId : "/sub/errors/unknown";
+    String destination =
+        chatRoomId != null
+            ? "/queue/errors-" + chatRoomId + "-" + username
+            : "/queue/errors-unknown-" + username;
 
-    messagingTemplate.convertAndSendToUser(username, destination, errorResponse);
+    messagingTemplate.convertAndSend(destination, errorResponse);
 
     log.debug(
         "[WebSocket] 에러 메시지 전송 - destination: {}, code: {}", destination, errorResponse.code());

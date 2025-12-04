@@ -65,8 +65,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
   @Override
   public void configureMessageBroker(MessageBrokerRegistry registry) {
     // RabbitMQ STOMP Broker Relay 사용 (다중 서버 지원)
+    // RabbitMQ는 /queue, /topic 표준 prefix만 지원
     registry
-        .enableStompBrokerRelay("/sub")
+        .enableStompBrokerRelay("/queue", "/topic")
         .setRelayHost(rabbitHost)
         .setRelayPort(rabbitStompPort)
         .setClientLogin(rabbitUsername)

@@ -16,6 +16,7 @@ import com.swygbro.airoad.backend.ai.agent.trip.dto.response.RouteOptimizationRe
 import com.swygbro.airoad.backend.ai.agent.trip.dto.response.RouteOptimizationResponse.RoutedPlace;
 import com.swygbro.airoad.backend.ai.agent.trip.pipeline.PipelineStep;
 import com.swygbro.airoad.backend.content.application.DistanceCalculationUseCase;
+import com.swygbro.airoad.backend.content.domain.vo.Coordinate;
 import com.swygbro.airoad.backend.content.domain.vo.Distance;
 
 import lombok.RequiredArgsConstructor;
@@ -39,12 +40,10 @@ public class DistanceCalculationStep implements PipelineStep {
       return context;
     }
 
-    // Document 리스트 통합 (places + restaurants)
     List<Document> allDocuments = new ArrayList<>();
     allDocuments.addAll(dedupResult.places());
     allDocuments.addAll(dedupResult.restaurants());
 
-    // placeId -> Document 매핑
     Map<Long, Document> documentMap =
         allDocuments.stream()
             .collect(
@@ -53,50 +52,33 @@ public class DistanceCalculationStep implements PipelineStep {
                     doc -> doc,
                     (existing, replacement) -> existing));
 
-    List<RouteOptimizationResponse.RoutedPlace> scheduledPlaces = routeResult.places();
+    List<RoutedPlace> scheduledPlaces = routeResult.places();
+
+    List<Coordinate> coordinates =
+        scheduledPlaces.stream()
+            .map(p -> documentMap.get(p.placeId()))
+            .map(this::extractCoordinate)
+            .toList();
+
+    List<Distance> distances = distanceCalculationUseCase.calculateRouteDistances(coordinates);
+
     List<DistanceCalculationResponse> placesWithDistance = new ArrayList<>();
 
-    for (int i = 0; i < scheduledPlaces.size(); i++) {
-      RoutedPlace currentSchedule = scheduledPlaces.get(i);
+    if (!scheduledPlaces.isEmpty()) {
+      RoutedPlace first = scheduledPlaces.get(0);
+      placesWithDistance.add(mapToResponse(first, 0));
+    }
 
-      int estimatedMinutes = 0;
+    for (int i = 0; i < distances.size(); i++) {
+      RoutedPlace currentPlace = scheduledPlaces.get(i + 1);
+      Distance dist = distances.get(i);
+      placesWithDistance.add(mapToResponse(currentPlace, dist.estimatedMinutes()));
 
-      if (i < scheduledPlaces.size() - 1) {
-        RoutedPlace nextSchedule = scheduledPlaces.get(i + 1);
-
-        Document currentDoc = documentMap.get(currentSchedule.placeId());
-        Document nextDoc = documentMap.get(nextSchedule.placeId());
-
-        if (hasCoordinates(currentDoc) && hasCoordinates(nextDoc)) {
-          Double currentLat = (Double) currentDoc.getMetadata().get("latitude");
-          Double currentLon = (Double) currentDoc.getMetadata().get("longitude");
-          Double nextLat = (Double) nextDoc.getMetadata().get("latitude");
-          Double nextLon = (Double) nextDoc.getMetadata().get("longitude");
-
-          Distance distance =
-              distanceCalculationUseCase.calculateDistance(
-                  currentLat, currentLon, nextLat, nextLon);
-
-          estimatedMinutes = distance.estimatedMinutes();
-
-          log.debug(
-              "[거리계산] {} -> {}: 직선 {}km, 예상 {}분",
-              currentDoc.getMetadata().get("name"),
-              nextDoc.getMetadata().get("name"),
-              String.format("%.2f", distance.straightlineDistanceKm()),
-              estimatedMinutes);
-        } else {
-          log.warn("좌표 정보 부족: {} -> {}", currentSchedule.placeId(), nextSchedule.placeId());
-        }
-      }
-
-      placesWithDistance.add(
-          DistanceCalculationResponse.builder()
-              .placeId(currentSchedule.placeId())
-              .visitOrder(currentSchedule.visitOrder())
-              .category(currentSchedule.category())
-              .travelTime(estimatedMinutes)
-              .build());
+      log.debug(
+          "[거리계산] 구간 {}: 직선 {}km, 예상 {}분",
+          i + 1,
+          String.format("%.2f", dist.straightlineDistanceKm()),
+          dist.estimatedMinutes());
     }
 
     log.info("거리 계산 완료 (총 {}개 구간)", placesWithDistance.size() - 1);
@@ -111,9 +93,19 @@ public class DistanceCalculationStep implements PipelineStep {
     return "DistanceCalculation";
   }
 
-  private boolean hasCoordinates(Document doc) {
-    return doc != null
-        && doc.getMetadata().get("latitude") != null
-        && doc.getMetadata().get("longitude") != null;
+  private Coordinate extractCoordinate(Document doc) {
+    if (doc == null) return null;
+    Double lat = (Double) doc.getMetadata().get("latitude");
+    Double lon = (Double) doc.getMetadata().get("longitude");
+    return new Coordinate(lat, lon);
+  }
+
+  private DistanceCalculationResponse mapToResponse(RoutedPlace place, int travelTime) {
+    return DistanceCalculationResponse.builder()
+        .placeId(place.placeId())
+        .visitOrder(place.visitOrder())
+        .category(place.category())
+        .travelTime(travelTime)
+        .build();
   }
 }

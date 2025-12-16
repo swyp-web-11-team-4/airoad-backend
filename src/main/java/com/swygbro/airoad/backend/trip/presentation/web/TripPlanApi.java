@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.swygbro.airoad.backend.auth.domain.dto.UserPrincipal;
 import com.swygbro.airoad.backend.common.domain.dto.CommonResponse;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
+import com.swygbro.airoad.backend.trip.domain.dto.request.ScheduledPlaceSwapRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanUpdateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.response.ChannelIdResponse;
@@ -773,4 +774,127 @@ public interface TripPlanApi {
       @AuthenticationPrincipal UserPrincipal userPrincipal,
       @Parameter(description = "여행 계획 ID", required = true, example = "123") @PathVariable
           Long tripPlanId);
+
+  @Operation(
+      summary = "일정 장소 순서 교환",
+      description = "같은 일차 내에서 두 일정 장소의 순서를 교환합니다.",
+      security = @SecurityRequirement(name = "bearerAuth"),
+      requestBody =
+          @io.swagger.v3.oas.annotations.parameters.RequestBody(
+              description = "일정 장소 순서 교환 요청",
+              required = true,
+              content =
+                  @Content(
+                      mediaType = "application/json",
+                      schema = @Schema(implementation = ScheduledPlaceSwapRequest.class))))
+  @ApiResponses({
+    @ApiResponse(responseCode = "204", description = "순서 교환 성공"),
+    @ApiResponse(
+        responseCode = "401",
+        description = "인증되지 않은 사용자",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "success": false,
+                              "status": 401,
+                              "data": {
+                                "timestamp": "2025-10-30T10:00:00",
+                                "code": "AUTH001",
+                                "message": "인증이 필요합니다.",
+                                "path": "/api/v1/trips/123/daily-plans/1/scheduled-places",
+                                "errors": null
+                              }
+                            }
+                            """))),
+    @ApiResponse(
+        responseCode = "403",
+        description = "접근 권한 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples =
+                    @ExampleObject(
+                        value =
+                            """
+                            {
+                              "success": false,
+                              "status": 403,
+                              "data": {
+                                "timestamp": "2025-10-30T10:00:00",
+                                "code": "TRIP102",
+                                "message": "여행 일정에 대한 접근 권한이 없습니다.",
+                                "path": "/api/v1/trips/123/daily-plans/1/scheduled-places",
+                                "errors": null
+                              }
+                            }
+                            """))),
+    @ApiResponse(
+        responseCode = "404",
+        description = "리소스를 찾을 수 없음",
+        content =
+            @Content(
+                mediaType = "application/json",
+                examples = {
+                  @ExampleObject(
+                      name = "여행 일정을 찾을 수 없음",
+                      value =
+                          """
+                          {
+                            "success": false,
+                            "status": 404,
+                            "data": {
+                              "timestamp": "2025-10-30T10:00:00",
+                              "code": "TRIP101",
+                              "message": "여행 일정을 찾을 수 없습니다.",
+                              "path": "/api/v1/trips/123/daily-plans/1/scheduled-places",
+                              "errors": null
+                            }
+                          }
+                          """),
+                  @ExampleObject(
+                      name = "일일 일정을 찾을 수 없음",
+                      value =
+                          """
+                          {
+                            "success": false,
+                            "status": 404,
+                            "data": {
+                              "timestamp": "2025-10-30T10:00:00",
+                              "code": "TRIP103",
+                              "message": "일일 일정을 찾을 수 없습니다.",
+                              "path": "/api/v1/trips/123/daily-plans/1/scheduled-places",
+                              "errors": null
+                            }
+                          }
+                          """),
+                  @ExampleObject(
+                      name = "일정 장소를 찾을 수 없음",
+                      value =
+                          """
+                          {
+                            "success": false,
+                            "status": 404,
+                            "data": {
+                              "timestamp": "2025-10-30T10:00:00",
+                              "code": "TRIP104",
+                              "message": "계획 방문 일정을 찾을 수 없습니다.",
+                              "path": "/api/v1/trips/123/daily-plans/1/scheduled-places",
+                              "errors": null
+                            }
+                          }
+                          """)
+                }))
+  })
+  ResponseEntity<Void> swapScheduledPlaces(
+      @AuthenticationPrincipal UserPrincipal userPrincipal,
+      @Parameter(description = "여행 계획 ID", required = true, example = "123") @PathVariable
+          Long tripPlanId,
+      @Parameter(description = "일차", required = true, example = "1") @PathVariable
+          Integer dayNumber,
+      @RequestBody ScheduledPlaceSwapRequest request);
 }

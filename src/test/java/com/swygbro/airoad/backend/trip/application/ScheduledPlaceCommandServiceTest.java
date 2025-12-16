@@ -14,7 +14,9 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
+import com.swygbro.airoad.backend.content.application.DistanceCalculationUseCase;
 import com.swygbro.airoad.backend.content.domain.entity.Place;
+import com.swygbro.airoad.backend.content.domain.vo.Distance;
 import com.swygbro.airoad.backend.content.infrastructure.repository.PlaceRepository;
 import com.swygbro.airoad.backend.fixture.content.PlaceFixture;
 import com.swygbro.airoad.backend.fixture.member.MemberFixture;
@@ -34,6 +36,7 @@ import com.swygbro.airoad.backend.trip.infrastructure.TripPlanRepository;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -50,6 +53,8 @@ class ScheduledPlaceCommandServiceTest {
   @Mock private PlaceRepository placeRepository;
 
   @Mock private SHA256Hasher sha256Hasher;
+
+  @Mock private DistanceCalculationUseCase distanceCalculationUseCase;
 
   private Member member;
   private TripPlan tripPlan;
@@ -280,6 +285,171 @@ class ScheduledPlaceCommandServiceTest {
             () ->
                 scheduledPlaceCommandService.deleteScheduledPlace(
                     0L, tripPlanId, member.getEmail(), dayNumber, invalidVisitOrder))
+        .isInstanceOf(BusinessException.class)
+        .extracting("errorCode")
+        .isEqualTo(TripErrorCode.SCHEDULED_PLACE_NOT_FOUND);
+  }
+
+  @Test
+  @DisplayName("두 장소의 순서를 교환하면, 장소 정보가 서로 바뀌어야 한다.")
+  void swapScheduledPlaces_Success() {
+    // given
+    DailyPlan dailyPlan = tripPlan.getDailyPlans().get(0);
+
+    Place placeA = PlaceFixture.withId(1L, PlaceFixture.create());
+    Place placeB = PlaceFixture.withId(2L, PlaceFixture.create());
+
+    ScheduledPlace scheduledPlaceA =
+        ScheduledPlaceFixture.withId(1L, ScheduledPlaceFixture.createWithDailyPlan(dailyPlan));
+    scheduledPlaceA.updateVisitOrder(1);
+    scheduledPlaceA.updatePlace(placeA);
+    dailyPlan.addScheduledPlace(scheduledPlaceA);
+
+    ScheduledPlace scheduledPlaceB =
+        ScheduledPlaceFixture.withId(2L, ScheduledPlaceFixture.createWithDailyPlan(dailyPlan));
+    scheduledPlaceB.updateVisitOrder(2);
+    scheduledPlaceB.updatePlace(placeB);
+    dailyPlan.addScheduledPlace(scheduledPlaceB);
+
+    Long tripPlanId = tripPlan.getId();
+    Integer dayNumber = 1;
+    Integer visitOrderA = 1;
+    Integer visitOrderB = 2;
+
+    given(sha256Hasher.hash(member.getEmail())).willReturn(member.getEmailHash());
+    given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
+    given(
+            distanceCalculationUseCase.calculateDistance(
+                anyDouble(), anyDouble(), anyDouble(), anyDouble()))
+        .willReturn(new Distance(10.0, 15));
+
+    // when
+    scheduledPlaceCommandService.swapScheduledPlaces(
+        0L, tripPlanId, member.getEmail(), dayNumber, visitOrderA, visitOrderB);
+
+    // then
+    assertThat(scheduledPlaceA.getPlace().getId()).isEqualTo(placeB.getId());
+    assertThat(scheduledPlaceB.getPlace().getId()).isEqualTo(placeA.getId());
+    verify(tripPlanRepository).findByIdWithDetails(tripPlanId);
+  }
+
+  @Test
+  @DisplayName("존재하지 않는 여행 계획에서 장소 순서를 교환하려고 하면, BusinessException이 발생해야 한다.")
+  void swapScheduledPlaces_TripPlanNotFound_ThrowsException() {
+    // given
+    Long invalidTripPlanId = 999L;
+    Integer dayNumber = 1;
+    Integer visitOrderA = 1;
+    Integer visitOrderB = 2;
+
+    given(tripPlanRepository.findByIdWithDetails(invalidTripPlanId)).willReturn(Optional.empty());
+
+    // when & then
+    assertThatThrownBy(
+            () ->
+                scheduledPlaceCommandService.swapScheduledPlaces(
+                    0L, invalidTripPlanId, member.getEmail(), dayNumber, visitOrderA, visitOrderB))
+        .isInstanceOf(BusinessException.class)
+        .extracting("errorCode")
+        .isEqualTo(TripErrorCode.TRIP_PLAN_NOT_FOUND);
+  }
+
+  @Test
+  @DisplayName("다른 사용자의 여행 계획에서 장소 순서를 교환하려고 하면, BusinessException이 발생해야 한다.")
+  void swapScheduledPlaces_Forbidden_ThrowsException() {
+    // given
+    Long tripPlanId = tripPlan.getId();
+    String otherUserEmail = "other@example.com";
+    Integer dayNumber = 1;
+    Integer visitOrderA = 1;
+    Integer visitOrderB = 2;
+
+    given(sha256Hasher.hash(otherUserEmail)).willReturn("hash_other@example.com");
+    given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
+
+    // when & then
+    assertThatThrownBy(
+            () ->
+                scheduledPlaceCommandService.swapScheduledPlaces(
+                    0L, tripPlanId, otherUserEmail, dayNumber, visitOrderA, visitOrderB))
+        .isInstanceOf(BusinessException.class)
+        .extracting("errorCode")
+        .isEqualTo(TripErrorCode.TRIP_PLAN_FORBIDDEN);
+  }
+
+  @Test
+  @DisplayName("존재하지 않는 일차에서 장소 순서를 교환하려고 하면, BusinessException이 발생해야 한다.")
+  void swapScheduledPlaces_DailyPlanNotFound_ThrowsException() {
+    // given
+    Long tripPlanId = tripPlan.getId();
+    Integer invalidDayNumber = 999;
+    Integer visitOrderA = 1;
+    Integer visitOrderB = 2;
+
+    given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
+    given(sha256Hasher.hash(member.getEmail())).willReturn(member.getEmailHash());
+
+    // when & then
+    assertThatThrownBy(
+            () ->
+                scheduledPlaceCommandService.swapScheduledPlaces(
+                    0L, tripPlanId, member.getEmail(), invalidDayNumber, visitOrderA, visitOrderB))
+        .isInstanceOf(BusinessException.class)
+        .extracting("errorCode")
+        .isEqualTo(TripErrorCode.DAILY_PLAN_NOT_FOUND);
+  }
+
+  @Test
+  @DisplayName("존재하지 않는 방문 순서A로 장소 순서를 교환하려고 하면, BusinessException이 발생해야 한다.")
+  void swapScheduledPlaces_ScheduledPlaceANotFound_ThrowsException() {
+    // given
+    DailyPlan dailyPlan = tripPlan.getDailyPlans().get(0);
+    ScheduledPlace scheduledPlace =
+        ScheduledPlaceFixture.withId(1L, ScheduledPlaceFixture.createWithDailyPlan(dailyPlan));
+    scheduledPlace.updateVisitOrder(1);
+    dailyPlan.addScheduledPlace(scheduledPlace);
+
+    Long tripPlanId = tripPlan.getId();
+    Integer dayNumber = 1;
+    Integer invalidVisitOrderA = 999;
+    Integer visitOrderB = 1;
+
+    given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
+    given(sha256Hasher.hash(member.getEmail())).willReturn(member.getEmailHash());
+
+    // when & then
+    assertThatThrownBy(
+            () ->
+                scheduledPlaceCommandService.swapScheduledPlaces(
+                    0L, tripPlanId, member.getEmail(), dayNumber, invalidVisitOrderA, visitOrderB))
+        .isInstanceOf(BusinessException.class)
+        .extracting("errorCode")
+        .isEqualTo(TripErrorCode.SCHEDULED_PLACE_NOT_FOUND);
+  }
+
+  @Test
+  @DisplayName("존재하지 않는 방문 순서B로 장소 순서를 교환하려고 하면, BusinessException이 발생해야 한다.")
+  void swapScheduledPlaces_ScheduledPlaceBNotFound_ThrowsException() {
+    // given
+    DailyPlan dailyPlan = tripPlan.getDailyPlans().get(0);
+    ScheduledPlace scheduledPlace =
+        ScheduledPlaceFixture.withId(1L, ScheduledPlaceFixture.createWithDailyPlan(dailyPlan));
+    scheduledPlace.updateVisitOrder(1);
+    dailyPlan.addScheduledPlace(scheduledPlace);
+
+    Long tripPlanId = tripPlan.getId();
+    Integer dayNumber = 1;
+    Integer visitOrderA = 1;
+    Integer invalidVisitOrderB = 999;
+
+    given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
+    given(sha256Hasher.hash(member.getEmail())).willReturn(member.getEmailHash());
+
+    // when & then
+    assertThatThrownBy(
+            () ->
+                scheduledPlaceCommandService.swapScheduledPlaces(
+                    0L, tripPlanId, member.getEmail(), dayNumber, visitOrderA, invalidVisitOrderB))
         .isInstanceOf(BusinessException.class)
         .extracting("errorCode")
         .isEqualTo(TripErrorCode.SCHEDULED_PLACE_NOT_FOUND);

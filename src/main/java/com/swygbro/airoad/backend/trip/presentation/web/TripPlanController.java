@@ -28,7 +28,9 @@ import com.swygbro.airoad.backend.common.domain.dto.CommonResponse;
 import com.swygbro.airoad.backend.common.domain.dto.CursorPageResponse;
 import com.swygbro.airoad.backend.trip.application.DailyPlanCommandUseCase;
 import com.swygbro.airoad.backend.trip.application.DailyPlanQueryUseCase;
+import com.swygbro.airoad.backend.trip.application.ScheduledPlaceCommandUseCase;
 import com.swygbro.airoad.backend.trip.application.TripPlanUseCase;
+import com.swygbro.airoad.backend.trip.domain.dto.request.ScheduledPlaceSwapRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.request.TripPlanUpdateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.response.ChannelIdResponse;
@@ -48,6 +50,7 @@ public class TripPlanController implements TripPlanApi {
   private final TripPlanUseCase tripPlanUseCase;
   private final DailyPlanQueryUseCase dailyPlanQueryUseCase;
   private final DailyPlanCommandUseCase dailyPlanUseCase;
+  private final ScheduledPlaceCommandUseCase scheduledPlaceCommandUseCase;
 
   @Override
   @GetMapping
@@ -132,5 +135,24 @@ public class TripPlanController implements TripPlanApi {
         dailyPlanQueryUseCase.getDailyPlanListByTripPlanId(tripPlanId, userPrincipal.getId());
 
     return ResponseEntity.ok(CommonResponse.success(HttpStatus.OK, dailyPlanResponseList));
+  }
+
+  @Override
+  @PatchMapping("/{tripPlanId}/daily-plans/{dayNumber}/scheduled-places")
+  public ResponseEntity<Void> swapScheduledPlaces(
+      @AuthenticationPrincipal UserPrincipal userPrincipal,
+      @PathVariable Long tripPlanId,
+      @PathVariable Integer dayNumber,
+      @Valid @RequestBody ScheduledPlaceSwapRequest request) {
+
+    scheduledPlaceCommandUseCase.swapScheduledPlaces(
+        request.chatRoomId(),
+        tripPlanId,
+        userPrincipal.getUsername(),
+        dayNumber,
+        request.visitOrderA(),
+        request.visitOrderB());
+
+    return ResponseEntity.noContent().build();
   }
 }

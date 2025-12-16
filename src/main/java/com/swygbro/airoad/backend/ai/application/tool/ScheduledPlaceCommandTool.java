@@ -29,7 +29,8 @@ public class ScheduledPlaceCommandTool {
       @ToolParam(description = "사용자 이메일 주소") String username,
       @ToolParam(description = "교체할 장소가 속한 일차 (1=첫째 날, 2=둘째 날, ...)") Integer dayNumber,
       @ToolParam(description = "교체할 장소의 현재 방문 순서 (1=첫 번째, 2=두 번째, ...)") Integer visitOrder,
-      @ToolParam(description = "새로운 장소의 이름") String placeName) {
+      @ToolParam(description = "새로운 장소의 이름") String placeName,
+      @ToolParam(description = "새로운 장소에 대한 요약") String summary) {
 
     log.info(
         "[AI Tool] replaceScheduledPlace - username: {}, tripPlanId: {}, dayNumber: {}, visitOrder: {}, placeName: {}",
@@ -42,7 +43,7 @@ public class ScheduledPlaceCommandTool {
     PlaceResponse placeResponse = placeQueryUseCase.findPlaceByName(placeName);
 
     scheduledPlaceCommandUseCase.replaceScheduledPlace(
-        chatRoomId, tripPlanId, username, dayNumber, visitOrder, placeResponse.id());
+        chatRoomId, tripPlanId, username, dayNumber, visitOrder, placeResponse.id(), summary);
 
     return ToolResponse.success(
         String.format("%d일차 %d번째 장소를 '%s'로 교체 완료", dayNumber, visitOrder, placeName));

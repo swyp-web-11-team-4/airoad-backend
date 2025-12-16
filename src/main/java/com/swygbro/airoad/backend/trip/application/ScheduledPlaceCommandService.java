@@ -158,7 +158,8 @@ public class ScheduledPlaceCommandService implements ScheduledPlaceCommandUseCas
       String username,
       Integer dayNumber,
       Integer visitOrder,
-      Long placeId) {
+      Long placeId,
+      String summary) {
     log.info(
         "[시작] replaceScheduledPlace - 사용자: {}, 여행 계획 ID: {}, 일차: {}, 방문 순서: {}, placeId: {}",
         username,
@@ -184,6 +185,7 @@ public class ScheduledPlaceCommandService implements ScheduledPlaceCommandUseCas
             .build());
 
     scheduledPlace.updatePlace(place);
+    scheduledPlace.updateSummary(summary);
 
     // 교체된 장소의 앞/뒤 거리 재계산
     recalculatePrevAndNextDistance(dailyPlan, scheduledPlace, visitOrder, place);
@@ -281,8 +283,14 @@ public class ScheduledPlaceCommandService implements ScheduledPlaceCommandUseCas
 
     Place tempPlace = placeA.getPlace();
     Place placeANewPlace = placeB.getPlace();
+    String tempSummary = placeA.getSummary();
+    String placeASummary = placeB.getSummary();
+
     placeA.updatePlace(placeANewPlace);
+    placeA.updateSummary(placeASummary);
+
     placeB.updatePlace(tempPlace);
+    placeB.updateSummary(tempSummary);
 
     // 교환된 장소들의 앞/뒤 거리 재계산
     recalculatePrevAndNextDistance(dailyPlan, placeA, visitOrderA, placeANewPlace);

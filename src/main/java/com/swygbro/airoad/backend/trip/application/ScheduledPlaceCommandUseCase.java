@@ -25,7 +25,8 @@ public interface ScheduledPlaceCommandUseCase {
       String username,
       Integer dayNumber,
       Integer visitOrder,
-      Long placeId);
+      Long placeId,
+      String summary);
 
   void deleteScheduledPlace(
       Long chatRoomId, Long tripPlanId, String username, Integer dayNumber, Integer visitOrder);

@@ -103,6 +103,15 @@ public class ScheduledPlace extends BaseEntity {
   }
 
   /**
+   * 장소 요약을 업데이트합니다.
+   *
+   * @param summary 업데이트할 요약 내용
+   */
+  public void updateSummary(String summary) {
+    this.summary = summary;
+  }
+
+  /**
    * 이동 정보(소요시간, 이동수단)를 업데이트합니다.
    *
    * @param travelSegment 업데이트할 이동 정보

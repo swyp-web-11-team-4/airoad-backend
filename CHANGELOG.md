@@ -1,3 +1,12 @@
+# [0.37.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.36.6...v0.37.0) (2025-12-16)
+
+
+### Features
+
+* 일정 장소 순서 교환 API 구현 ([a66c63b](https://github.com/swyp-web-11-team-4/airoad-backend/commit/a66c63bacf2f3e074b6966590b0e06f6d7cbf576))
+* 일정 장소 순서 교환 API 구현 ([60902d7](https://github.com/swyp-web-11-team-4/airoad-backend/commit/60902d742c2e61de2d525517c4f3179c2f8ccff2))
+* 일정 장소 순서 교환 API에 유효성 검사 추가 ([2dda7d1](https://github.com/swyp-web-11-team-4/airoad-backend/commit/2dda7d1bae803d9875c1d017cf800ec4fad87c87))
+
 ## [0.36.6](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.36.5...v0.36.6) (2025-11-29)
 
 

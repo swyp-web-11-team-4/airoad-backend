@@ -149,6 +149,37 @@ public class Member extends BaseEntity {
 }
 ```
 
+### 5. AI Agent Pipeline Pattern
+The TripAgent uses a pipeline architecture to generate travel itineraries through sequential steps:
+
+```java
+// Pipeline orchestrates multiple steps
+@Component
+public class TripPlanPipeline {
+    private final List<PipelineStep> steps;
+
+    public ExecutionResult execute(request, dayNumber, previousPlaceIds) {
+        ExecutionContext context = new ExecutionContext();
+        // Each step processes and enriches the context
+        for (PipelineStep step : steps) {
+            step.execute(context);
+        }
+        return context.buildResult();
+    }
+}
+```
+
+**Pipeline Steps** (executed in order):
+1. `KeywordGenerationStep`: Generate search keywords from user preferences
+2. `PlaceSearchStep`: Query pgvector for relevant places using RAG
+3. `DeduplicationStep`: Remove duplicate places across days
+4. `RouteOptimizationStep`: Optimize travel route considering distances
+5. `ScheduleSummaryStep`: Generate daily schedule summaries
+6. `DistanceCalculationStep`: Calculate travel times between places
+7. `ScheduleCompletionStep`: Finalize the complete itinerary
+
+Each step implements `PipelineStep` interface and uses `ExecutionContext` to share state.
+
 ## Testing Standards
 
 ### Test Structure (JUnit5 + Mockito + Nested)
@@ -318,3 +349,22 @@ GitHub Actions workflow (`.github/workflows/ci.yml`):
 - Entities use `@EntityListeners(AuditingEntityListener.class)` via `BaseEntity`
 - JPA Auditing configured in `common/config/JpaConfig`
 - Use Hibernate Spatial for location data (`common/domain/embeddable/Location`)
+
+## Custom Slash Commands
+
+This project provides custom Claude Code slash commands in `.claude/commands/`:
+
+- `/task [description] or [issue-number]`: Implement a complete feature end-to-end
+  - Fetches GitHub issue if number provided
+  - Follows architecture patterns and testing standards
+  - Runs quality checks (spotlessApply, check, build)
+
+- `/commit [additional-instructions]`: Create commit following project conventions
+  - Analyzes current changes
+  - Generates conventional commit message
+  - Uses github-manager agent
+
+- `/pr-create [issue-number]`: Create Pull Request linked to issue
+  - Analyzes branch changes and commits
+  - Follows project PR template
+  - Uses github-manager agent

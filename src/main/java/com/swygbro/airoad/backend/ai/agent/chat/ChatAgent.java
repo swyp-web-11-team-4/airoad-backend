@@ -14,7 +14,6 @@ import com.swygbro.airoad.backend.ai.agent.chat.dto.request.AiChatRequest;
 import com.swygbro.airoad.backend.ai.application.context.dto.ChatRoomContext;
 import com.swygbro.airoad.backend.ai.application.context.dto.ScheduledPlaceTagContext;
 import com.swygbro.airoad.backend.ai.application.context.dto.TripPlanQueryContext;
-import com.swygbro.airoad.backend.ai.application.tool.DailyPlanCommandTool;
 import com.swygbro.airoad.backend.ai.application.tool.PlaceVectorQueryTool;
 import com.swygbro.airoad.backend.ai.application.tool.ScheduledPlaceCommandTool;
 import com.swygbro.airoad.backend.ai.common.advisor.PromptMetadataAdvisor;
@@ -49,7 +48,6 @@ public class ChatAgent implements AiroadAgent {
       @Qualifier("openAiChatModel") ChatModel chatModel,
       ChatMemory chatMemory,
       ApplicationEventPublisher eventPublisher,
-      DailyPlanCommandTool dailyPlanCommandTool,
       ScheduledPlaceCommandTool scheduledPlaceCommandTool,
       PlaceVectorQueryTool placeVectorQueryTool,
       ContextManager contextManager) {
@@ -60,7 +58,7 @@ public class ChatAgent implements AiroadAgent {
             .defaultAdvisors(
                 MessageChatMemoryAdvisor.builder(chatMemory).build(),
                 PromptMetadataAdvisor.builder().build())
-            .defaultTools(dailyPlanCommandTool, scheduledPlaceCommandTool, placeVectorQueryTool)
+            .defaultTools(scheduledPlaceCommandTool, placeVectorQueryTool)
             .build();
   }
 

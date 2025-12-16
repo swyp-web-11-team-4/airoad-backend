@@ -143,7 +143,7 @@ public class TripPlanController implements TripPlanApi {
       @AuthenticationPrincipal UserPrincipal userPrincipal,
       @PathVariable Long tripPlanId,
       @PathVariable Integer dayNumber,
-      @RequestBody ScheduledPlaceSwapRequest request) {
+      @Valid @RequestBody ScheduledPlaceSwapRequest request) {
 
     scheduledPlaceCommandUseCase.swapScheduledPlaces(
         request.chatRoomId(),

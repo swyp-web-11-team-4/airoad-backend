@@ -1,3 +1,10 @@
+## [0.37.1](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.37.0...v0.37.1) (2025-12-16)
+
+
+### Bug Fixes
+
+* 불필요한 Tool 제거 및 경로, 거리 계산, 검색 로직 서비스 분리 ([#108](https://github.com/swyp-web-11-team-4/airoad-backend/issues/108)) ([a726d0d](https://github.com/swyp-web-11-team-4/airoad-backend/commit/a726d0db3349105f72bab29a1270ae47e9400a68))
+
 # [0.37.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.36.6...v0.37.0) (2025-12-16)
 
 

@@ -229,6 +229,7 @@ class ScheduledPlaceCommandServiceTest {
     Integer dayNumber = 1;
     Integer visitOrder = 1;
     Long newPlaceId = newPlace.getId();
+    String newSummary = "새로운 장소 요약";
 
     given(sha256Hasher.hash(member.getEmail())).willReturn(member.getEmailHash());
     given(tripPlanRepository.findByIdWithDetails(tripPlanId)).willReturn(Optional.of(tripPlan));
@@ -236,7 +237,7 @@ class ScheduledPlaceCommandServiceTest {
 
     // when
     scheduledPlaceCommandService.replaceScheduledPlace(
-        0L, tripPlanId, member.getEmail(), dayNumber, visitOrder, newPlaceId);
+        0L, tripPlanId, member.getEmail(), dayNumber, visitOrder, newPlaceId, newSummary);
 
     // then
     assertThat(scheduledPlace.getPlace().getId()).isEqualTo(newPlace.getId());

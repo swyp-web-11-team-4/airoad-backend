@@ -1,5 +1,7 @@
 package com.swygbro.airoad.backend.content.application;
 
+import java.util.List;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -7,7 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.swygbro.airoad.backend.content.domain.dto.response.PlaceResponse;
+import com.swygbro.airoad.backend.content.domain.vo.Coordinate;
 import com.swygbro.airoad.backend.content.domain.vo.Distance;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -79,6 +81,46 @@ class DistanceCalculationServiceTest {
   }
 
   @Nested
+  @DisplayName("경로 거리 계산 시")
+  class WhenCalculateRouteDistances {
+
+    @Test
+    @DisplayName("여러 좌표 목록에 대해 구간별 거리를 계산한다")
+    void shouldCalculateDistancesForMultipleCoordinates() {
+      // given
+      List<Coordinate> coordinates =
+          List.of(
+              new Coordinate(37.5547, 126.9716), // 서울역
+              new Coordinate(37.4979, 127.0276), // 강남역
+              new Coordinate(37.4602, 126.4407) // 인천공항
+              );
+
+      // when
+      List<Distance> distances = distanceCalculationService.calculateRouteDistances(coordinates);
+
+      // then
+      assertThat(distances).hasSize(2); // 구간은 2개
+      assertThat(distances.get(0).straightlineDistanceKm()).isGreaterThan(0);
+      assertThat(distances.get(1).straightlineDistanceKm()).isGreaterThan(0);
+    }
+
+    @Test
+    @DisplayName("좌표가 2개 미만이면 빈 리스트를 반환한다")
+    void shouldReturnEmptyListForInsufficientCoordinates() {
+      // given
+      List<Coordinate> singleList = List.of(new Coordinate(37.0, 127.0));
+
+      // when
+      List<Distance> result1 = distanceCalculationService.calculateRouteDistances(singleList);
+      List<Distance> result2 = distanceCalculationService.calculateRouteDistances(null);
+
+      // then
+      assertThat(result1).isEmpty();
+      assertThat(result2).isEmpty();
+    }
+  }
+
+  @Nested
   @DisplayName("이동거리 값 객체를 생성하면")
   class WhenCreateDistance {
 
@@ -110,9 +152,5 @@ class DistanceCalculationServiceTest {
       assertThat(result.straightlineDistanceKm()).isZero();
       assertThat(result.estimatedMinutes()).isZero();
     }
-  }
-
-  private PlaceResponse createPlaceResponse(Long id, Double latitude, Double longitude) {
-    return PlaceResponse.builder().id(id).latitude(latitude).longitude(longitude).build();
   }
 }

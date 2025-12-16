@@ -1,8 +1,12 @@
 package com.swygbro.airoad.backend.content.application;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.swygbro.airoad.backend.content.domain.dto.response.PlaceResponse;
+import com.swygbro.airoad.backend.content.domain.vo.Coordinate;
 import com.swygbro.airoad.backend.content.domain.vo.Distance;
 
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +24,29 @@ public class DistanceCalculationService implements DistanceCalculationUseCase {
     double straightDistanceKm = calculateHaversine(lat1, lon1, lat2, lon2);
     int estimatedMinutes = calculateEstimatedMinutes(straightDistanceKm);
     return new Distance(straightDistanceKm, estimatedMinutes);
+  }
+
+  @Override
+  public List<Distance> calculateRouteDistances(List<Coordinate> coordinates) {
+    List<Distance> distances = new ArrayList<>();
+    if (coordinates == null || coordinates.size() < 2) {
+      return distances;
+    }
+
+    for (int i = 0; i < coordinates.size() - 1; i++) {
+      Coordinate current = coordinates.get(i);
+      Coordinate next = coordinates.get(i + 1);
+
+      if (current != null && next != null) {
+        distances.add(
+            calculateDistance(
+                current.latitude(), current.longitude(), next.latitude(), next.longitude()));
+      } else {
+        log.warn("유효하지 않은 좌표(null)가 포함되어 있어 거리를 0으로 처리합니다: {} -> {}", current, next);
+        distances.add(new Distance(0.0, 0));
+      }
+    }
+    return distances;
   }
 
   private double calculateHaversine(double lat1, double lon1, double lat2, double lon2) {

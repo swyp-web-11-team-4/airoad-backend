@@ -2,7 +2,6 @@ package com.swygbro.airoad.backend.trip.application;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -14,7 +13,6 @@ import com.swygbro.airoad.backend.common.exception.BusinessException;
 import com.swygbro.airoad.backend.common.infrastructure.encryption.SHA256Hasher;
 import com.swygbro.airoad.backend.content.application.DistanceCalculationUseCase;
 import com.swygbro.airoad.backend.content.domain.entity.Place;
-import com.swygbro.airoad.backend.content.domain.vo.Distance;
 import com.swygbro.airoad.backend.content.infrastructure.repository.PlaceRepository;
 import com.swygbro.airoad.backend.trip.domain.dto.request.DailyPlanCreateRequest;
 import com.swygbro.airoad.backend.trip.domain.dto.request.ScheduledPlaceCreateRequest;
@@ -24,8 +22,6 @@ import com.swygbro.airoad.backend.trip.domain.entity.DailyPlan;
 import com.swygbro.airoad.backend.trip.domain.entity.ScheduledPlace;
 import com.swygbro.airoad.backend.trip.domain.entity.TripPlan;
 import com.swygbro.airoad.backend.trip.domain.event.DailyPlanSavedEvent;
-import com.swygbro.airoad.backend.trip.domain.event.TripPlanUpdateStartedEvent;
-import com.swygbro.airoad.backend.trip.domain.event.TripPlanUpdatedEvent;
 import com.swygbro.airoad.backend.trip.exception.TripErrorCode;
 import com.swygbro.airoad.backend.trip.infrastructure.TripPlanRepository;
 
@@ -130,139 +126,6 @@ public class DailyPlanCommandService implements DailyPlanCommandUseCase {
         tripPlanId,
         request.dayNumber(),
         savedTripPlan.getIsCompleted());
-  }
-
-  @Override
-  public void swapScheduledPlacesBetweenDays(
-      Long chatRoomId,
-      Long tripPlanId,
-      String username,
-      Integer dayNumberA,
-      Integer visitOrderA,
-      Integer dayNumberB,
-      Integer visitOrderB) {
-    log.info(
-        "[시작] swapScheduledPlacesBetweenDays - 사용자: {}, 여행 계획 ID: {}, {}일차 {}번 <-> {}일차 {}번",
-        username,
-        tripPlanId,
-        dayNumberA,
-        visitOrderA,
-        dayNumberB,
-        visitOrderB);
-
-    publishEvent(
-        TripPlanUpdateStartedEvent.builder()
-            .chatRoomId(chatRoomId)
-            .username(username)
-            .message(
-                "%d일차 %d번 <-> %d일차 %d번 장소 교환 요청을 수행합니다."
-                    .formatted(dayNumberA, visitOrderA, dayNumberB, visitOrderB))
-            .tripPlanId(tripPlanId)
-            .build());
-
-    DailyPlan dailyPlanA = validateAndGetDailyPlan(tripPlanId, username, dayNumberA);
-    DailyPlan dailyPlanB = validateAndGetDailyPlan(tripPlanId, username, dayNumberB);
-
-    ScheduledPlace placeA = getScheduledPlace(dailyPlanA, visitOrderA);
-    ScheduledPlace placeB = getScheduledPlace(dailyPlanB, visitOrderB);
-
-    Place tempPlace = placeA.getPlace();
-    Place placeBPlace = placeB.getPlace();
-    placeA.updatePlace(placeBPlace);
-    placeB.updatePlace(tempPlace);
-
-    // 양쪽 일차의 앞/뒤 거리 재계산
-    recalculatePrevAndNextDistance(dailyPlanA, placeA, visitOrderA, placeBPlace);
-    recalculatePrevAndNextDistance(dailyPlanB, placeB, visitOrderB, tempPlace);
-
-    log.info(
-        "[완료] swapScheduledPlacesBetweenDays - 여행 계획 ID: {}, {}일차 {}번 <-> {}일차 {}번 장소 교환 완료",
-        tripPlanId,
-        dayNumberA,
-        visitOrderA,
-        dayNumberB,
-        visitOrderB);
-
-    publishEvent(
-        TripPlanUpdatedEvent.builder()
-            .chatRoomId(chatRoomId)
-            .tripPlanId(tripPlanId)
-            .username(username)
-            .dailyPlan(DailyPlanResponse.of(dailyPlanA))
-            .build());
-
-    publishEvent(
-        TripPlanUpdatedEvent.builder()
-            .chatRoomId(chatRoomId)
-            .tripPlanId(tripPlanId)
-            .username(username)
-            .dailyPlan(DailyPlanResponse.of(dailyPlanB))
-            .build());
-  }
-
-  private DailyPlan validateAndGetDailyPlan(Long tripPlanId, String username, Integer dayNumber) {
-    TripPlan tripPlan =
-        tripPlanRepository
-            .findByIdWithDetails(tripPlanId)
-            .orElseThrow(() -> new BusinessException(TripErrorCode.TRIP_PLAN_NOT_FOUND));
-
-    if (!Objects.equals(tripPlan.getMember().getEmailHash(), sha256Hasher.hash(username))) {
-      throw new BusinessException(TripErrorCode.TRIP_PLAN_FORBIDDEN);
-    }
-
-    return tripPlan.getDailyPlans().stream()
-        .filter(dp -> dp.getDayNumber().equals(dayNumber))
-        .findFirst()
-        .orElseThrow(() -> new BusinessException(TripErrorCode.DAILY_PLAN_NOT_FOUND));
-  }
-
-  private ScheduledPlace getScheduledPlace(DailyPlan dailyPlan, Integer visitOrder) {
-    return dailyPlan.getScheduledPlaces().stream()
-        .filter(sp -> sp.getVisitOrder().equals(visitOrder))
-        .findFirst()
-        .orElseThrow(() -> new BusinessException(TripErrorCode.SCHEDULED_PLACE_NOT_FOUND));
-  }
-
-  private void recalculatePrevAndNextDistance(
-      DailyPlan dailyPlan, ScheduledPlace currentPlace, Integer visitOrder, Place newPlace) {
-    dailyPlan.getScheduledPlaces().stream()
-        .filter(sp -> sp.getVisitOrder().equals(visitOrder - 1))
-        .findFirst()
-        .ifPresent(
-            prevPlace -> recalculateTravelSegment(prevPlace, prevPlace.getPlace(), newPlace));
-
-    dailyPlan.getScheduledPlaces().stream()
-        .filter(sp -> sp.getVisitOrder().equals(visitOrder + 1))
-        .findFirst()
-        .ifPresent(
-            nextPlace -> recalculateTravelSegment(currentPlace, newPlace, nextPlace.getPlace()));
-  }
-
-  private void recalculateTravelSegment(
-      ScheduledPlace scheduledPlace, Place previousPlace, Place newPlace) {
-    double lat1 = previousPlace.getLocation().getPoint().getY();
-    double lon1 = previousPlace.getLocation().getPoint().getX();
-    double lat2 = newPlace.getLocation().getPoint().getY();
-    double lon2 = newPlace.getLocation().getPoint().getX();
-
-    Distance distance = distanceCalculationUseCase.calculateDistance(lat1, lon1, lat2, lon2);
-
-    TravelSegment updatedTravelSegment =
-        TravelSegment.builder()
-            .travelTime(distance.estimatedMinutes())
-            .transportation(
-                scheduledPlace.getTravelSegment() != null
-                    ? scheduledPlace.getTravelSegment().getTransportation()
-                    : null)
-            .build();
-
-    scheduledPlace.updateTravelSegment(updatedTravelSegment);
-
-    log.debug(
-        "[거리 재계산] 장소 ID: {}, 예상 이동시간: {}분, 거리: {}km",
-        scheduledPlace.getId(),
-        distance.estimatedMinutes(),
-        String.format("%.2f", distance.straightlineDistanceKm()));
   }
 
   private void publishEvent(Object event) {

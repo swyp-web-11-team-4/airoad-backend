@@ -1,5 +1,8 @@
 package com.swygbro.airoad.backend.content.application;
 
+import java.util.List;
+
+import com.swygbro.airoad.backend.content.domain.vo.Coordinate;
 import com.swygbro.airoad.backend.content.domain.vo.Distance;
 
 /** 거리 계산 비즈니스 로직을 정의하는 UseCase 인터페이스 */
@@ -15,4 +18,12 @@ public interface DistanceCalculationUseCase {
    * @return 거리 및 예상 이동 시간 정보
    */
   Distance calculateDistance(double lat1, double lon1, double lat2, double lon2);
+
+  /**
+   * 경로상의 좌표 목록을 받아 순차적인 구간별 거리와 이동 시간을 계산합니다. 반환 리스트의 크기는 (입력 리스트 크기 - 1)입니다.
+   *
+   * @param coordinates 경로상의 좌표 리스트
+   * @return 구간별 거리 및 예상 이동 시간 리스트
+   */
+  List<Distance> calculateRouteDistances(List<Coordinate> coordinates);
 }

@@ -896,5 +896,5 @@ public interface TripPlanApi {
           Long tripPlanId,
       @Parameter(description = "일차", required = true, example = "1") @PathVariable
           Integer dayNumber,
-      @RequestBody ScheduledPlaceSwapRequest request);
+      @Valid @RequestBody ScheduledPlaceSwapRequest request);
 }

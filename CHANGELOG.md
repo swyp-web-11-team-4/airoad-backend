@@ -1,3 +1,10 @@
+## [0.37.2](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.37.1...v0.37.2) (2025-12-17)
+
+
+### Bug Fixes
+
+* 일정 스왑 API에 @Valid 추가하여 제약 조건 위반 관련 버그 수정 ([#109](https://github.com/swyp-web-11-team-4/airoad-backend/issues/109)) ([d58f715](https://github.com/swyp-web-11-team-4/airoad-backend/commit/d58f715f8e56144351b123b89e69d26115592053))
+
 ## [0.37.1](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.37.0...v0.37.1) (2025-12-16)
 
 

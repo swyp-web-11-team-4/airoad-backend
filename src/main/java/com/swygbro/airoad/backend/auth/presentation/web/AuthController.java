@@ -13,7 +13,6 @@ import com.swygbro.airoad.backend.auth.domain.dto.request.ReissueTokenRequest;
 import com.swygbro.airoad.backend.auth.domain.dto.response.TokenResponse;
 import com.swygbro.airoad.backend.common.domain.dto.CommonResponse;
 
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,13 +20,13 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
-@Tag(name = "Auth", description = "회원 인증을 담당하는 API")
-public class AuthController {
+public class AuthController implements AuthApi {
 
   private static final String BEARER_PREFIX = "Bearer ";
 
   private final AuthUseCase authUseCase;
 
+  @Override
   @PostMapping("/reissue")
   public ResponseEntity<CommonResponse<TokenResponse>> reissueToken(
       @RequestBody ReissueTokenRequest request) {
@@ -38,6 +37,7 @@ public class AuthController {
     return ResponseEntity.ok(CommonResponse.success(HttpStatus.OK, tokenResponse));
   }
 
+  @Override
   @PostMapping("/logout")
   public ResponseEntity<Void> logout(@RequestHeader("Authorization") String accessToken) {
     authUseCase.logout(extractToken(accessToken));

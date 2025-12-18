@@ -27,17 +27,16 @@ import com.swygbro.airoad.backend.common.domain.dto.PageResponse;
 
 import lombok.RequiredArgsConstructor;
 
-/** AI 프롬프트 템플릿 관리를 위한 Admin API 컨트롤러 */
 @RestController
 @RequestMapping("/api/v1/admin/prompts")
 @RequiredArgsConstructor
 @Validated
-public class AiPromptTemplateAdminController {
+public class AiPromptTemplateAdminController implements AiPromptTemplateAdminApi {
 
   private final AiPromptTemplateCommandUseCase aiPromptTemplateCommandUseCase;
   private final AiPromptTemplateQueryUseCase aiPromptTemplateQueryUseCase;
 
-  /** AI 프롬프트 템플릿 목록을 페이지네이션하여 조회합니다. */
+  @Override
   @GetMapping
   public ResponseEntity<CommonResponse<PageResponse<AiPromptTemplateResponse>>> getPromptTemplates(
       @RequestParam(defaultValue = "0")
@@ -59,7 +58,7 @@ public class AiPromptTemplateAdminController {
     return ResponseEntity.ok(CommonResponse.success(HttpStatus.OK, templates));
   }
 
-  /** 특정 AI 프롬프트 템플릿을 조회합니다. */
+  @Override
   @GetMapping("/{promptId}")
   public ResponseEntity<CommonResponse<AiPromptTemplateResponse>> getPromptTemplate(
       @PathVariable Long promptId) {
@@ -67,7 +66,7 @@ public class AiPromptTemplateAdminController {
     return ResponseEntity.ok(CommonResponse.success(HttpStatus.OK, template));
   }
 
-  /** 새로운 AI 프롬프트 템플릿을 생성합니다. */
+  @Override
   @PostMapping
   public ResponseEntity<CommonResponse<AiPromptTemplateResponse>> createPromptTemplate(
       @RequestBody CreateAiPromptTemplateRequest request) {
@@ -77,15 +76,15 @@ public class AiPromptTemplateAdminController {
         .body(CommonResponse.success(HttpStatus.CREATED, response));
   }
 
-  /** 특정 AI 프롬프트 템플릿의 정보를 부분적으로 수정합니다. */
+  @Override
   @PatchMapping("/{promptId}")
   public ResponseEntity<Void> updatePromptTemplate(
       @PathVariable Long promptId, @RequestBody UpdateAiPromptTemplateRequest request) {
     aiPromptTemplateCommandUseCase.updatePromptTemplate(promptId, request);
-    return ResponseEntity.ok().build();
+    return ResponseEntity.noContent().build();
   }
 
-  /** 특정 AI 프롬프트 템플릿을 삭제합니다. */
+  @Override
   @DeleteMapping("/{promptId}")
   public ResponseEntity<Void> deletePromptTemplate(@PathVariable Long promptId) {
     aiPromptTemplateCommandUseCase.deletePromptTemplate(promptId);

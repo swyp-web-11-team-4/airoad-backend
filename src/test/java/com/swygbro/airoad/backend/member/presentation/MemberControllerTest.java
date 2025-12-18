@@ -113,6 +113,66 @@ class MemberControllerTest {
     }
   }
 
+  @Nested
+  @DisplayName("getCurrentMemberName 메서드는")
+  class GetCurrentMemberName {
+
+    @Test
+    @DisplayName("인증된 사용자의 이름만 조회하여 반환한다")
+    void shouldReturnCurrentMemberName() throws Exception {
+      // given
+      String email = "test@naver.com";
+      String name = "testName";
+      String imageUrl = "https://example.com/image.jpg";
+      String provider = "GOOGLE";
+      String role = "MEMBER";
+
+      Member member =
+          Member.builder()
+              .email(email)
+              .emailHash(hashSHA256(email))
+              .name(name)
+              .nameHash(hashSHA256(name))
+              .imageUrl(imageUrl)
+              .provider(ProviderType.GOOGLE)
+              .role(MemberRole.MEMBER)
+              .build();
+
+      UserPrincipal userPrincipal = new UserPrincipal(member);
+
+      UsernamePasswordAuthenticationToken authentication =
+          new UsernamePasswordAuthenticationToken(
+              userPrincipal, null, userPrincipal.getAuthorities());
+
+      SecurityContext context = SecurityContextHolder.createEmptyContext();
+      context.setAuthentication(authentication);
+      SecurityContextHolder.setContext(context);
+
+      MemberResponse expectedResponse =
+          MemberResponse.builder()
+              .id(1L)
+              .email(email)
+              .name(name)
+              .imageUrl(imageUrl)
+              .provider(provider)
+              .role(role)
+              .build();
+
+      given(memberUseCase.getMemberByEmail(email)).willReturn(expectedResponse);
+
+      // when & then
+      mockMvc
+          .perform(get("/api/v1/members/me/name"))
+          .andDo(print())
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.success").value(true))
+          .andExpect(jsonPath("$.status").value(HttpStatus.OK.value()))
+          .andExpect(jsonPath("$.data.name").value(name));
+
+      verify(memberUseCase).getMemberByEmail(email);
+    }
+  }
+
   private String hashSHA256(String input) {
     try {
       java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");

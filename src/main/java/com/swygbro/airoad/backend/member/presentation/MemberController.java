@@ -13,37 +13,18 @@ import com.swygbro.airoad.backend.member.application.MemberUseCase;
 import com.swygbro.airoad.backend.member.domain.dto.MemberNameResponse;
 import com.swygbro.airoad.backend.member.domain.dto.MemberResponse;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/members") // ✅ 복수형으로 변경
+@RequestMapping("/api/v1/members")
 @RequiredArgsConstructor
-public class MemberController {
+public class MemberController implements MemberApi {
 
   private final MemberUseCase memberUseCase;
 
-  @Operation(
-      summary = "현재 로그인한 사용자 정보 조회",
-      description = "JWT 토큰으로 인증된 사용자의 정보를 반환합니다.",
-      security = @SecurityRequirement(name = "bearerAuth"))
-  @ApiResponses(
-      value = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "현재 로그인한 사용자 정보 제공",
-            content =
-                @Content(
-                    mediaType = "application/json",
-                    schema = @Schema(implementation = MemberResponse.class)))
-      })
+  @Override
   @GetMapping(value = "/me")
   public ResponseEntity<CommonResponse<MemberResponse>> getCurrentMember(
       @AuthenticationPrincipal UserPrincipal userPrincipal) {
@@ -55,26 +36,14 @@ public class MemberController {
     return ResponseEntity.ok(CommonResponse.success(HttpStatus.OK, memberResponse));
   }
 
-  @Operation(
-      summary = "현재 로그인한 사용자 이름 조회",
-      description = "JWT 토큰으로 인증된 사용자의 이름만 반환합니다.",
-      security = @SecurityRequirement(name = "bearerAuth"))
-  @ApiResponses(
-      value = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "현재 로그인한 사용자 이름 제공",
-            content =
-                @Content(
-                    mediaType = "application/json",
-                    schema = @Schema(implementation = MemberNameResponse.class)))
-      })
+  @Override
   @GetMapping(value = "/me/name")
   public ResponseEntity<CommonResponse<MemberNameResponse>> getCurrentMemberName(
       @AuthenticationPrincipal UserPrincipal userPrincipal) {
 
-    // TODO: 구현 필요
-    MemberNameResponse response = null;
+    String email = userPrincipal.getUsername();
+    MemberResponse memberResponse = memberUseCase.getMemberByEmail(email);
+    MemberNameResponse response = new MemberNameResponse(memberResponse.name());
 
     return ResponseEntity.ok(CommonResponse.success(HttpStatus.OK, response));
   }

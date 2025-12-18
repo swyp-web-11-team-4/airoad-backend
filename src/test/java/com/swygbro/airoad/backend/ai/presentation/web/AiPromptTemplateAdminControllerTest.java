@@ -221,7 +221,7 @@ class AiPromptTemplateAdminControllerTest {
               patch("/api/v1/admin/prompts/{promptId}", promptId)
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(objectMapper.writeValueAsString(request)))
-          .andExpect(status().isOk());
+          .andExpect(status().isNoContent());
     }
 
     @Test
@@ -242,7 +242,7 @@ class AiPromptTemplateAdminControllerTest {
               patch("/api/v1/admin/prompts/{promptId}", promptId)
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(objectMapper.writeValueAsString(request)))
-          .andExpect(status().isOk());
+          .andExpect(status().isNoContent());
     }
 
     @Test

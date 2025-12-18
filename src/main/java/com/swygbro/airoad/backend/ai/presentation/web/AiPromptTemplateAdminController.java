@@ -81,7 +81,7 @@ public class AiPromptTemplateAdminController implements AiPromptTemplateAdminApi
   public ResponseEntity<Void> updatePromptTemplate(
       @PathVariable Long promptId, @RequestBody UpdateAiPromptTemplateRequest request) {
     aiPromptTemplateCommandUseCase.updatePromptTemplate(promptId, request);
-    return ResponseEntity.ok().build();
+    return ResponseEntity.noContent().build();
   }
 
   @Override

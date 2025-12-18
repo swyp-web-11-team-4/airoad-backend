@@ -130,6 +130,7 @@ public interface AiPromptTemplateAdminApi {
       @Parameter(description = "페이지당 조회할 개수", example = "10")
           @RequestParam(defaultValue = "10")
           @Min(value = 1, message = "페이지 사이즈는 1 이상이어야 합니다.")
+          @Max(value = 100, message = "페이지 사이즈는 100 이하여야 합니다.")
           int size,
       @Parameter(description = "정렬 기준 필드", example = "createdAt")
           @RequestParam(defaultValue = "createdAt", required = false)
@@ -315,7 +316,7 @@ public interface AiPromptTemplateAdminApi {
             """,
       security = @SecurityRequirement(name = "bearerAuth"))
   @ApiResponses({
-    @ApiResponse(responseCode = "200", description = "수정 성공"),
+    @ApiResponse(responseCode = "204", description = "수정 성공"),
     @ApiResponse(
         responseCode = "400",
         description = "잘못된 요청",

@@ -1,16 +1,9 @@
 package com.swygbro.airoad.backend.ai.infrastructure.interceptor;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,6 +14,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpResponse;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class ClovaStudioChatInterceptorTest {
@@ -79,7 +81,8 @@ class ClovaStudioChatInterceptorTest {
             }
             """;
 
-    String resultBody = interceptAndGetBody("https://api.openai.com/v1/chat/completions", originalBody);
+    String resultBody =
+        interceptAndGetBody("https://api.openai.com/v1/chat/completions", originalBody);
     assertThat(resultBody).isEqualTo(originalBody);
   }
 
@@ -172,7 +175,10 @@ class ClovaStudioChatInterceptorTest {
 
     given(request.getURI()).willReturn(targetUri);
 
-    assertThatThrownBy(() -> interceptor.intercept(request, malformedBody.getBytes(StandardCharsets.UTF_8), execution))
+    assertThatThrownBy(
+            () ->
+                interceptor.intercept(
+                    request, malformedBody.getBytes(StandardCharsets.UTF_8), execution))
         .isInstanceOf(IOException.class);
   }
 

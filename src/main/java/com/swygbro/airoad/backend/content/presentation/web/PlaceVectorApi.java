@@ -23,8 +23,7 @@ public interface PlaceVectorApi {
 
   @Operation(
       summary = "장소 데이터 벡터 임베딩 생성",
-      description =
-          """
+      description = """
             장소(Place) 데이터를 임베딩 처리하여 벡터 스토어에 저장합니다.
             """,
       security = @SecurityRequirement(name = "bearerAuth"))
@@ -89,8 +88,7 @@ public interface PlaceVectorApi {
 
   @Operation(
       summary = "특정 장소 벡터 임베딩 생성",
-      description =
-          """
+      description = """
             지정된 장소(ID)에 대해 임베딩을 생성하고 이를 벡터 스토어에 저장합니다.
             """,
       security = @SecurityRequirement(name = "bearerAuth"))

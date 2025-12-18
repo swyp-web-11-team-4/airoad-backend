@@ -310,8 +310,7 @@ public interface AiPromptTemplateAdminApi {
 
   @Operation(
       summary = "AI 프롬프트 템플릿 수정",
-      description =
-          """
+      description = """
             특정 AI 프롬프트 템플릿의 정보를 부분적으로 수정합니다.
             """,
       security = @SecurityRequirement(name = "bearerAuth"))

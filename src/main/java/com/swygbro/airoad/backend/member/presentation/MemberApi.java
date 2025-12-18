@@ -22,8 +22,7 @@ public interface MemberApi {
 
   @Operation(
       summary = "현재 로그인한 사용자 정보 조회",
-      description =
-          """
+      description = """
             JWT 토큰으로 인증된 사용자의 전체 정보를 반환합니다.
             """,
       security = @SecurityRequirement(name = "bearerAuth"))
@@ -103,8 +102,7 @@ public interface MemberApi {
 
   @Operation(
       summary = "현재 로그인한 사용자 이름 조회",
-      description =
-          """
+      description = """
             JWT 토큰으로 인증된 사용자의 이름만 반환합니다.
             """,
       security = @SecurityRequirement(name = "bearerAuth"))

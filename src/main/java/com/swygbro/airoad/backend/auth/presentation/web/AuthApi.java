@@ -23,8 +23,7 @@ public interface AuthApi {
 
   @Operation(
       summary = "액세스 토큰 재발급",
-      description =
-          """
+      description = """
             리프레시 토큰을 사용하여 새로운 액세스 토큰과 리프레시 토큰을 발급받습니다.
             """)
   @ApiResponses({
@@ -123,8 +122,7 @@ public interface AuthApi {
 
   @Operation(
       summary = "로그아웃",
-      description =
-          """
+      description = """
             현재 로그인된 사용자를 로그아웃 처리합니다.
             """,
       security = @SecurityRequirement(name = "bearerAuth"))

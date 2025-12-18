@@ -65,7 +65,7 @@ class ClovaStudioChatInterceptorTest {
     assertThat(resultNode.has("$schema")).isFalse();
     assertThat(resultNode.has("additionalProperties")).isFalse();
     assertThat(resultNode.has("model")).isTrue();
-    assertThat(resultNode.get("model").asText()).isEqualTo("HCX-003");
+    assertThat(resultNode.get("model").asText()).isEqualTo("HCX-002");
   }
 
   @Test

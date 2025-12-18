@@ -1,3 +1,10 @@
+# [0.38.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.37.2...v0.38.0) (2025-12-18)
+
+
+### Features
+
+* 누락된 API Docs 추가 및 컨트롤러 인터페이스 분리 ([#111](https://github.com/swyp-web-11-team-4/airoad-backend/issues/111)) ([e68865b](https://github.com/swyp-web-11-team-4/airoad-backend/commit/e68865bc7d718390b082ae22f67edda81ea9f05d))
+
 ## [0.37.2](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.37.1...v0.37.2) (2025-12-17)
 
 

@@ -71,10 +71,16 @@ public class PromptMetadataAdvisor implements CallAdvisor, StreamAdvisor {
 
     Prompt augmentedPrompt = chatClientRequest.prompt();
     if (!systemText.isEmpty()) {
-      augmentedPrompt = augmentedPrompt.augmentSystemMessage(systemText);
+      augmentedPrompt =
+          augmentedPrompt.augmentSystemMessage(
+              systemMessage ->
+                  systemMessage.mutate().text(systemMessage.getText() + "\n" + systemText).build());
     }
     if (!userText.isEmpty()) {
-      augmentedPrompt = augmentedPrompt.augmentUserMessage(userText);
+      augmentedPrompt =
+          augmentedPrompt.augmentUserMessage(
+              userMessage ->
+                  userMessage.mutate().text(userMessage.getText() + "\n" + userText).build());
     }
 
     return chatClientRequest.mutate().prompt(augmentedPrompt).build();

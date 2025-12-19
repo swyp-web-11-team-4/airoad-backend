@@ -1,3 +1,10 @@
+## [0.38.1](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.38.0...v0.38.1) (2025-12-19)
+
+
+### Bug Fixes
+
+* 채팅 에이전트 사용자 태그가 제대로 적용되지 않던 버그 수정 ([#112](https://github.com/swyp-web-11-team-4/airoad-backend/issues/112)) ([965f311](https://github.com/swyp-web-11-team-4/airoad-backend/commit/965f311d3a7a796f4b5586b81d786fac7d8853e4))
+
 # [0.38.0](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.37.2...v0.38.0) (2025-12-18)
 
 

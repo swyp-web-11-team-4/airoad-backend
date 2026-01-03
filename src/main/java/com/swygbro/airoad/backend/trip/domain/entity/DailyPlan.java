@@ -15,8 +15,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 
-import org.hibernate.annotations.BatchSize;
-
 import com.swygbro.airoad.backend.common.domain.entity.BaseEntity;
 
 import lombok.AccessLevel;
@@ -50,7 +48,6 @@ public class DailyPlan extends BaseEntity {
   private TripPlan tripPlan;
 
   /** 예정된 방문 장소 목록 */
-  @BatchSize(size = 10)
   @OneToMany(mappedBy = "dailyPlan", cascade = CascadeType.ALL, orphanRemoval = true)
   @OrderBy("visitOrder asc")
   private List<ScheduledPlace> scheduledPlaces = new ArrayList<>();

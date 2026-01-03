@@ -1,3 +1,10 @@
+## [0.38.2](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.38.1...v0.38.2) (2026-01-03)
+
+
+### Bug Fixes
+
+* n+1 문제 수정을 위한 jpa batch size 설정 추가 ([#113](https://github.com/swyp-web-11-team-4/airoad-backend/issues/113)) ([e90b5cf](https://github.com/swyp-web-11-team-4/airoad-backend/commit/e90b5cf09e51f44499696144179faf62a785c614))
+
 ## [0.38.1](https://github.com/swyp-web-11-team-4/airoad-backend/compare/v0.38.0...v0.38.1) (2025-12-19)
 
 
